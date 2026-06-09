@@ -2,6 +2,5 @@
   "buildCommand": "cd Front-end/UISaaS && npm ci && npx next build",
   "outputDirectory": "Front-end/UISaaS/.next",
   "installCommand": "cd Front-end/UISaaS && npm ci",
-  "framework": "nextjs",
-  "nodeVersion": "22.x"
+  "framework": "nextjs"
 }
