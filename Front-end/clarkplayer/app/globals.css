@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* ── Backgrounds ─────────────────────────────────────────────── */
+  --color-bg-primary: #0A0A0F;
+  --color-bg-secondary: #12121A;
+  --color-bg-tertiary: #1C1C28;
+
+  /* ── Accent ──────────────────────────────────────────────────── */
+  --color-accent: #6366F1;
+  --color-accent-hover: #818CF8;
+
+  /* ── Text ───────────────────────────────────────────────────── */
+  --color-muted: #71717A;
+  --color-body: #E4E4E7;
+  --color-heading: #FAFAFA;
+
+  /* ── Status ────────────────────────────────────────────────── */
+  --color-danger: #EF4444;
+  --color-success: #22C55E;
+
+  /* ── Typography ─────────────────────────────────────────────── */
+  --font-display: var(--font-nunito), var(--font-geist-sans);
+  --font-sans: var(--font-nunito), var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* ── Radius ─────────────────────────────────────────────────── */
+  --radius-card: 12px;
+  --radius-button: 8px;
+  --radius-pill: 9999px;
+  --radius-input: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-body);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Custom scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-bg-tertiary);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a2a3a;
+}
+
+/* ── Focus ring (WCAG AA) ─────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ── Range input base reset ───────────────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* ── Skeleton shimmer animation ─────────────────────────────── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-tertiary) 25%,
+    #252536 50%,
+    var(--color-bg-tertiary) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ── Live region ─────────────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

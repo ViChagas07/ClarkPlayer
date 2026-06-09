@@ -1,0 +1,45 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Home, Library, Search, Settings } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const tabs = [
+  { href: "/", label: "Home", icon: Home },
+  { href: "/library", label: "Library", icon: Library },
+  { href: "/search", label: "Search", icon: Search },
+  { href: "/settings", label: "Settings", icon: Settings },
+];
+
+export function BottomNav() {
+  const pathname = usePathname();
+
+  return (
+    <nav
+      aria-label="Mobile navigation"
+      className="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-bg-secondary border-t border-white/5"
+    >
+      <div className="flex items-center justify-around h-16 px-2">
+        {tabs.map(({ href, label, icon: Icon }) => {
+          const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 w-16 h-14 rounded-lg",
+                "transition-all duration-200 text-xs",
+                isActive ? "text-accent" : "text-muted hover:text-body"
+              )}
+            >
+              <Icon size={20} />
+              <span className="font-medium">{label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}

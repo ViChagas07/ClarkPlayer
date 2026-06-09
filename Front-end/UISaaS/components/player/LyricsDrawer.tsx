@@ -1,0 +1,157 @@
+'use client'
+
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { X, Edit2, Save, Sparkles } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import type { LyricLine } from '@/types'
+import { mockLyrics } from '@/lib/mockData'
+
+interface LyricsDrawerProps {
+  isOpen: boolean
+  onClose: () => void
+  trackTitle?: string
+}
+
+export function LyricsDrawer({ isOpen, onClose, trackTitle }: LyricsDrawerProps) {
+  const [karaokeMode, setKaraokeMode] = useState(false)
+  const [editMode, setEditMode] = useState(false)
+  const [lyricsText, setLyricsText] = useState('')
+  const [currentTime, setCurrentTime] = useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const activeLineRef = useRef<HTMLDivElement>(null)
+
+  const lyrics: LyricLine[] = mockLyrics
+
+  useEffect(() => {
+    if (!isOpen) return
+    const interval = setInterval(() => {
+      setCurrentTime((t) => (t >= 110 ? 0 : t + 0.5))
+    }, 500)
+    return () => clearInterval(interval)
+  }, [isOpen])
+
+  const activeIndex = lyrics.reduce((acc, line, i) => {
+    if (currentTime >= line.timestamp) return i
+    return acc
+  }, 0)
+
+  useEffect(() => {
+    if (!karaokeMode && activeLineRef.current && containerRef.current) {
+      const container = containerRef.current
+      const line = activeLineRef.current
+      const containerRect = container.getBoundingClientRect()
+      const lineRect = line.getBoundingClientRect()
+      if (lineRect.top < containerRect.top || lineRect.bottom > containerRect.bottom) {
+        line.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }
+  }, [activeIndex, karaokeMode])
+
+  useEffect(() => {
+    if (editMode) {
+      setLyricsText(lyrics.map((l) => l.text).join('\n'))
+    }
+  }, [editMode, lyrics])
+
+  const handleSave = useCallback(() => {
+    const lines = lyricsText.split('\n').map((text, i) => ({
+      timestamp: lyrics[i]?.timestamp ?? i * 4,
+      text,
+    }))
+    localStorage.setItem(`clark_lyrics_${trackTitle}`, JSON.stringify(lines))
+    setEditMode(false)
+  }, [lyricsText, trackTitle, lyrics])
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-modal bg-clark-bg-secondary/95 backdrop-blur-xl flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-clark-steel/20">
+        <div>
+          {/* font-display tracking-wider */}
+          <h2 className="font-display tracking-wider text-lg text-clark-text-primary">Lyrics</h2>
+          {trackTitle && <p className="font-body text-sm text-clark-text-muted">{trackTitle}</p>}
+        </div>
+        <div className="flex items-center gap-2">
+          {/* font-condensed uppercase tracking-widest text-xs */}
+          <button
+            onClick={() => setKaraokeMode(!karaokeMode)}
+            className={cn(
+              'flex items-center gap-2 px-3 py-2 rounded-lg font-condensed text-xs uppercase tracking-widest transition-all',
+              karaokeMode
+                ? 'bg-clark-gold text-clark-shadow shadow-glow-gold'
+                : 'bg-clark-bg-card text-clark-text-muted hover:text-clark-gold border border-clark-steel/30 hover:border-clark-gold/40',
+            )}
+          >
+            <Sparkles className="w-4 h-4" />
+            Karaoke
+          </button>
+          <button
+            onClick={() => editMode ? handleSave() : setEditMode(true)}
+            className="p-2 text-clark-text-muted hover:text-clark-gold transition-colors rounded-lg hover:bg-clark-bg-card"
+            aria-label={editMode ? 'Save lyrics' : 'Edit lyrics'}
+          >
+            {editMode ? <Save className="w-5 h-5" /> : <Edit2 className="w-5 h-5" />}
+          </button>
+          <button onClick={onClose} className="p-2 text-clark-text-muted hover:text-clark-text-primary transition-colors rounded-lg hover:bg-clark-bg-card" aria-label="Close lyrics">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-hidden">
+        {karaokeMode ? (
+          <div className="flex flex-col items-center justify-center h-full px-12 text-center">
+            {activeIndex > 0 && (
+              /* font-body text-xl text-clark-text-muted transition-all duration-500 -translate-y-4 opacity-50 */
+              <p className="font-body text-xl text-clark-text-muted mb-4 transition-all duration-500 -translate-y-4 opacity-50">
+                {lyrics[activeIndex - 1]?.text}
+              </p>
+            )}
+            {/* font-display text-5xl tracking-widest uppercase text-clark-gold transition-all duration-300 scale-105 animate-gold-pulse */}
+            <p className="font-display text-5xl tracking-widest uppercase text-clark-gold transition-all duration-300 scale-105 animate-gold-pulse">
+              {lyrics[activeIndex]?.text || '...'}
+            </p>
+            {activeIndex < lyrics.length - 1 && (
+              /* font-body text-xl text-clark-text-muted transition-all duration-500 translate-y-4 opacity-50 */
+              <p className="font-body text-xl text-clark-text-muted mt-4 transition-all duration-500 translate-y-4 opacity-50">
+                {lyrics[activeIndex + 1]?.text}
+              </p>
+            )}
+          </div>
+        ) : editMode ? (
+          <div className="h-full p-6">
+            <textarea
+              value={lyricsText}
+              onChange={(e) => setLyricsText(e.target.value)}
+              className="w-full h-full bg-transparent font-body text-lg leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-clark-gold/30 rounded-lg p-4 border border-clark-steel/20 text-clark-text-primary"
+              placeholder="Enter lyrics..."
+            />
+          </div>
+        ) : (
+          <div ref={containerRef} className="h-full overflow-y-auto px-6 py-8 space-y-3">
+            {lyrics.map((line, i) => (
+              <div
+                key={i}
+                ref={i === activeIndex ? activeLineRef : null}
+                className={cn(
+                  'font-body text-lg transition-all duration-300 py-1',
+                  i === activeIndex
+                    ? 'text-clark-gold font-bold scale-105'
+                    : line.text === ''
+                    ? 'h-6'
+                    : 'text-clark-text-muted/70',
+                  i === activeIndex ? 'text-clark-gold' : 'text-clark-text-muted',
+                )}
+              >
+                {line.text || '\u00A0'}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
