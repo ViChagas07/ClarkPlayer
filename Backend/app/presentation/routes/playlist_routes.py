@@ -4,11 +4,12 @@ Playlist management routes.
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, status
 
 from app.application.services.playlist_service import PlaylistService
 from app.core.dependencies import CurrentUserId, SessionDep
 from app.core.exceptions import NotFoundError
+from app.domain.entities import Playlist
 from app.infrastructure.repositories.playlist_repository import PlaylistRepository
 from app.presentation.schemas.playlist import (
     AddTrackRequest,
@@ -26,7 +27,7 @@ def _playlist_service(session: SessionDep) -> PlaylistService:
     return PlaylistService(PlaylistRepository(session))
 
 
-def _playlist_to_response(playlist, track_count: int = 0) -> PlaylistResponse:
+def _playlist_to_response(playlist: Playlist, track_count: int = 0) -> PlaylistResponse:
     return PlaylistResponse(
         id=str(playlist.id),
         name=playlist.name,

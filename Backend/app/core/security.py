@@ -12,10 +12,10 @@ Security utilities — JWT (signing), JWE (encryption), and password hashing.
 
 import json
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from joserfc import jwe, jwt, jwk
+from joserfc import jwe, jwk, jwt
 from joserfc.errors import BadSignatureError, DecodeError
 from passlib.context import CryptContext
 
@@ -28,12 +28,12 @@ _pwd_context = CryptContext(schemes=get_settings().PASSWORD_HASH_SCHEMES, deprec
 # Functions for hashing and verifying passwords, using the configured schemes (bcrypt by default).
 def hash_password(plain: str) -> str:
     """Return a bcrypt hash of *plain*."""
-    return _pwd_context.hash(plain)
+    return _pwd_context.hash(plain)  # type: ignore[no-any-return]
 
-# Verify a plaintext password against a stored hash, returning True if they match.
+
 def verify_password(plain: str, hashed: str) -> bool:
     """Return ``True`` when *plain* matches the stored *hashed* value."""
-    return _pwd_context.verify(plain, hashed)
+    return _pwd_context.verify(plain, hashed)  # type: ignore[no-any-return]
 
 
 # JWT helpers 
@@ -47,7 +47,7 @@ def _jwt_key() -> jwk.OctKey:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 # Manual expiration validation since joserfc does not auto-validate the exp claim.
 def _validate_exp(payload: dict[str, Any]) -> None:
@@ -161,7 +161,7 @@ def get_token_expiry(token: str) -> datetime | None:
     """Extract the expiration time from a token without full validation."""
     claims = decode_token_unsafe(token)
     if claims and "exp" in claims:
-        return datetime.fromtimestamp(claims["exp"], tz=timezone.utc)
+        return datetime.fromtimestamp(claims["exp"], tz=UTC)
     return None
 
 
@@ -223,7 +223,10 @@ def decrypt_token(token: str) -> dict[str, Any]:
     """Decrypt a JWE token and return its payload as a Python dict."""
     rsa_key = _get_jwe_key()
     decoded = jwe.decrypt_compact(token, rsa_key)
-    return json.loads(decoded.plaintext)
+    plaintext = decoded.plaintext
+    if plaintext is None:
+        raise ValueError("JWE decryption returned no plaintext")
+    return json.loads(plaintext)  # type: ignore[no-any-return]
 
 
 # Re-export errors so callers can import from one place. Basically, all of this module is the "security" module, so it makes sense to have a 

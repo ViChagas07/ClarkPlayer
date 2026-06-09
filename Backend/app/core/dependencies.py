@@ -5,7 +5,6 @@ Every dependency is a callable that can be used with ``Depends()``,
 making routes thin and keeping business logic out of the presentation layer.
 """
 
-from collections.abc import AsyncGenerator
 from typing import Annotated
 from uuid import UUID
 
@@ -16,7 +15,6 @@ from app.core.exceptions import CredentialsError, TokenInvalidError
 from app.core.security import decode_access_token
 from app.infrastructure.database import get_async_session
 from app.infrastructure.repositories.user_repository import UserRepository
-
 
 # Database session 
 

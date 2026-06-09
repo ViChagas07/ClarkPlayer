@@ -7,8 +7,7 @@ implementations, following the **Dependency Inversion Principle**.
 
 import logging
 import secrets
-import uuid
-from datetime import datetime, timedelta, timezone
+from typing import Any
 from uuid import UUID
 
 import httpx
@@ -67,7 +66,7 @@ class AuthService:
         )
         return await self._user_repo.create(user)
 
-    async def login(self, *, email: str, password: str) -> dict:
+    async def login(self, *, email: str, password: str) -> dict[str, Any]:
         """
         Authenticate a user and return an access + refresh token pair.
 
@@ -88,22 +87,6 @@ class AuthService:
             "refresh_token": refresh_token,
             "token_type": "bearer",
         }
-
-    async def refresh_access_token(self, refresh_token: str) -> dict:
-        """Issue a new access token using a valid refresh token."""
-        claims = decode_refresh_token(refresh_token)
-
-        user_id_str = claims.get("sub")
-        if not user_id_str:
-            raise CredentialsError("Invalid refresh token payload.")
-
-        user_id = UUID(user_id_str)
-        user = await self._user_repo.get_by_id(user_id)
-        if user is None or not user.is_active:
-            raise CredentialsError("User no longer exists or is deactivated.")
-
-        new_access_token = create_access_token(str(user.id))
-        return {"access_token": new_access_token, "token_type": "bearer"}
 
     async def get_current_user(self, user_id: UUID) -> User:
         """Return the user entity for the authenticated principal."""
@@ -182,7 +165,7 @@ class AuthService:
 
     # ── Logout & Token Blacklisting ──────────────────────────────────────
 
-    async def logout(self, refresh_token: str | None = None) -> dict:
+    async def logout(self, refresh_token: str | None = None) -> dict[str, Any]:
         """
         Logout a user by blacklisting their refresh token.
         
@@ -229,7 +212,7 @@ class AuthService:
 
         return await self._blacklist_repo.is_blacklisted(token_jti)
 
-    async def refresh_access_token(self, refresh_token: str) -> dict:
+    async def refresh_access_token(self, refresh_token: str) -> dict[str, Any]:
         """
         Issue a new access token using a valid refresh token.
         
@@ -255,7 +238,7 @@ class AuthService:
 
     # ── Google OIDC ──────────────────────────────────────────────────────
 
-    async def handle_google_callback(self, code: str) -> dict:
+    async def handle_google_callback(self, code: str) -> dict[str, Any]:
         """
         Exchange the Google authorization ``code`` for tokens, verify the
         ID token with Google, and return our own JWT pair plus user info.

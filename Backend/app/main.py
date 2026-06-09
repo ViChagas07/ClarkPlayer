@@ -6,7 +6,9 @@ Run with::
     uvicorn app.main:app --reload
 """
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any, cast, Awaitable
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,7 +25,7 @@ _settings = get_settings()
 
 
 @asynccontextmanager
-async def lifespan(application: FastAPI):
+async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     """Startup / shutdown lifecycle."""
     import logging
 
@@ -94,7 +96,7 @@ app.include_router(api_router)
 
 
 @app.get("/health", tags=["System"])
-async def health_check() -> dict:
+async def health_check() -> dict[str, Any]:
     """Liveness probe with Redis connectivity check."""
     result = {
         "status": "ok",
@@ -106,7 +108,7 @@ async def health_check() -> dict:
     try:
         from app.core.redis import get_session_redis
         redis = await get_session_redis()
-        await redis.ping()
+        await cast(Awaitable[bool], redis.ping())
     except Exception:
         result["redis"] = "unreachable"
         result["status"] = "degraded"

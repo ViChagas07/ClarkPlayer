@@ -14,7 +14,6 @@ from uuid import UUID, uuid4
 
 from app.domain.enums import AudioFormat, PlaylistVisibility
 
-
 # ── User ──────────────────────────────────────────────────────────────────
 
 

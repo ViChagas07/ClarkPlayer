@@ -5,7 +5,7 @@ Playlist service — create, update, delete playlists and manage their tracks.
 from uuid import UUID
 
 from app.application.interfaces.repositories import IPlaylistRepository
-from app.core.exceptions import ConflictError, NotFoundError
+from app.core.exceptions import NotFoundError
 from app.domain.entities import Playlist, Track
 from app.domain.enums import PlaylistVisibility
 

@@ -19,7 +19,7 @@ _RATE_LIMITS: dict[str, tuple[int, float]] = {
 
 # Simple token-bucket implementation using in-memory state
 # (avoids Redis roundtrips for rate limiting on a single server)
-_buckets: dict[str, tuple[float, int, int]] = {}
+_buckets: dict[str, tuple[float, float, int]] = {}
 
 
 async def rate_limited(source: str) -> None:

@@ -4,13 +4,15 @@ Concrete SQLAlchemy implementation for token blacklist operations.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import delete, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.models.token_blacklist import TokenBlacklistModel
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TokenBlacklistRepository:
@@ -31,7 +33,7 @@ class TokenBlacklistRepository:
             token_jti=token_jti,
             user_id=user_id,
             expires_at=expires_at,
-            revoked_at=datetime.now(timezone.utc),
+            revoked_at=datetime.now(UTC),
             reason=reason,
         )
         self._session.add(model)
@@ -51,13 +53,13 @@ class TokenBlacklistRepository:
         Returns the number of deleted records.
         """
         if before is None:
-            before = datetime.now(timezone.utc)
+            before = datetime.now(UTC)
         
         result = await self._session.execute(
             delete(TokenBlacklistModel).where(TokenBlacklistModel.expires_at < before)
         )
         await self._session.flush()
-        return result.rowcount or 0
+        return result.rowcount or 0  # type: ignore[attr-defined]
 
     async def get_user_blacklisted_tokens(self, user_id: str) -> list[dict[str, Any]]:
         """Get all blacklisted tokens for a user."""
@@ -95,8 +97,7 @@ class TokenBlacklistRepository:
         # For a full implementation, we'd track all issued tokens
         # For now, we'll just blacklist any known tokens for this user
         if expires_at is None:
-            from app.core.config import get_settings
-            expires_at = datetime.now(timezone.utc)
+            expires_at = datetime.now(UTC)
             # Set far future expiration to ensure blacklisting works
             from datetime import timedelta
             expires_at = expires_at + timedelta(days=30)

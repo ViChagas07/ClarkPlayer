@@ -9,6 +9,8 @@ import json
 import logging
 from typing import Any
 
+import httpx
+
 from app.core.redis import get_cache_redis
 from app.services.music.ratelimit import rate_limited
 
@@ -22,15 +24,15 @@ CACHE_TTL = 86400  # 24 hours
 class MusicBrainzClient:
     """Async client for the MusicBrainz Web Service v2."""
 
-    def __init__(self, client):
+    def __init__(self, client: httpx.AsyncClient) -> None:
         self.client = client
 
-    async def _cached_get(self, cache_key: str, url: str, params: dict | None = None) -> dict | None:
+    async def _cached_get(self, cache_key: str, url: str, params: dict[str, Any] | None = None) -> dict[str, Any] | None:
         """Fetch with Redis caching and rate limiting."""
         redis = await get_cache_redis()
         cached = await redis.get(cache_key)
         if cached:
-            return json.loads(cached)
+            return json.loads(cached)  # type: ignore[no-any-return]
 
         await rate_limited("musicbrainz")
         try:
@@ -43,7 +45,7 @@ class MusicBrainzClient:
             response.raise_for_status()
             data = response.json()
             await redis.setex(cache_key, CACHE_TTL, json.dumps(data))
-            return data
+            return data  # type: ignore[no-any-return]
         except Exception as exc:
             logger.warning("MusicBrainz request failed: %s %s", url, exc)
             return None
@@ -58,7 +60,7 @@ class MusicBrainzClient:
         )
         if not data:
             return []
-        return data.get("artists", [])
+        return data.get("artists", [])  # type: ignore[no-any-return]
 
     async def get_artist(self, mbid: str) -> dict[str, Any] | None:
         """Get detailed artist info by MusicBrainz ID."""
@@ -79,7 +81,7 @@ class MusicBrainzClient:
         )
         if not data:
             return []
-        return data.get("releases", [])
+        return data.get("releases", [])  # type: ignore[no-any-return]
 
     async def get_release(self, mbid: str) -> dict[str, Any] | None:
         """Get detailed release info by MusicBrainz ID."""
@@ -100,7 +102,7 @@ class MusicBrainzClient:
         )
         if not data:
             return []
-        return data.get("recordings", [])
+        return data.get("recordings", [])  # type: ignore[no-any-return]
 
     async def get_recording(self, mbid: str) -> dict[str, Any] | None:
         """Get detailed recording info by MusicBrainz ID."""

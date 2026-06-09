@@ -4,16 +4,17 @@ SQLAlchemy ORM model for the ``tracks`` table (audio files).
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime  # noqa: TC003
 from typing import TYPE_CHECKING
 
 from sqlalchemy import BigInteger, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID  # noqa: TC002
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.models.base import Base, TimestampMixin, pk_column
 
 if TYPE_CHECKING:
+    from app.infrastructure.models.playlist import PlaylistTrackModel
     from app.infrastructure.models.user import UserModel
 
 
@@ -21,7 +22,7 @@ class TrackModel(Base, TimestampMixin):
     __tablename__ = "tracks"
 
     id = pk_column()
-    user_id: Mapped[UUID] = mapped_column(
+    user_id: Mapped[UUID] = mapped_column(  # type: ignore[type-arg]
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     title: Mapped[str] = mapped_column(String(300), nullable=False)
@@ -40,7 +41,7 @@ class TrackModel(Base, TimestampMixin):
 
     # ── Relationships ─────────────────────────────────────────────────
     owner: Mapped[UserModel] = relationship(back_populates="tracks")
-    playlist_associations: Mapped[list[PlaylistTrackModel]] = relationship(  # type: ignore[name-defined]  # noqa: F821
+    playlist_associations: Mapped[list[PlaylistTrackModel]] = relationship(  # noqa: F821
         back_populates="track", cascade="all, delete-orphan"
     )
 
@@ -48,4 +49,4 @@ class TrackModel(Base, TimestampMixin):
         return f"<Track {self.title!r} ({self.id})>"
 
 
-from app.infrastructure.models.playlist import PlaylistTrackModel  # noqa: E402, F811
+from app.infrastructure.models.playlist import PlaylistTrackModel  # noqa: E402, F811, TC001

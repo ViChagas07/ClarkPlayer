@@ -8,8 +8,9 @@ genre tags, related artists, discography.
 
 import json
 import logging
-import time
 from typing import Any
+
+import httpx
 
 from app.core.config import get_settings
 from app.core.redis import get_cache_redis
@@ -29,7 +30,7 @@ RELATED_ARTISTS_TTL = 43200
 class SpotifyClient:
     """Async client for the Spotify Web API with token caching."""
 
-    def __init__(self, client):
+    def __init__(self, client: httpx.AsyncClient) -> None:
         self.client = client
         self._settings = get_settings()
 
@@ -40,7 +41,7 @@ class SpotifyClient:
 
         cached = await redis.get(cache_key)
         if cached:
-            return cached
+            return cached  # type: ignore[no-any-return]
 
         try:
             response = await self.client.post(
@@ -58,7 +59,7 @@ class SpotifyClient:
             access_token = token_data.get("access_token")
             if access_token:
                 await redis.setex(cache_key, TOKEN_TTL, access_token)
-                return access_token
+                return access_token  # type: ignore[no-any-return]
         except Exception as exc:
             logger.warning("Spotify token request failed: %s", exc)
         return None
@@ -75,13 +76,13 @@ class SpotifyClient:
         cache_key: str,
         url: str,
         ttl: int = ARTIST_TTL,
-        params: dict | None = None,
-    ) -> dict | None:
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
         """Fetch with Redis caching."""
         redis = await get_cache_redis()
         cached = await redis.get(cache_key)
         if cached:
-            return json.loads(cached)
+            return json.loads(cached)  # type: ignore[no-any-return]
 
         try:
             headers = await self._auth_headers()
@@ -101,7 +102,7 @@ class SpotifyClient:
             response.raise_for_status()
             data = response.json()
             await redis.setex(cache_key, ttl, json.dumps(data))
-            return data
+            return data  # type: ignore[no-any-return]
         except Exception as exc:
             logger.warning("Spotify request failed: %s %s", url, exc)
             return None
@@ -145,7 +146,7 @@ class SpotifyClient:
             ttl=ARTIST_TTL,
         )
         if data:
-            return data.get("tracks", [])
+            return data.get("tracks", [])  # type: ignore[no-any-return]
         return []
 
     async def get_related_artists(self, spotify_id: str) -> list[dict[str, Any]]:
@@ -157,7 +158,7 @@ class SpotifyClient:
             ttl=RELATED_ARTISTS_TTL,
         )
         if data:
-            return data.get("artists", [])
+            return data.get("artists", [])  # type: ignore[no-any-return]
         return []
 
     async def get_track(self, spotify_id: str) -> dict[str, Any] | None:
@@ -188,7 +189,7 @@ class SpotifyClient:
         redis = await get_cache_redis()
         cached = await redis.get(cache_key)
         if cached:
-            return json.loads(cached)
+            return json.loads(cached)  # type: ignore[no-any-return]
 
         try:
             headers = await self._auth_headers()
@@ -202,7 +203,7 @@ class SpotifyClient:
             data = response.json()
             features = data.get("audio_features", [])
             await redis.setex(cache_key, AUDIO_FEATURES_TTL, json.dumps(features))
-            return features
+            return features  # type: ignore[no-any-return]
         except Exception as exc:
             logger.warning("Spotify audio features batch failed: %s", exc)
             return []

@@ -5,12 +5,13 @@ Track (audio file) management routes — upload, list, search, stream, delete.
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, UploadFile, status
+from fastapi import APIRouter, Query, UploadFile, status
 from fastapi.responses import FileResponse
 
 from app.application.services.track_service import TrackService
 from app.core.dependencies import CurrentUserId, SessionDep
 from app.core.exceptions import NotFoundError
+from app.domain.entities import Track
 from app.infrastructure.repositories.track_repository import TrackRepository
 from app.presentation.schemas.track import (
     TrackListResponse,
@@ -26,7 +27,7 @@ def _track_service(session: SessionDep) -> TrackService:
     return TrackService(TrackRepository(session))
 
 
-def _track_to_response(track) -> TrackResponse:
+def _track_to_response(track: Track) -> TrackResponse:
     """Map a domain Track entity to a response schema."""
     return TrackResponse(
         id=str(track.id),

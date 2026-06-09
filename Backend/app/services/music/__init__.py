@@ -9,22 +9,22 @@ Integrates with:
 - Last.fm (similar artists, detailed tags, playcounts, biographies)
 """
 
-from app.services.music.clients import (
-    MusicBrainzClient,
-    ITunesClient,
-    SpotifyClient,
-    GeniusClient,
-    LastFmClient,
-)
 from app.services.music.aggregator import MusicAggregator
+from app.services.music.clients import (
+    GeniusClient,
+    ITunesClient,
+    LastFmClient,
+    MusicBrainzClient,
+    SpotifyClient,
+)
 from app.services.music.schemas import (
-    TrackInfo,
-    ArtistInfo,
     AlbumInfo,
+    ArtistInfo,
     AudioFeatures,
-    UnifiedTrackResponse,
+    TrackInfo,
     UnifiedArtistResponse,
     UnifiedSearchResponse,
+    UnifiedTrackResponse,
 )
 
 __all__ = [

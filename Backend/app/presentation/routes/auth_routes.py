@@ -6,15 +6,16 @@ Access tokens are JWT (stateless) returned in the JSON body.
 """
 
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Annotated
+from typing import TYPE_CHECKING
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
+from fastapi import APIRouter, HTTPException, Response, status
+
+if TYPE_CHECKING:
+    from passlib.context import CryptContext
 
 from app.application.services.auth_service import AuthService
 from app.core.dependencies import CurrentUserId, SessionDep
 from app.core.redis import get_session_redis
-from app.core.security import decode_access_token, hash_password, verify_password
 from app.infrastructure.repositories.token_blacklist_repository import TokenBlacklistRepository
 from app.infrastructure.repositories.user_repository import UserRepository
 from app.presentation.schemas.auth import (
@@ -23,7 +24,6 @@ from app.presentation.schemas.auth import (
     GoogleCallbackRequest,
     GoogleCallbackResponse,
     LoginRequest,
-    LogoutRequest,
     LogoutResponse,
     RefreshRequest,
     RegisterRequest,
@@ -50,24 +50,26 @@ def _auth_service(session: SessionDep) -> AuthService:
     )
 
 
-# ── Password helpers (mirrors security.py for direct use here) ───────────────
+# ── Password helpers (lazy-loads passlib to avoid import overhead) ────────
 
-_pwd_context = None
+_pwd_ctx: "CryptContext | None" = None
 
-def _pwd_context():
-    global _pwd_context
-    if _pwd_context is None:
+
+def _get_pwd_context() -> "CryptContext":
+    global _pwd_ctx
+    if _pwd_ctx is None:
         from passlib.context import CryptContext
-        _pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    return _pwd_context
+
+        _pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    return _pwd_ctx
 
 
-def hash_password(plain: str) -> str:
-    return _pwd_context().hash(plain)
+def _hash_password(plain: str) -> str:
+    return _get_pwd_context().hash(plain)  # type: ignore[no-any-return]
 
 
-def verify_password(plain: str, hashed: str) -> bool:
-    return _pwd_context().verify(plain, hashed)
+def _verify_password(plain: str, hashed: str) -> bool:
+    return _get_pwd_context().verify(plain, hashed)  # type: ignore[no-any-return]
 
 
 # ── Refresh token helpers ────────────────────────────────────────────────────
@@ -87,10 +89,10 @@ async def _create_refresh_token(user_id: str) -> str:
 async def _validate_refresh_token(token: str) -> str:
     """Return user_id if refresh token is valid, raise ValueError otherwise."""
     from app.core.config import get_settings
-    settings = get_settings()
+    get_settings()
 
     redis = await get_session_redis()
-    user_id = await redis.get(f"{REFRESH_KEY_PREFIX}{token}")
+    user_id: str | None = await redis.get(f"{REFRESH_KEY_PREFIX}{token}")
     if not user_id:
         raise ValueError("Refresh token not found or expired")
     return user_id
@@ -166,10 +168,10 @@ async def login(
     from app.core.config import get_settings
     settings = get_settings()
 
-    service = _auth_service(session)
+    _auth_service(session)
     user = await UserRepository(session).get_by_email(body.email)
 
-    if user is None or not verify_password(body.password, user.hashed_password):
+    if user is None or not _verify_password(body.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
@@ -326,7 +328,7 @@ async def verify_email(
         )
     except Exception:
         import logging
-        logging.getLogger("uvicorn").warning("Failed to send welcome email: %s", str(e))
+        logging.getLogger("uvicorn").warning("Failed to send welcome email")
 
     return VerifyEmailResponse()
 
@@ -374,16 +376,17 @@ async def forgot_password(
     token = await service.generate_password_reset_token(body.email)
     if token:
         user = await UserRepository(session).get_by_email(body.email)
-        try:
-            from app.services.email_service import send_password_reset_email
-            await send_password_reset_email(
-                to=user.email,
-                display_name=user.display_name or user.username,
-                token=token,
-            )
-        except Exception as exc:
-            import logging
-            logging.getLogger("uvicorn").warning("Failed to send password reset email: %s", str(exc))
+        if user is not None:
+            try:
+                from app.services.email_service import send_password_reset_email
+                await send_password_reset_email(
+                    to=user.email,
+                    display_name=user.display_name or user.username,
+                    token=token,
+                )
+            except Exception as exc:
+                import logging
+                logging.getLogger("uvicorn").warning("Failed to send password reset email: %s", str(exc))
     return ForgotPasswordResponse()
 
 
@@ -397,15 +400,19 @@ async def reset_password(
     user_id = await service.verify_password_reset_token(body.token)
 
     # Get user and update password directly (token flow — no current password needed)
-    from app.core.security import hash_password
     from app.domain.entities import User
     user_repo = UserRepository(session)
     user = await user_repo.get_by_id(user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found.",
+        )
     updated = User(
         id=user.id,
         username=user.username,
         email=user.email,
-        hashed_password=hash_password(body.new_password),
+        hashed_password=_hash_password(body.new_password),
         display_name=user.display_name,
         avatar_url=user.avatar_url,
         is_active=user.is_active,
@@ -425,7 +432,6 @@ async def google_oidc_callback(
     Google OIDC callback — exchange the authorization ``code`` for our JWT pair.
     """
     from app.core.config import get_settings
-    from app.core.security import create_access_token as _create_access_token
     settings = get_settings()
 
     service = _auth_service(session)

@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID  # noqa: TC002
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.models.base import Base, TimestampMixin, pk_column
@@ -21,7 +21,7 @@ class PlaylistModel(Base, TimestampMixin):
     __tablename__ = "playlists"
 
     id = pk_column()
-    user_id: Mapped[UUID] = mapped_column(
+    user_id: Mapped[UUID] = mapped_column(  # type: ignore[type-arg]
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -42,10 +42,10 @@ class PlaylistModel(Base, TimestampMixin):
 class PlaylistTrackModel(Base):
     __tablename__ = "playlist_tracks"
 
-    playlist_id: Mapped[UUID] = mapped_column(
+    playlist_id: Mapped[UUID] = mapped_column(  # type: ignore[type-arg]
         ForeignKey("playlists.id", ondelete="CASCADE"), primary_key=True
     )
-    track_id: Mapped[UUID] = mapped_column(
+    track_id: Mapped[UUID] = mapped_column(  # type: ignore[type-arg]
         ForeignKey("tracks.id", ondelete="CASCADE"), primary_key=True
     )
     position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

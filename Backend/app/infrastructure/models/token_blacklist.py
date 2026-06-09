@@ -6,8 +6,9 @@ Stores invalidated refresh tokens to prevent their reuse after logout.
 
 from __future__ import annotations
 
-from datetime import datetime
-from sqlalchemy import DateTime, String, Index
+from datetime import datetime  # noqa: TC003
+
+from sqlalchemy import DateTime, Index, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.models.base import Base, pk_column

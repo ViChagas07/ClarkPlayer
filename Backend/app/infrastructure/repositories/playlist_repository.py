@@ -12,7 +12,6 @@ from sqlalchemy.orm import selectinload
 from app.application.interfaces.repositories import IPlaylistRepository
 from app.domain.entities import Playlist, PlaylistTrack, Track
 from app.infrastructure.models.playlist import PlaylistModel, PlaylistTrackModel
-from app.infrastructure.models.track import TrackModel
 from app.infrastructure.repositories.base import (
     playlist_to_entity,
     playlist_to_model,

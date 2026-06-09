@@ -2,7 +2,7 @@
 User-profile management routes.
 """
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, status
 
 from app.application.services.user_service import UserService
 from app.core.dependencies import CurrentUserId, SessionDep
@@ -10,7 +10,6 @@ from app.infrastructure.repositories.user_repository import UserRepository
 from app.presentation.schemas.auth import UserResponse
 from app.presentation.schemas.user import (
     ChangePasswordRequest,
-    DeleteAccountRequest,
     UpdateProfileRequest,
 )
 

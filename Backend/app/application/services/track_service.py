@@ -3,6 +3,8 @@ Track (audio file) service — upload, list, search, manage metadata.
 """
 
 import os
+from contextlib import suppress
+from datetime import UTC
 from pathlib import Path
 from typing import BinaryIO
 from uuid import UUID, uuid4
@@ -190,7 +192,7 @@ class TrackService:
     async def record_play(self, track_id: UUID) -> Track:
         """Increment play count and update last-played timestamp."""
         track = await self.get_track(track_id)
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         updated = Track(
             id=track.id,
@@ -206,7 +208,7 @@ class TrackService:
             file_format=track.file_format,
             cover_art_path=track.cover_art_path,
             play_count=track.play_count + 1,
-            last_played_at=datetime.now(timezone.utc),
+            last_played_at=datetime.now(UTC),
             is_favorite=track.is_favorite,
             created_at=track.created_at,
         )
@@ -218,10 +220,8 @@ class TrackService:
         # Remove the physical file
         file_path = Path(track.file_path)
         if file_path.exists():
-            try:
-                file_path.unlink()
-            except OSError:
-                pass  # Best-effort; the DB record will still be removed.
+            with suppress(OSError):
+                file_path.unlink()  # Best-effort; the DB record will still be removed.
         await self._track_repo.delete(track_id)
 
     async def get_file_path(self, track_id: UUID) -> Path:

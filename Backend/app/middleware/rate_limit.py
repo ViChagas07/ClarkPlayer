@@ -1,5 +1,7 @@
 import time
-from fastapi import Request, HTTPException, status
+
+from fastapi import HTTPException, Request, status
+
 from app.core.redis import get_ratelimit_redis
 
 
@@ -10,6 +12,11 @@ async def sliding_window_rate_limit(
     window_seconds: int,
 ) -> None:
     redis = await get_ratelimit_redis()
+    if request.client is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Could not determine client address.",
+        )
     ip = request.client.host
     key = f"clark:rl:{key_prefix}:{ip}"
     now = time.time()

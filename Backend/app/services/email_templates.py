@@ -5,6 +5,11 @@ Each function returns an HTML string ready to be sent via the email service.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.core.config import Settings
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Shared layout helpers
 # ──────────────────────────────────────────────────────────────────────────────
@@ -19,7 +24,7 @@ _DIVIDER     = "#e2e8f0"     # Slate-200 — horizontal rules
 _MAX_WIDTH   = 480            # px, max width of email content
 
 
-def _settings():
+def _settings() -> Settings:
     """Lazily import settings to avoid circular imports at module load time."""
     from app.core.config import get_settings
     return get_settings()
@@ -161,7 +166,7 @@ def playlist_invite(invitee_name: str, inviter_name: str, playlist_name: str, pl
     title = f"{inviter_name} invited you to a playlist"
     body = f"""
       <h2 style="margin:0 0 16px;font-size:22px;font-weight:700;color:{_DARK_COLOR};">Playlist invite</h2>
-      {_para(f"{inviter_name} has invited you to collaborate on the playlist <strong>\"{playlist_name}\"</strong> on ClarkPlayer.")}
+      {_para(f'{inviter_name} has invited you to collaborate on the playlist <strong>"{playlist_name}"</strong> on ClarkPlayer.')}
       {_button("Open playlist", playlist_url)}
       {_para("Enjoy the music!")}
     """

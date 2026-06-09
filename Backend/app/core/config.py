@@ -93,7 +93,7 @@ class Settings:
     )
 
     # ── CORS ─────────────────────────────────────────────────────────────
-    CORS_ORIGINS: list[str] = os.getenv("CORS_ORIGINS", "*").split(",")  # type: ignore[assignment]
+    CORS_ORIGINS: list[str] = os.getenv("CORS_ORIGINS", "*").split(",")
 
     # ── Google OIDC ──────────────────────────────────────────────────────
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
@@ -123,7 +123,7 @@ class Settings:
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 
-@lru_cache()
+@lru_cache
 def get_settings() -> Settings:
     """Return a cached Settings singleton."""
     return Settings()

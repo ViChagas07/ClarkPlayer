@@ -13,7 +13,6 @@ from app.infrastructure.models.playlist import PlaylistModel, PlaylistTrackModel
 from app.infrastructure.models.track import TrackModel
 from app.infrastructure.models.user import UserModel
 
-
 # ── User ──────────────────────────────────────────────────────────────────
 
 def user_to_entity(model: UserModel) -> User:
@@ -51,7 +50,7 @@ def user_to_model(entity: User) -> UserModel:
 def track_to_entity(model: TrackModel) -> Track:
     return Track(
         id=model.id,
-        user_id=model.user_id,
+        user_id=model.user_id,  # type: ignore[arg-type]
         title=model.title,
         artist=model.artist,
         album=model.album,
@@ -97,7 +96,7 @@ def track_to_model(entity: Track) -> TrackModel:
 def playlist_to_entity(model: PlaylistModel) -> Playlist:
     return Playlist(
         id=model.id,
-        user_id=model.user_id,
+        user_id=model.user_id,  # type: ignore[arg-type]
         name=model.name,
         description=model.description,
         cover_art_path=model.cover_art_path,
@@ -122,8 +121,8 @@ def playlist_to_model(entity: Playlist) -> PlaylistModel:
 
 def playlist_track_to_entity(model: PlaylistTrackModel) -> PlaylistTrack:
     return PlaylistTrack(
-        playlist_id=model.playlist_id,
-        track_id=model.track_id,
+        playlist_id=model.playlist_id,  # type: ignore[arg-type]
+        track_id=model.track_id,  # type: ignore[arg-type]
         position=model.position,
         added_at=model.track.created_at,  # closest proxy — no dedicated column
     )

@@ -7,8 +7,10 @@ send_* functions from route handlers or other services.
 
 import resend
 
+from app.core.config import Settings
 
-def _settings():
+
+def _settings() -> Settings:
     """Lazily import settings to avoid issues at module load time."""
     from app.core.config import get_settings
     return get_settings()

@@ -7,11 +7,12 @@ so that ``alembic revision --autogenerate`` can detect model changes.
 
 import asyncio
 from logging.config import fileConfig
+from typing import Any
 
-from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from alembic import context
 from app.core.config import get_settings
 from app.infrastructure.models import Base
 
@@ -48,7 +49,10 @@ def run_migrations_offline() -> None:
 # Helper function to run migrations synchronously, which is needed because Alembic's context.run_migrations() is not async-aware. This function
 # will be called inside an async context using connection.run_sync() to ensure that the event loop is properly managed while still allowing us
 # to use the synchronous migration API.
-def do_run_migrations(connection):
+
+
+# ...
+def do_run_migrations(connection: Any) -> None:
     """Execute migrations synchronously inside an async context."""
     context.configure(connection=connection, target_metadata=target_metadata)
     with context.begin_transaction():

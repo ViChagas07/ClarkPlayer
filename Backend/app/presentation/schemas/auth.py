@@ -4,7 +4,6 @@ Pydantic schemas for authentication endpoints — requests and responses.
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-
 # Request schemas that'll be used as the expected body for the authentication-related endpoints. These include the fields required for user 
 # registration, login, token refresh, logout, and the Google OIDC callback. The validation rules (e.g. min_length, max_length, regex patterns) 
 # help ensure that incoming data is well-formed before it reaches the service layer.

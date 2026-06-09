@@ -9,6 +9,8 @@ import json
 import logging
 from typing import Any
 
+import httpx
+
 from app.core.config import get_settings
 from app.core.redis import get_cache_redis
 from app.services.music.ratelimit import rate_limited
@@ -24,7 +26,7 @@ TRACK_INFO_TTL = 86400  # 24 hours
 class LastFmClient:
     """Async client for the Last.fm API."""
 
-    def __init__(self, client):
+    def __init__(self, client: httpx.AsyncClient) -> None:
         self.client = client
         self._settings = get_settings()
 
@@ -33,12 +35,12 @@ class LastFmClient:
         cache_key: str,
         params: dict[str, Any],
         ttl: int = ARTIST_INFO_TTL,
-    ) -> dict | None:
+    ) -> dict[str, Any] | None:
         """Fetch with Redis caching and rate limiting."""
         redis = await get_cache_redis()
         cached = await redis.get(cache_key)
         if cached:
-            return json.loads(cached)
+            return json.loads(cached)  # type: ignore[no-any-return]
 
         await rate_limited("lastfm")
         try:
@@ -50,7 +52,7 @@ class LastFmClient:
             response.raise_for_status()
             data = response.json()
             await redis.setex(cache_key, ttl, json.dumps(data))
-            return data
+            return data  # type: ignore[no-any-return]
         except Exception as exc:
             logger.warning("Last.fm request failed: %s %s", params, exc)
             return None
@@ -81,7 +83,7 @@ class LastFmClient:
         if not data:
             return []
         artists = data.get("similarartists", {})
-        return artists.get("artist", [])
+        return artists.get("artist", [])  # type: ignore[no-any-return]
 
     async def get_top_tags(self, artist: str, mbid: str | None = None) -> list[dict[str, Any]]:
         """Get top tags (genres) for an artist from Last.fm."""
@@ -93,7 +95,7 @@ class LastFmClient:
         if not data:
             return []
         tags = data.get("toptags", {})
-        return tags.get("tag", [])
+        return tags.get("tag", [])  # type: ignore[no-any-return]
 
     async def get_track_info(self, artist: str, track: str, mbid: str | None = None) -> dict[str, Any] | None:
         """Get track info including playcount, listeners."""
@@ -113,7 +115,7 @@ class LastFmClient:
         if not data:
             return []
         tracks = data.get("similartracks", {})
-        return tracks.get("track", [])
+        return tracks.get("track", [])  # type: ignore[no-any-return]
 
     async def search_artist(self, query: str, limit: int = 5) -> list[dict[str, Any]]:
         """Search Last.fm for artists."""
@@ -124,7 +126,7 @@ class LastFmClient:
             return []
         results = data.get("results", {})
         matches = results.get("artistmatches", {})
-        return matches.get("artist", [])
+        return matches.get("artist", [])  # type: ignore[no-any-return]
 
     async def search_track(self, query: str, limit: int = 5) -> list[dict[str, Any]]:
         """Search Last.fm for tracks."""
@@ -135,4 +137,4 @@ class LastFmClient:
             return []
         results = data.get("results", {})
         matches = results.get("trackmatches", {})
-        return matches.get("track", [])
+        return matches.get("track", [])  # type: ignore[no-any-return]

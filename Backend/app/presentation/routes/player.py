@@ -7,10 +7,11 @@ remaining duration. If Redis restarts, an already-expired timer disappears natur
 Recently played uses a Redis Sorted Set where score = Unix timestamp.
 """
 
-from typing import Annotated
+from datetime import UTC, datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel
 
 from app.application.services.history_service import (
     clear_history,
@@ -20,7 +21,6 @@ from app.application.services.history_service import (
 from app.core.dependencies import CurrentUserId, SessionDep
 from app.core.redis import get_session_redis
 from app.infrastructure.repositories.track_repository import TrackRepository
-from pydantic import BaseModel
 
 router = APIRouter(prefix="/player", tags=["Player"])
 
@@ -62,9 +62,9 @@ async def set_sleep_timer(
     Body: { "expires_at": <Unix timestamp in ms> }
     """
     from app.core.config import get_settings
-    settings = get_settings()
+    get_settings()
 
-    now_ms = int(datetime.utcnow().timestamp() * 1000)
+    now_ms = int(datetime.now(UTC).timestamp() * 1000)
     if body.expires_at <= now_ms:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -92,7 +92,7 @@ async def get_sleep_timer(
         return SleepTimerResponse(expires_at=None)
 
     expires_at = int(value)
-    now_ms = int(datetime.utcnow().timestamp() * 1000)
+    now_ms = int(datetime.now(UTC).timestamp() * 1000)
     if expires_at <= now_ms:
         # Already expired, clean up
         await redis.delete(key)
@@ -163,7 +163,3 @@ async def delete_history(
 ) -> None:
     """Clear the user's recently-played history."""
     await clear_history(str(user_id))
-
-
-# datetime import is used above — ensure it's available
-from datetime import datetime

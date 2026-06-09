@@ -8,6 +8,8 @@ import json
 import logging
 from typing import Any
 
+import httpx
+
 from app.core.redis import get_cache_redis
 
 logger = logging.getLogger("itunes")
@@ -20,15 +22,15 @@ CACHE_TTL = 86400  # 24 hours
 class ITunesClient:
     """Async client for the iTunes Search API."""
 
-    def __init__(self, client):
+    def __init__(self, client: httpx.AsyncClient) -> None:
         self.client = client
 
-    async def _cached_get(self, cache_key: str, url: str, params: dict | None = None) -> dict | None:
+    async def _cached_get(self, cache_key: str, url: str, params: dict[str, Any] | None = None) -> dict[str, Any] | None:
         """Fetch with Redis caching."""
         redis = await get_cache_redis()
         cached = await redis.get(cache_key)
         if cached:
-            return json.loads(cached)
+            return json.loads(cached)  # type: ignore[no-any-return]
 
         try:
             response = await self.client.get(
@@ -39,7 +41,7 @@ class ITunesClient:
             response.raise_for_status()
             data = response.json()
             await redis.setex(cache_key, CACHE_TTL, json.dumps(data))
-            return data
+            return data  # type: ignore[no-any-return]
         except Exception as exc:
             logger.warning("iTunes request failed: %s %s", url, exc)
             return None
@@ -65,7 +67,7 @@ class ITunesClient:
         data = await self._cached_get(cache_key, BASE_URL, params)
         if not data:
             return []
-        return data.get("results", [])
+        return data.get("results", [])  # type: ignore[no-any-return]
 
     async def get_cover_art(self, artist: str, album: str) -> str | None:
         """
@@ -81,7 +83,7 @@ class ITunesClient:
             artwork = result.get("artworkUrl100")
             if artwork:
                 # Get higher resolution version
-                return artwork.replace("100x100bb", "600x600bb")
+                return artwork.replace("100x100bb", "600x600bb")  # type: ignore[no-any-return]
         return None
 
     async def get_artist_image(self, artist: str) -> str | None:
@@ -103,7 +105,7 @@ class ITunesClient:
         if results:
             artwork = results[0].get("artworkUrl100")
             if artwork:
-                return artwork.replace("100x100bb", "1200x1200bb")
+                return artwork.replace("100x100bb", "1200x1200bb")  # type: ignore[no-any-return]
         return None
 
     @staticmethod

@@ -10,10 +10,10 @@ from fastapi import APIRouter
 from app.presentation.routes import (
     auth_routes,
     music_routes,
+    player,
     playlist_routes,
     track_routes,
     user_routes,
-    player,
 )
 
 # Main API router with a versioned prefix. All feature-specific routers are included here, which allows 

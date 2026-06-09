@@ -1,7 +1,7 @@
 """Shared test fixtures and configuration."""
 
 import asyncio
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Generator
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -10,7 +10,7 @@ from app.main import app
 
 
 @pytest.fixture(scope="session")
-def event_loop():
+def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     """Create a single event loop for the whole test session."""
     loop = asyncio.new_event_loop()
     yield loop

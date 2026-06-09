@@ -12,12 +12,13 @@ import logging
 from typing import Any
 
 from fastapi import APIRouter, Path, Query
+from fastapi.responses import JSONResponse
 
 from app.services.music.aggregator import MusicAggregator
 from app.services.music.schemas import (
+    UnifiedArtistResponse,
     UnifiedSearchResponse,
     UnifiedTrackResponse,
-    UnifiedArtistResponse,
 )
 
 logger = logging.getLogger("music.routes")
@@ -51,7 +52,7 @@ async def search_music(
 @router.get("/track/{mbid}", response_model=UnifiedTrackResponse)
 async def get_track_metadata(
     mbid: str = Path(..., min_length=1, description="MusicBrainz recording ID"),
-) -> dict[str, Any]:
+) -> UnifiedTrackResponse | JSONResponse:
     """
     Get full aggregated track metadata from all sources.
 
@@ -62,12 +63,11 @@ async def get_track_metadata(
     try:
         result = await aggregator.get_track(mbid)
         if result is None:
-            from fastapi.responses import JSONResponse
             return JSONResponse(
                 status_code=404,
                 content={"error": "not_found", "message": f"Track with MBID '{mbid}' not found."},
             )
-        return result.model_dump()
+        return result.model_dump()  # type: ignore[return-value]
     finally:
         await aggregator.close()
 
@@ -75,7 +75,7 @@ async def get_track_metadata(
 @router.get("/artist/{mbid}", response_model=UnifiedArtistResponse)
 async def get_artist_profile(
     mbid: str = Path(..., min_length=1, description="MusicBrainz artist ID"),
-) -> dict[str, Any]:
+) -> UnifiedArtistResponse | JSONResponse:
     """
     Get full artist profile aggregated from all sources.
 
@@ -86,12 +86,11 @@ async def get_artist_profile(
     try:
         result = await aggregator.get_artist(mbid)
         if result is None:
-            from fastapi.responses import JSONResponse
             return JSONResponse(
                 status_code=404,
                 content={"error": "not_found", "message": f"Artist with MBID '{mbid}' not found."},
             )
-        return result.model_dump()
+        return result.model_dump()  # type: ignore[return-value]
     finally:
         await aggregator.close()
 

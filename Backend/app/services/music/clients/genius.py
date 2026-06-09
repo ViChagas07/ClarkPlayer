@@ -10,6 +10,7 @@ import json
 import logging
 from typing import Any
 
+import httpx
 from bs4 import BeautifulSoup
 
 from app.core.config import get_settings
@@ -25,7 +26,7 @@ METADATA_CACHE_TTL = 86400  # 24 hours
 class GeniusClient:
     """Async client for the Genius API and lyrics scraping."""
 
-    def __init__(self, client):
+    def __init__(self, client: httpx.AsyncClient) -> None:
         self.client = client
         self._settings = get_settings()
 
@@ -37,13 +38,13 @@ class GeniusClient:
         cache_key: str,
         url: str,
         ttl: int = METADATA_CACHE_TTL,
-        params: dict | None = None,
-    ) -> dict | None:
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
         """Fetch with Redis caching."""
         redis = await get_cache_redis()
         cached = await redis.get(cache_key)
         if cached:
-            return json.loads(cached)
+            return json.loads(cached)  # type: ignore[no-any-return]
 
         try:
             response = await self.client.get(
@@ -55,7 +56,7 @@ class GeniusClient:
             response.raise_for_status()
             data = response.json()
             await redis.setex(cache_key, ttl, json.dumps(data))
-            return data
+            return data  # type: ignore[no-any-return]
         except Exception as exc:
             logger.warning("Genius request failed: %s %s", url, exc)
             return None
@@ -85,7 +86,7 @@ class GeniusClient:
         )
         if not data:
             return None
-        return data.get("response", {}).get("song")
+        return data.get("response", {}).get("song")  # type: ignore[no-any-return]
 
     async def get_artist(self, artist_id: int) -> dict[str, Any] | None:
         """Get artist details from Genius API."""
@@ -97,7 +98,7 @@ class GeniusClient:
         )
         if not data:
             return None
-        return data.get("response", {}).get("artist")
+        return data.get("response", {}).get("artist")  # type: ignore[no-any-return]
 
     async def get_lyrics(self, query: str) -> str | None:
         """
@@ -108,7 +109,7 @@ class GeniusClient:
         redis = await get_cache_redis()
         cached = await redis.get(cache_key)
         if cached:
-            return cached
+            return cached  # type: ignore[no-any-return]
 
         # 1. Search for the song to get the page URL
         results = await self.search(query, limit=1)
@@ -172,7 +173,6 @@ class GeniusClient:
 
         # Method 3: Check for meta description or any large text block
         # Genius sometimes embeds structured data
-        import re
         # Look for large text blocks in script tags (JSON-LD)
         for script in soup.find_all("script", type="application/ld+json"):
             try:
@@ -181,7 +181,7 @@ class GeniusClient:
                     data = data[0] if data else {}
                 description = data.get("description")
                 if description and len(description) > 200:
-                    return description
+                    return description  # type: ignore[no-any-return]
             except (json.JSONDecodeError, TypeError):
                 pass
 
@@ -193,7 +193,7 @@ class GeniusClient:
         if song:
             desc = song.get("description", {}).get("plain")
             if desc:
-                return desc
+                return desc  # type: ignore[no-any-return]
             # Also check top-level description
             return song.get("description_preview")
         return None

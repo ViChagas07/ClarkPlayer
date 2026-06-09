@@ -16,8 +16,7 @@ from collections.abc import Sequence
 from uuid import UUID
 
 from app.domain.entities import Playlist, PlaylistTrack, Track, User
-from app.domain.enums import AudioFormat, PlaylistVisibility
-
+from app.domain.enums import AudioFormat
 
 # ── User repository ──────────────────────────────────────────────────────
 

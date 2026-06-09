@@ -23,7 +23,9 @@ Key naming convention (enforced across all services):
 """
 
 import redis.asyncio as aioredis
+
 from app.core.config import get_settings
+
 
 # Redis connection pools for different databases to optimize resource usage and performance.
 def _make_pool(db: int, max_connections: int) -> aioredis.ConnectionPool: 

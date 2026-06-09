@@ -12,25 +12,26 @@ Fault-tolerant: if any API fails, continues with remaining sources.
 """
 
 import asyncio
+import contextlib
 import logging
 from typing import Any
 
 import httpx
 
-from app.services.music.clients.musicbrainz import MusicBrainzClient
-from app.services.music.clients.itunes import ITunesClient
-from app.services.music.clients.spotify import SpotifyClient
 from app.services.music.clients.genius import GeniusClient
+from app.services.music.clients.itunes import ITunesClient
 from app.services.music.clients.lastfm import LastFmClient
+from app.services.music.clients.musicbrainz import MusicBrainzClient
+from app.services.music.clients.spotify import SpotifyClient
 from app.services.music.schemas import (
-    TrackInfo,
-    ArtistInfo,
     AlbumInfo,
+    ArtistInfo,
     AudioFeatures,
-    UnifiedTrackResponse,
+    TrackInfo,
     UnifiedArtistResponse,
     UnifiedSearchResponse,
     UnifiedSearchResult,
+    UnifiedTrackResponse,
 )
 
 logger = logging.getLogger("music.aggregator")
@@ -98,6 +99,8 @@ class MusicAggregator:
         mb_artists_task = self.mb.search_artist(query, limit)
         mb_recordings_task = self.mb.search_recording(query, limit)
 
+        mb_artists: list[dict[str, Any]] | Exception
+        mb_recordings: list[dict[str, Any]] | Exception
         mb_artists, mb_recordings = await asyncio.gather(
             mb_artists_task, mb_recordings_task, return_exceptions=True,
         )
@@ -142,7 +145,7 @@ class MusicAggregator:
         sp_track_items: list[dict[str, Any]] = (
             sp_tracks.get("tracks", {}).get("items", []) if isinstance(sp_tracks, dict) else []
         )
-        lfm_track_items: list[dict[str, Any]] = (
+        (
             lfm_tracks if isinstance(lfm_tracks, list) else []
         )
 
@@ -172,9 +175,8 @@ class MusicAggregator:
                 it_name = (it_result.get("artistName", "") + " " + it_result.get("collectionName", "")).lower()
                 if recording.get("title", "").lower() in it_name or query.lower() in it_name:
                     track.cover_url = it_result.get("artworkUrl100", "").replace("100x100bb", "600x600bb")
-                    if it_result.get("previewUrl"):
-                        if track.track:
-                            track.track.preview_url = it_result.get("previewUrl")
+                    if it_result.get("previewUrl") and track.track:
+                        track.track.preview_url = it_result.get("previewUrl")
                     break
 
             tracks.append(track)
@@ -241,10 +243,8 @@ class MusicAggregator:
             # Last.fm playcount
             for lfm in lfm_artist_items:
                 if isinstance(lfm, dict) and lfm.get("name", "").lower() == mb_artist.get("name", "").lower():
-                    try:
+                    with contextlib.suppress(ValueError, TypeError):
                         artist.playcount = int(lfm.get("listeners", 0))
-                    except (ValueError, TypeError):
-                        pass
                     break
 
             artists_list.append(artist)
@@ -389,10 +389,8 @@ class MusicAggregator:
         if not isinstance(results[3], Exception) and results[3]:
             lfm_data = results[3]
             lfm_track = lfm_data.get("track", {}) if lfm_data else {}
-            try:
+            with contextlib.suppress(ValueError, TypeError):
                 response.playcount = int(lfm_track.get("playcount", 0))
-            except (ValueError, TypeError):
-                pass
 
             # Get similar tracks from Last.fm
             similar = await self.lastfm.get_similar_tracks(artist_name, track_title)
@@ -423,7 +421,7 @@ class MusicAggregator:
             return None
 
         artist_name = mb_artist.get("name", "")
-        country = mb_artist.get("country", "")
+        mb_artist.get("country", "")
 
         response = UnifiedArtistResponse(
             name=artist_name,
@@ -457,6 +455,8 @@ class MusicAggregator:
 
                 # Get top tracks and related artists
                 if spotify_id:
+                    top_tracks: list[dict[str, Any]] | Exception
+                    related: list[dict[str, Any]] | Exception
                     top_tracks, related = await asyncio.gather(
                         self.spotify.get_artist_top_tracks(spotify_id),
                         self.spotify.get_related_artists(spotify_id),
@@ -474,10 +474,8 @@ class MusicAggregator:
             if lfm_artist:
                 bio_data = lfm_artist.get("bio", {})
                 response.bio = bio_data.get("summary") or bio_data.get("content")
-                try:
+                with contextlib.suppress(ValueError, TypeError):
                     response.playcount = int(lfm_artist.get("stats", {}).get("listeners", 0))
-                except (ValueError, TypeError):
-                    pass
 
         if not isinstance(results[2], Exception) and results[2]:
             lfm_tags = results[2]
