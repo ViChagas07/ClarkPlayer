@@ -17,3 +17,30 @@ build/
 
 # TypeScript
 *.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Poetry (lock file IS committed for reproducibility)
+poetry.toml
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Media
+media/
+
+# Coverage
+coverage.xml
+htmlcov/
+.coverage
