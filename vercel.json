@@ -1,4 +1,3 @@
 {
-  "buildCommand": "cd Front-end/UISaaS && npm install && npm run build",
-  "outputDirectory": "Front-end/UISaaS/.next"
+  "framework": "nextjs"
 }
