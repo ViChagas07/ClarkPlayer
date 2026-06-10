@@ -37,7 +37,7 @@ export default function AccountPage() {
         {/* ClarkPlayer logo banner */}
         <div className="flex flex-col items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/ClarkPlayer_Favicon.png" alt="ClarkPlayer" className="w-20 h-20 object-contain mb-3" />
+          <img src="/ClarkPlayer_White.png" alt="ClarkPlayer" className="w-20 h-20 object-contain mb-3" />
           <h1 className="font-display text-3xl tracking-widest uppercase">{t('myAccount')}</h1>
         </div>
 
@@ -55,7 +55,7 @@ export default function AccountPage() {
               ) : (
                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-clark-steel to-clark-bg-card flex items-center justify-center overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/ClarkPlayer_Favicon.png" alt="ClarkPlayer" className="w-16 h-16 object-contain" />
+                  <img src="/ClarkPlayer_White.png" alt="ClarkPlayer" className="w-16 h-16 object-contain" />
                 </div>
               )}
               <button
