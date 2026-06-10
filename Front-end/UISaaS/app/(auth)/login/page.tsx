@@ -219,7 +219,7 @@ function LoginFormInner() {
 
           {/* Wordmark */}
           <h1 className="font-display text-4xl lg:text-5xl tracking-widest uppercase text-clark-text-primary mb-3 text-center">
-            ClarkPlayer
+            Clark<span className="text-clark-accent">Player</span>
           </h1>
           <p className="font-body italic text-clark-text-muted text-base lg:text-lg text-center">
             {t('clarkTagline')}
@@ -237,7 +237,7 @@ function LoginFormInner() {
             <div className="w-10 h-10 rounded-xl bg-clark-bg-card flex items-center justify-center overflow-hidden">
               <Image src={ClarkLogo} alt="ClarkPlayer" className="w-full h-full object-contain p-0.5" width={40} height={40} />
             </div>
-            <span className="font-display text-xl tracking-wider">ClarkPlayer</span>
+            <span className="font-display text-xl tracking-wider">Clark<span className="text-clark-accent">Player</span></span>
           </div>
 
           {/* Headings */}
