@@ -213,8 +213,8 @@ function LoginFormInner() {
         {/* Branding content */}
         <div className="relative z-10 flex flex-col items-center justify-center w-full px-8 py-12 lg:py-0">
           {/* Logo */}
-          <div className="w-24 h-24 lg:w-28 lg:h-28 rounded-2xl bg-clark-bg-card flex items-center justify-center mb-6 shadow-glow-gold ring-2 ring-clark-gold/60 overflow-hidden">
-            <Image src={ClarkLogo} alt="ClarkPlayer" className="w-full h-full object-contain p-1" width={112} height={112} priority />
+          <div className="flex items-center justify-center mb-6">
+            <Image src={ClarkLogo} alt="ClarkPlayer" className="w-28 h-28 lg:w-32 lg:h-32 object-contain drop-shadow-[0_0_20px_rgba(245,197,24,0.3)]" width={128} height={128} priority />
           </div>
 
           {/* Wordmark */}
