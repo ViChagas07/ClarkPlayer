@@ -469,22 +469,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           bottom: '0px',
           zIndex: 30,
           height: '96px',
-          backgroundColor: accentColor + '14',
+          backgroundColor: accentColor + '18',
+          borderTopColor: accentColor + '50',
           transition: 'left 300ms ease-in-out, right 300ms ease-in-out, transform 300ms ease-in-out',
         }}
         className={cn(
-          'border-t border-clark-steel/30 px-2 sm:px-4 flex items-center justify-center gap-2 sm:gap-8 pointer-events-auto backdrop-blur-md',
+          'border-t px-2 sm:px-4 flex items-center justify-center gap-2 sm:gap-8 pointer-events-auto backdrop-blur-md',
           isPlayerVisible ? 'translate-y-0' : 'translate-y-[calc(100%+1.5rem)]',
         )}
       >
         {/* Track info — left (hidden on mobile) */}
         <div className="hidden sm:flex items-center gap-3 w-56 flex-shrink-0">
-          <div className="relative flex-shrink-0">
-            <div className="absolute inset-0 rounded-md bg-clark-gold/20 blur-md animate-gold-pulse" />
-            <div className="relative w-12 h-12 rounded-md bg-gradient-to-br from-clark-steel to-clark-accent flex items-center justify-center ring-1 ring-clark-gold/40">
-              <Music className="w-5 h-5 text-white/70" />
+            <div className="relative flex-shrink-0">
+              <div className="absolute inset-0 rounded-md blur-md animate-gold-pulse" style={{ backgroundColor: accentColor + '30' }} />
+              <div className="relative w-12 h-12 rounded-md bg-gradient-to-br from-clark-steel to-clark-accent flex items-center justify-center" style={{ boxShadow: `0 0 12px ${accentColor}40` }}>
+                <Music className="w-5 h-5 text-white/70" />
+              </div>
             </div>
-          </div>
           <div className="min-w-0">
             <p className="font-display text-sm tracking-wider truncate">{displayTrack.title}</p>
             <p className="font-body text-xs text-clark-text-muted truncate">{displayTrack.artist}</p>
@@ -512,6 +513,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
             <button
               className="relative w-10 h-10 rounded-full bg-clark-accent hover:bg-clark-accent-hover flex items-center justify-center transition-all hover:scale-105 group"
+              style={{ boxShadow: `0 0 14px ${accentColor}60` }}
               onClick={togglePlay}
               aria-label={isPlaying ? t('pauseBtn') : t('playBtn')}
             >
@@ -550,10 +552,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               }}
             >
               <div
-                className="h-full bg-gradient-to-r from-clark-gold to-clark-gold-hover rounded-full relative group-hover:brightness-110 transition-all"
-                style={{ width: `${(progress / trackDuration) * 100}%` }}
+                className="h-full rounded-full relative group-hover:brightness-110 transition-all"
+                style={{
+                  width: `${(progress / trackDuration) * 100}%`,
+                  backgroundColor: accentColor,
+                  boxShadow: `0 0 8px ${accentColor}80`,
+                }}
               >
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-clark-gold rounded-full shadow-glow-gold opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div
+                  className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ backgroundColor: accentColor, boxShadow: `0 0 10px ${accentColor}` }}
+                />
               </div>
             </div>
             <span className="font-condensed text-xs text-clark-text-muted w-10 tabular-nums">{formatTime(trackDuration)}</span>
