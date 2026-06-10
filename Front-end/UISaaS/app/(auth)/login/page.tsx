@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/hooks/useTranslation'
+import Image from 'next/image'
+import ClarkLogo from '@/public/ClarkPlayer_White.png'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -212,8 +214,7 @@ function LoginFormInner() {
         <div className="relative z-10 flex flex-col items-center justify-center w-full px-8 py-12 lg:py-0">
           {/* Logo */}
           <div className="w-24 h-24 lg:w-28 lg:h-28 rounded-2xl bg-clark-bg-card flex items-center justify-center mb-6 shadow-glow-gold ring-2 ring-clark-gold/60 overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="ClarkPlayer" className="w-full h-full object-contain p-1" />
+            <Image src={ClarkLogo} alt="ClarkPlayer" className="w-full h-full object-contain p-1" width={112} height={112} priority />
           </div>
 
           {/* Wordmark */}
@@ -234,8 +235,7 @@ function LoginFormInner() {
           {/* Mobile-only branding header */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
             <div className="w-10 h-10 rounded-xl bg-clark-bg-card flex items-center justify-center overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="ClarkPlayer" className="w-full h-full object-contain p-0.5" />
+              <Image src={ClarkLogo} alt="ClarkPlayer" className="w-full h-full object-contain p-0.5" width={40} height={40} />
             </div>
             <span className="font-display text-xl tracking-wider">ClarkPlayer</span>
           </div>
