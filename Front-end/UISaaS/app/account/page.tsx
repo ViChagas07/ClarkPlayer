@@ -5,7 +5,9 @@ import { AppShell } from '@/components/layout/AppShell'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/hooks/useTranslation'
 import { Camera, Trash2, X, Loader2, Check } from 'lucide-react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import ClarkLogo from '@/public/ClarkPlayer_White.png'
 
 export default function AccountPage() {
   const { t } = useTranslation()
@@ -37,7 +39,7 @@ export default function AccountPage() {
         {/* ClarkPlayer logo banner */}
         <div className="flex flex-col items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/ClarkPlayer_White.png" alt="ClarkPlayer" className="w-20 h-20 object-contain mb-3" />
+          <Image src={ClarkLogo} alt="ClarkPlayer" width={80} height={80} className="object-contain mb-3" priority />
           <h1 className="font-display text-3xl tracking-widest uppercase">{t('myAccount')}</h1>
         </div>
 
@@ -54,8 +56,7 @@ export default function AccountPage() {
                 />
               ) : (
                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-clark-steel to-clark-bg-card flex items-center justify-center overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/ClarkPlayer_White.png" alt="ClarkPlayer" className="w-16 h-16 object-contain" />
+                  <Image src={ClarkLogo} alt="ClarkPlayer" width={64} height={64} className="object-contain" />
                 </div>
               )}
               <button
