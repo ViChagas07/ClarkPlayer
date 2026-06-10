@@ -20,10 +20,6 @@ export default function AccountPage() {
   const charCount = bio.length
   const maxChars = 160
 
-  const initials = user?.display_name
-    ? user.display_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
-    : user?.username?.slice(0, 2).toUpperCase() ?? 'U'
-
   function handleDeleteAccount() {
     if (deleteConfirm !== 'DELETE') return
     setIsDeleting(true)
@@ -52,8 +48,9 @@ export default function AccountPage() {
                   className="w-24 h-24 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-clark-steel to-clark-bg-card flex items-center justify-center text-3xl font-display text-white">
-                  {initials}
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-clark-steel to-clark-bg-card flex items-center justify-center overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/ClarkPlayer_Favicon.png" alt="ClarkPlayer" className="w-16 h-16 object-contain" />
                 </div>
               )}
               <button

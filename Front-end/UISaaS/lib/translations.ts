@@ -264,6 +264,9 @@ export interface TranslationMap {
   authFailed: string
   closeLoginPage: string
 
+  // ── Branding / Tagline ──
+  clarkTagline: string
+
   // ── Register ──
   createYourAccount: string
   joinClarkPlayer: string
@@ -563,6 +566,8 @@ const translations = {
     authFailedGoogle: 'Google sign-in failed. Please try again.',
     authFailed: 'Authentication failed. Please try again.',
     closeLoginPage: 'Close login page',
+    // ── Branding / Tagline ──
+    clarkTagline: 'Clark by Name. Super by Nature.',
     // ── Register ──
     createYourAccount: 'Create your account',
     joinClarkPlayer: 'Join ClarkPlayer and start building your library',
@@ -855,6 +860,8 @@ const translations = {
     authFailedGoogle: 'Falha no login com Google. Tente novamente.',
     authFailed: 'Falha na autentica\u00e7\u00e3o. Tente novamente.',
     closeLoginPage: 'Fechar p\u00e1gina de login',
+    // ── Branding / Tagline ──
+    clarkTagline: 'Clark por Nome. Super por Natureza.',
     // ── Register ──
     createYourAccount: 'Crie sua conta',
     joinClarkPlayer: 'Entre no ClarkPlayer e comece a montar sua biblioteca',
@@ -1147,6 +1154,8 @@ const translations = {
     authFailedGoogle: 'Fall\u00f3 el inicio de sesi\u00f3n con Google. Intenta de nuevo.',
     authFailed: 'Fall\u00f3 la autenticaci\u00f3n. Intenta de nuevo.',
     closeLoginPage: 'Cerrar p\u00e1gina de inicio de sesi\u00f3n',
+    // ── Branding / Tagline ──
+    clarkTagline: 'Clark de Nombre. S\u00faper por Naturaleza.',
     // ── Register ──
     createYourAccount: 'Crea tu cuenta',
     joinClarkPlayer: '\u00danete a ClarkPlayer y comienza a construir tu biblioteca',
@@ -1439,6 +1448,8 @@ const translations = {
     authFailedGoogle: '\u00c9chec de la connexion Google. R\u00e9essayez.',
     authFailed: "\u00c9chec de l'authentification. R\u00e9essayez.",
     closeLoginPage: 'Fermer la page de connexion',
+    // ── Branding / Tagline ──
+    clarkTagline: 'Clark de Nom. Super par Nature.',
     // ── Register ──
     createYourAccount: 'Cr\u00e9ez votre compte',
     joinClarkPlayer: 'Rejoignez ClarkPlayer et commencez \u00e0 b\u00e2tir votre biblioth\u00e8que',
@@ -1731,6 +1742,8 @@ const translations = {
     authFailedGoogle: 'Google-Anmeldung fehlgeschlagen. Versuche es erneut.',
     authFailed: 'Authentifizierung fehlgeschlagen. Versuche es erneut.',
     closeLoginPage: 'Anmeldeseite schlie\u00dfen',
+    // ── Branding / Tagline ──
+    clarkTagline: 'Clark beim Namen. Super von Natur aus.',
     // ── Register ──
     createYourAccount: 'Erstelle dein Konto',
     joinClarkPlayer: 'Tritt ClarkPlayer bei und baue deine Bibliothek auf',

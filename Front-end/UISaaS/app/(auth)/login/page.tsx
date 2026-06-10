@@ -221,7 +221,7 @@ function LoginFormInner() {
             ClarkPlayer
           </h1>
           <p className="font-body italic text-clark-text-muted text-base lg:text-lg text-center">
-            Clark by Name. Super by Nature.
+            {t('clarkTagline')}
           </p>
         </div>
       </section>

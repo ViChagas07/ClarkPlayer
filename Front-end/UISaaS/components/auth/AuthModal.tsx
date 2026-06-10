@@ -13,6 +13,7 @@ import { Music, Loader2, X, AlertCircle, Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
+import { useTranslation } from '@/hooks/useTranslation'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -79,6 +80,7 @@ interface AuthModalProps {
 
 export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalProps) {
   const router = useRouter()
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<'login' | 'register' | 'forgot'>('login')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -317,7 +319,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
               <h1 className="text-4xl font-black tracking-tight text-white mb-2">
                 Clark<span className="text-gold">Player</span>
               </h1>
-              <p className="text-superman-lighter text-lg mb-8 italic">"Clark by Name. Super by Nature."</p>
+              <p className="text-superman-lighter text-lg mb-8 italic">{t('clarkTagline')}</p>
 
               {/* Feature highlights with gold dots */}
               <div className="space-y-3 text-sm text-surface-300">

@@ -102,7 +102,7 @@ function RegisterFormInner() {
               <img src="/logo.png" alt="ClarkPlayer" className="w-full h-full object-contain p-1" />
             </div>
             <h1 className="font-display text-5xl tracking-widest uppercase text-clark-text-primary mb-3">ClarkPlayer</h1>
-<p className="font-body italic text-clark-text-muted text-lg">Clark by Name. Super by Nature.</p>
+<p className="font-body italic text-clark-text-muted text-lg">{t('clarkTagline')}</p>
           </div>
         </div>
 
@@ -138,7 +138,7 @@ function RegisterFormInner() {
             <img src="/logo.png" alt="ClarkPlayer" className="w-full h-full object-contain p-1" />
           </div>
           <h1 className="font-display text-5xl tracking-widest uppercase text-clark-text-primary mb-3">ClarkPlayer</h1>
-          <p className="font-body italic text-clark-text-muted text-lg">Clark by Name. Super by Nature.</p>
+          <p className="font-body italic text-clark-text-muted text-lg">{t('clarkTagline')}</p>
         </div>
       </div>
 
