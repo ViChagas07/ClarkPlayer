@@ -36,8 +36,9 @@ export const metadata: Metadata = {
   },
   description: 'Your personal Fortress of Sound. Upload, organize, and stream your music collection with heroic style.',
   icons: {
-    icon: '/logo.png',
-    shortcut: '/logo.png',
+    icon: '/ClarkPlayer_Favicon.png',
+    shortcut: '/ClarkPlayer_Favicon.png',
+    apple: '/ClarkPlayer_Favicon.png',
   },
 }
 

@@ -76,31 +76,22 @@ export function NowPlayingContent() {
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-96px)] px-6">
       <div className="text-center max-w-lg">
 
-        {/* Hero art block — Superman blue with gold S-shield glow */}
+        {/* Hero art block — ClarkPlayer logo with Superman gold glow */}
         <div className="relative mx-auto mb-10 w-64 h-64">
-          {/* Gold glow ring behind art */}
-          <div className="absolute inset-0 rounded-2xl bg-clark-gold/10 blur-3xl animate-gold-pulse" />
+          {/* Gold glow ring behind logo */}
+          <div className="absolute inset-0 rounded-full bg-clark-gold/20 blur-3xl animate-gold-pulse" />
 
-          {/* Main art container */}
-          <div className="relative w-full h-full rounded-2xl bg-gradient-to-br from-clark-steel via-clark-bg-secondary to-clark-bg-primary shadow-glow-blue flex flex-col items-center justify-center gap-4 overflow-hidden">
-            {/* Logo watermark */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-10">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="" className="w-32 h-32 object-contain" />
-            </div>
-
-            {/* Animated music icon */}
+          {/* Main logo container */}
+          <div className="relative w-full h-full rounded-2xl flex items-center justify-center overflow-hidden">
+            {/* ClarkPlayer logo — fully visible */}
             <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-clark-gold/20 blur-xl animate-pulse-slow" />
-              <div className="relative w-20 h-20 rounded-full bg-clark-accent/20 backdrop-blur-sm flex items-center justify-center ring-1 ring-clark-gold/30">
-                <svg className="w-10 h-10 text-clark-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                </svg>
-              </div>
+              <div className="absolute inset-0 rounded-full bg-clark-gold/10 blur-2xl animate-pulse-slow" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="ClarkPlayer" className="relative w-48 h-48 object-contain drop-shadow-[0_0_30px_rgba(245,197,24,0.3)]" />
             </div>
           </div>
 
-          {/* Gold ring decoration around art */}
+          {/* Gold ring decoration around logo */}
           <div className="absolute -inset-1 rounded-3xl border border-clark-gold/20 -z-10" />
         </div>
 
@@ -162,18 +153,9 @@ export function NowPlayingContent() {
                   {/* Gold shimmer on hover */}
                   <div className="absolute inset-0 bg-clark-gold/0 group-hover:bg-clark-gold/5 transition-colors duration-300" />
 
-                  {/* Logo watermark */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-5">
-                    <img src="/logo.png" alt="" className="w-16 h-18 object-contain" />
-                  </div>
-
-                  {/* Music icon */}
-                  <div className="relative h-full flex items-center justify-center">
-                    <div className="w-10 h-10 rounded-full bg-clark-accent/20 backdrop-blur-sm flex items-center justify-center ring-1 ring-clark-gold/20">
-                      <svg className="w-5 h-5 text-clark-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                      </svg>
-                    </div>
+                  {/* ClarkPlayer logo — subtle watermark at good visibility */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-[0.08]">
+                    <img src="/logo.png" alt="" className="w-12 h-12 object-contain" />
                   </div>
 
                   {/* Gold bottom border on hover */}
