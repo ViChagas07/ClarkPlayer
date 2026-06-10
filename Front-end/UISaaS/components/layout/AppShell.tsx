@@ -243,7 +243,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="absolute inset-0 rounded-xl bg-clark-gold/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="relative w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center ring-1 ring-clark-gold/40">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/ClarkPlayer_Sidebar.png" alt="ClarkPlayer" className="w-full h-full object-contain" />
+                  <img src="/ClarkPlayer_Transparent.png" alt="ClarkPlayer" className="w-full h-full object-contain" />
                 </div>
               </div>
               <div className="flex flex-col">
