@@ -168,16 +168,25 @@ function LoginFormInner() {
 
   return (
     <>
-      {/* Left panel — Superman blue gradient */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-clark-shadow via-clark-bg-secondary to-clark-bg-card">
-        {/* Aurora borealis effect — Superman colors */}
+      {/* ════════════════════════════════════════════════════════════════
+          LEFT PANEL — Branding (50% width on lg+, full width on mobile)
+          ════════════════════════════════════════════════════════════════ */}
+      <section
+        className="
+          relative overflow-hidden
+          flex items-center justify-center
+          min-h-[40vh] lg:min-h-0
+          bg-gradient-to-br from-clark-shadow via-clark-bg-secondary to-clark-bg-card
+        "
+      >
+        {/* Aurora borealis effect */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0 animate-aurora aurora-gradient opacity-80" />
           <div className="absolute top-0 left-0 right-0 h-1/2 animate-aurora-drift aurora-gradient-soft" />
           <div className="absolute bottom-0 left-0 right-0 h-1/2 animate-aurora-drift aurora-gradient-mid" />
         </div>
 
-        {/* Floating sticks — zero gravity effect */}
+        {/* Floating shapes */}
         <div className="absolute inset-0">
           {Array.from({ length: 6 }).map((_, i) => (
             <div
@@ -195,23 +204,34 @@ function LoginFormInner() {
             />
           ))}
         </div>
+
+        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-clark-shadow/80 to-transparent pointer-events-none" />
-        {/* Red vertical divider */}
-        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-clark-accent via-clark-accent/60 to-clark-accent opacity-40" />
-        <div className="relative z-10 flex flex-col items-center justify-center w-full">
-          <div className="w-28 h-28 rounded-2xl bg-clark-bg-card flex items-center justify-center mb-6 shadow-glow-gold ring-2 ring-clark-gold/60 overflow-hidden">
+
+        {/* Branding content */}
+        <div className="relative z-10 flex flex-col items-center justify-center w-full px-8 py-12 lg:py-0">
+          {/* Logo */}
+          <div className="w-24 h-24 lg:w-28 lg:h-28 rounded-2xl bg-clark-bg-card flex items-center justify-center mb-6 shadow-glow-gold ring-2 ring-clark-gold/60 overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="ClarkPlayer" className="w-full h-full object-contain p-1" />
           </div>
-          {/* font-display uppercase tracking-widest */}
-          <h1 className="font-display text-5xl tracking-widest uppercase text-clark-text-primary mb-3">ClarkPlayer</h1>
-          <p className="font-body italic text-clark-text-muted text-lg">Clark by Name. Super by Nature.</p>
-        </div>
-      </div>
 
-      {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
+          {/* Wordmark */}
+          <h1 className="font-display text-4xl lg:text-5xl tracking-widest uppercase text-clark-text-primary mb-3 text-center">
+            ClarkPlayer
+          </h1>
+          <p className="font-body italic text-clark-text-muted text-base lg:text-lg text-center">
+            Clark by Name. Super by Nature.
+          </p>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          RIGHT PANEL — Authentication Form (50% on lg+, full on mobile)
+          ════════════════════════════════════════════════════════════════ */}
+      <section className="flex items-center justify-center px-6 py-12 lg:py-0">
         <div className="w-full max-w-md">
+          {/* Mobile-only branding header */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
             <div className="w-10 h-10 rounded-xl bg-clark-bg-card flex items-center justify-center overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -220,9 +240,13 @@ function LoginFormInner() {
             <span className="font-display text-xl tracking-wider">ClarkPlayer</span>
           </div>
 
-          {/* font-display uppercase tracking-widest */}
-          <h2 className="font-display text-3xl tracking-widest uppercase mb-2">{t('welcomeBack')}</h2>
-          <p className="font-body text-clark-text-muted mb-8">{t('signInToContinue')}</p>
+          {/* Headings */}
+          <h2 className="font-display text-2xl sm:text-3xl tracking-widest uppercase mb-2">
+            {t('welcomeBack')}
+          </h2>
+          <p className="font-body text-clark-text-muted mb-8">
+            {t('signInToContinue')}
+          </p>
 
           {/* Lockout warning */}
           {isLockedOut && (
@@ -379,7 +403,7 @@ function LoginFormInner() {
             </a>
           </p>
         </div>
-      </div>
+      </section>
     </>
   )
 }
@@ -389,15 +413,14 @@ export default function LoginPage() {
   const { t } = useTranslation()
 
   return (
-    <div className="min-h-screen bg-clark-bg-primary flex relative">
+    <div className="min-h-dvh bg-clark-bg-primary grid grid-cols-1 lg:grid-cols-2 relative">
       {/* Close button — returns user to home page */}
       <button
         type="button"
         onClick={() => router.push('/')}
         aria-label={t('closeLoginPage')}
-        style={{ zIndex: 999 }}
         className={cn(
-          'absolute top-5 left-5 pointer-events-auto',
+          'absolute top-5 left-5 z-50',
           'w-12 h-12 rounded-full',
           'flex items-center justify-center',
           'bg-white text-black',
