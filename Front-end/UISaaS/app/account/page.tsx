@@ -34,7 +34,11 @@ export default function AccountPage() {
   return (
     <AppShell>
       <div className="max-w-3xl mx-auto space-y-8">
-        <h1 className="font-display text-3xl tracking-widest uppercase">{t('myAccount')}</h1>
+        <h1 className="font-display text-3xl tracking-widest uppercase flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/ClarkPlayer_Favicon.png" alt="ClarkPlayer" className="w-8 h-8 object-contain" />
+          {t('myAccount')}
+        </h1>
 
         {/* Profile header */}
         <div className="bg-clark-bg-secondary rounded-xl border border-clark-steel/20 p-6">
