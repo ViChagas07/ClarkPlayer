@@ -1,0 +1,49 @@
+[package]
+name = "clarkplayer"
+version = "0.1.0"
+description = "ClarkPlayer Desktop — Your personal Fortress of Sound"
+authors = ["ClarkPlayer Team"]
+license = "MIT"
+repository = "https://github.com/ViChagas07/ClarkPlayer"
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.6.2" }
+
+[dependencies]
+# Tauri core
+tauri = { version = "2.11.2", features = ["tray-icon"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-store = "2"
+tauri-plugin-sql = { version = "2", features = ["sqlite"] }
+tauri-plugin-shell = "2"
+tauri-plugin-log = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-global-shortcut = "2"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Audio metadata extraction
+lofty = { version = "0.22", features = ["id3v2_compression_support"] }
+
+# Filesystem monitoring
+notify = { version = "7", features = ["macos_kqueue"] }
+walkdir = "2"
+
+# Database
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# Utilities
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+log = "0.4"
+base64 = "0.22"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
