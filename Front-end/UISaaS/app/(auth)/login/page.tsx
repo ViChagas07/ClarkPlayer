@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Suspense, useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -537,9 +538,9 @@ function AuthFormInner() {
               </div>
 
               <div className="flex justify-end">
-                <a href="/forgot-password" className="font-body text-sm text-clark-sky hover:text-clark-sky/80 transition-colors">
+                <Link href="/forgot-password" className="font-body text-sm text-clark-sky hover:text-clark-sky/80 transition-colors">
                   {t('forgotPassword')}
-                </a>
+                </Link>
               </div>
 
               <button

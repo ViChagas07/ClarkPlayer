@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -102,9 +103,9 @@ export default function LibraryPage() {
 
         <p className="font-body text-sm text-clark-text-muted text-center py-4">
           {t('libraryOverview')}{' '}
-          <a href="/audios" className="text-clark-gold hover:underline font-medium">{t('libraryOverviewBrowse')} {t('allTracks')}</a>
+          <Link href="/audios" className="text-clark-gold hover:underline font-medium">{t('libraryOverviewBrowse')} {t('allTracks')}</Link>
           {' '}{t('libraryOverviewOr')}{' '}
-          <a href="/playlists" className="text-clark-gold hover:underline font-medium">{t('playlists')}</a>.
+          <Link href="/playlists" className="text-clark-gold hover:underline font-medium">{t('playlists')}</Link>.
         </p>
 
         {/* ── Discover — Real API tracks in Spotify-style card grid ── */}

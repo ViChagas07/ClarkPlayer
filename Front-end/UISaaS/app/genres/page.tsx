@@ -60,7 +60,7 @@ export default function GenresPage() {
       <div className="space-y-6">
         <h1 className="font-display text-3xl tracking-widest uppercase">{t('browseByGenre')}</h1>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[120px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[120px]">
           {mockGenres.map((genre, i) => {
             const gradients = genreGradients[genre.name] ?? { from: 'from-clark-steel', to: 'to-clark-bg-secondary' }
             return (
@@ -70,6 +70,8 @@ export default function GenresPage() {
                 className={cn(
                   'relative rounded-xl overflow-hidden group transition-transform hover:scale-[1.02]',
                   mosaicLayout[i],
+                  // On mobile all cards are single-column; col-span-2 only works for sm+
+                  i < 3 ? 'sm:col-span-2 sm:row-span-2' : '',
                 )}
               >
                 {/* Genre cover image as background */}

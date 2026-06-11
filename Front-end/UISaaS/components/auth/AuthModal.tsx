@@ -259,7 +259,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
           </button>
         )}
 
-        <div className="flex min-h-[600px]">
+        <div className="flex min-h-[min(600px,calc(100vh-6rem))]">
           {/* ── Left panel — Superman hero visual ─────────────────────────── */}
           <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
 

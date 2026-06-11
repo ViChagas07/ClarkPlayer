@@ -77,7 +77,7 @@ export function NowPlayingContent() {
       <div className="text-center max-w-lg">
 
         {/* Hero art block — ClarkPlayer logo with Superman gold glow */}
-        <div className="relative mx-auto mb-10 w-64 h-64">
+        <div className="relative mx-auto mb-10 w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64">
           {/* Gold glow ring behind logo */}
           <div className="absolute inset-0 rounded-full bg-clark-gold/20 blur-3xl animate-gold-pulse" />
 
@@ -111,8 +111,8 @@ export function NowPlayingContent() {
           {t('fortressOfSound')}
         </p>
 
-        {/* CTA buttons */}
-        <div className="flex gap-4 justify-center">
+        {/* CTA buttons — stack on mobile */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
           <Link
             href="/audios"
             className="px-6 py-3 bg-clark-accent hover:bg-clark-accent-hover text-white font-body font-semibold rounded-lg transition-all hover:-translate-y-0.5 shadow-glow-hero flex items-center gap-2"

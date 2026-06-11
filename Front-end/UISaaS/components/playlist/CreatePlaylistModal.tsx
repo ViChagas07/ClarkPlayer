@@ -142,7 +142,7 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full h-10 px-3 rounded-lg bg-clark-bg-card text-clark-text-primary border border-clark-steel/30 font-body text-sm focus:outline-none focus:ring-2 focus:ring-clark-gold/40 focus:border-transparent transition-colors"
+              className="w-full h-11 px-3 rounded-lg bg-clark-bg-card text-clark-text-primary border border-clark-steel/30 font-body text-sm focus:outline-none focus:ring-2 focus:ring-clark-gold/40 focus:border-transparent transition-colors"
               placeholder={t('playlistNamePlaceholder')}
               autoFocus
             />
@@ -197,7 +197,7 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
               onCreate({ name: name.trim(), description: description.trim() || undefined, isPrivate })
             }}
             disabled={!name.trim()}
-            className="w-full h-10 bg-clark-accent hover:bg-clark-accent-hover disabled:opacity-50 font-body font-semibold text-sm text-white rounded-lg transition-all hover:-translate-y-0.5 shadow-glow-hero flex items-center justify-center gap-2"
+            className="w-full h-11 bg-clark-accent hover:bg-clark-accent-hover disabled:opacity-50 font-body font-semibold text-sm text-white rounded-lg transition-all hover:-translate-y-0.5 shadow-glow-hero flex items-center justify-center gap-2"
           >
             <Music className="w-3.5 h-3.5 text-clark-gold" />
             {t('createPlaylist')}

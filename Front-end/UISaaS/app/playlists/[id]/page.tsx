@@ -196,12 +196,12 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
 
         {/* Track list */}
         <div className="space-y-0.5">
-          <div className="grid grid-cols-[40px_1fr_1fr_80px_60px_40px] gap-4 px-4 py-2 font-body font-medium text-xs text-clark-text-muted uppercase tracking-wider border-b border-clark-steel/20">
+          <div className="grid grid-cols-[36px_1fr_44px_36px] sm:grid-cols-[40px_1fr_1fr_80px_60px_40px] gap-4 px-4 py-2 font-body font-medium text-xs text-clark-text-muted uppercase tracking-wider border-b border-clark-steel/20">
             <span>#</span>
             <span>{t('titleColumn')}</span>
-            <span>{t('albumColumn')}</span>
+            <span className="hidden sm:block">{t('albumColumn')}</span>
             <span className="text-right">{t('durationColumn')}</span>
-            <span>{t('formatColumn')}</span>
+            <span className="hidden sm:block">{t('formatColumn')}</span>
             <span />
           </div>
 

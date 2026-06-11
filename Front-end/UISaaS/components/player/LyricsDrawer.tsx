@@ -103,15 +103,14 @@ export function LyricsDrawer({ isOpen, onClose, trackTitle }: LyricsDrawerProps)
       {/* Content */}
       <div className="flex-1 overflow-hidden">
         {karaokeMode ? (
-          <div className="flex flex-col items-center justify-center h-full px-12 text-center">
+          <div className="flex flex-col items-center justify-center h-full px-4 sm:px-12 text-center">
             {activeIndex > 0 && (
-              /* font-body text-xl text-clark-text-muted transition-all duration-500 -translate-y-4 opacity-50 */
-              <p className="font-body text-xl text-clark-text-muted mb-4 transition-all duration-500 -translate-y-4 opacity-50">
+              <p className="font-body text-lg sm:text-xl text-clark-text-muted mb-4 transition-all duration-500 -translate-y-4 opacity-50">
                 {lyrics[activeIndex - 1]?.text}
               </p>
             )}
             {/* font-display text-5xl tracking-widest uppercase text-clark-gold transition-all duration-300 scale-105 animate-gold-pulse */}
-            <p className="font-display text-5xl tracking-widest uppercase text-clark-gold transition-all duration-300 scale-105 animate-gold-pulse">
+            <p className="font-display text-3xl sm:text-5xl tracking-widest uppercase text-clark-gold transition-all duration-300 scale-105 animate-gold-pulse break-words max-w-full">
               {lyrics[activeIndex]?.text || '...'}
             </p>
             {activeIndex < lyrics.length - 1 && (

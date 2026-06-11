@@ -40,12 +40,22 @@ export const metadata: Metadata = {
     shortcut: '/ClarkPlayer_Favicon.png',
     apple: '/ClarkPlayer_Favicon.png',
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'ClarkPlayer',
+  },
+  manifest: '/manifest.json',
 }
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#005BAD',
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0A1628' },
+    { media: '(prefers-color-scheme: light)', color: '#EEF2FF' },
+  ],
 }
 
 export default function RootLayout({

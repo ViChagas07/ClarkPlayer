@@ -44,10 +44,10 @@ function GoogleCallbackHandler() {
   }, [searchParams, router])
 
   return (
-    <div className="min-h-screen bg-clark-dark flex items-center justify-center">
+    <div className="min-h-screen bg-clark-bg-primary flex items-center justify-center">
       <div className="text-center">
-        <div className="inline-block w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-surface-300 text-lg">{t('signingInGoogle')}</p>
+        <div className="inline-block w-10 h-10 border-4 border-clark-accent border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-clark-text-muted text-lg">{t('signingInGoogle')}</p>
       </div>
     </div>
   )

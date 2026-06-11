@@ -53,7 +53,10 @@ export const TrackRow = memo(function TrackRow({
   return (
     <div
       className={cn(
-        'grid grid-cols-[40px_1fr_1fr_80px_60px_40px] gap-4 px-4 py-2.5 h-14 items-center rounded-lg transition-all duration-200 cursor-pointer group',
+        'grid gap-4 px-4 py-2.5 h-14 items-center rounded-lg transition-all duration-200 cursor-pointer group',
+        // Mobile: 3 cols (checkbox/idx + title + duration + menu)
+        // Desktop: 6 cols (checkbox/idx + title + album + duration + format + menu)
+        'grid-cols-[36px_1fr_44px_36px] sm:grid-cols-[40px_1fr_1fr_80px_60px_40px]',
         isPlaying
           ? 'bg-clark-steel/10 border-l-2 border-l-clark-gold'
           : index % 2 === 0
@@ -73,14 +76,15 @@ export const TrackRow = memo(function TrackRow({
       {/* Index / Equalizer / Checkbox */}
       <div className="flex items-center justify-center">
         {isMultiSelectActive ? (
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={onSelect}
-            onClick={(e) => e.stopPropagation()}
-            className="w-4 h-4 rounded border-clark-steel/40 bg-clark-bg-secondary text-clark-gold focus:ring-clark-gold cursor-pointer"
-            aria-label={`${t('selectTrack')} ${track.title}`}
-          />
+          <label className="flex items-center justify-center p-1 -m-1 cursor-pointer" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={onSelect}
+              className="w-5 h-5 rounded border-clark-steel/40 bg-clark-bg-secondary text-clark-gold focus:ring-clark-gold cursor-pointer"
+              aria-label={`${t('selectTrack')} ${track.title}`}
+            />
+          </label>
         ) : isPlaying ? (
           /* Gold equalizer bars */
           <div className="flex items-end gap-0.5 h-4" aria-label={t('currentlyPlaying')}>
@@ -117,14 +121,14 @@ export const TrackRow = memo(function TrackRow({
         </div>
       </div>
 
-      {/* Album */}
-      <p className="font-body text-sm text-clark-text-muted truncate">{track.album}</p>
+      {/* Album — hidden on mobile */}
+      <p className="hidden sm:block font-body text-sm text-clark-text-muted truncate">{track.album}</p>
 
       {/* Duration */}
       <p className="font-condensed text-sm text-clark-text-muted text-right tabular-nums">{formatDuration(track.duration)}</p>
 
-      {/* Format badge */}
-      <div className="flex items-center justify-center">
+      {/* Format badge — hidden on mobile */}
+      <div className="hidden sm:flex items-center justify-center">
         <span className={cn(
           'px-2 py-0.5 rounded font-condensed text-xs uppercase tracking-wide',
           formatColors[track.format] ?? 'bg-shell-border/50 text-clark-text-muted'
@@ -136,7 +140,7 @@ export const TrackRow = memo(function TrackRow({
       {/* Context menu */}
       <div className="relative">
         <button
-          className="p-1 rounded hover:bg-clark-bg-secondary text-clark-text-muted hover:text-clark-gold opacity-0 group-hover:opacity-100 transition-all"
+          className="p-1 rounded hover:bg-clark-bg-secondary text-clark-text-muted hover:text-clark-gold opacity-0 group-hover:opacity-100 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
           onClick={(e) => {
             e.stopPropagation()
             setShowMenu(!showMenu)
@@ -146,7 +150,7 @@ export const TrackRow = memo(function TrackRow({
           <MoreHorizontal className="w-4 h-4" />
         </button>
         {showMenu && (
-          <div className="absolute right-0 top-full mt-1 w-52 bg-clark-bg-secondary border border-clark-steel/30 rounded-xl shadow-modal z-20 py-1 backdrop-blur-sm">
+          <div className="absolute right-0 top-full mt-1 w-52 max-w-[calc(100vw-1rem)] bg-clark-bg-secondary border border-clark-steel/30 rounded-xl shadow-modal z-20 py-1 backdrop-blur-sm">
             <button className="w-full flex items-center gap-3 px-4 py-2.5 font-body text-sm text-clark-text-primary hover:bg-clark-bg-card hover:text-clark-gold transition-colors" onClick={() => setShowMenu(false)}>
               <Play className="w-4 h-4 text-clark-gold" /> {t('playAction')}
             </button>
