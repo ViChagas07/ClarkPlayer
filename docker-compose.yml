@@ -52,6 +52,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-production}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       MEDIA_ROOT: /app/media
       # Google OIDC
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}

@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'clarkplayer.onrender.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'is1-ssl.mzstatic.com',
         pathname: '/**',
       },
