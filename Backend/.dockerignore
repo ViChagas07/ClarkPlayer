@@ -1,0 +1,41 @@
+# Environment — never bake secrets into the image; inject them at runtime
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Virtual environment
+.venv/
+venv/
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# CI / linters
+.ruff_cache/
+.mypy_cache/
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Local media (large, mounted as volume)
+media/

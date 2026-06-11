@@ -28,7 +28,7 @@ async def _send(to: str, subject: str, html: str) -> None:
     """
     settings = _settings()
     resend.api_key = settings.RESEND_API_KEY
-    resend.Emails.send({
+    await resend.Emails.send({
         "from": settings.RESEND_FROM,
         "to": to,
         "subject": subject,

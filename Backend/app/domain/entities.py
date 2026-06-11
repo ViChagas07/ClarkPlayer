@@ -9,7 +9,7 @@ Every entity is immutable (or nearly so) — mutating methods return a
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, UTC
 from uuid import UUID, uuid4
 
 from app.domain.enums import AudioFormat, PlaylistVisibility
@@ -27,8 +27,8 @@ class User:
     avatar_url: str | None = None
     is_active: bool = True
     email_verified: bool = False
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 # ── Track (audio file) ────────────────────────────────────────────────────
@@ -51,8 +51,8 @@ class Track:
     play_count: int = 0
     last_played_at: datetime | None = None
     is_favorite: bool = False
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 # ── Playlist ──────────────────────────────────────────────────────────────
@@ -66,8 +66,8 @@ class Playlist:
     description: str | None = None
     cover_art_path: str | None = None
     visibility: PlaylistVisibility = PlaylistVisibility.PRIVATE
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 # ── Playlist ↔ Track association ─────────────────────────────────────────
@@ -78,4 +78,4 @@ class PlaylistTrack:
     playlist_id: UUID
     track_id: UUID
     position: int
-    added_at: datetime = field(default_factory=datetime.utcnow)
+    added_at: datetime = field(default_factory=lambda: datetime.now(UTC))

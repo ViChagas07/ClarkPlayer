@@ -29,7 +29,6 @@ export default function HomePage() {
     setVolume,
     toggleShuffle,
     cycleRepeat,
-    togglePlay,
   } = usePlayerStore();
 
   const [queueOpen, setQueueOpen] = useState(false);

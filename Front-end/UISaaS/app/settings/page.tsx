@@ -143,18 +143,6 @@ export default function SettingsPage() {
     window.history.replaceState(null, '', `?${params.toString()}`)
   }, [activeTab])
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const tab = params.get('tab')
-    if (tab && TABS.some((t) => t.id === tab)) setActiveTab(tab)
-  }, [])
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    params.set('tab', activeTab)
-    window.history.replaceState(null, '', `?${params.toString()}`)
-  }, [activeTab])
-
   return (
     <AppShell>
       <div className="max-w-5xl mx-auto">
@@ -523,6 +511,7 @@ export default function SettingsPage() {
                       onChange={(e) => {
                         const val = e.target.value
                         if (val === '0') setSleepTimer(null)
+                        else if (val === 'end') setSleepTimer(-1)  // -1 = end of track
                         else setSleepTimer(parseInt(val))
                       }}
                       className="h-12 px-4 rounded-lg bg-clark-bg-secondary text-clark-text-primary border border-clark-steel/40 font-body focus:outline-none focus:ring-2 focus:ring-clark-gold"

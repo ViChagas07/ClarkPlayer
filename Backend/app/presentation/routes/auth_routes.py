@@ -88,8 +88,6 @@ async def _create_refresh_token(user_id: str) -> str:
 
 async def _validate_refresh_token(token: str) -> str:
     """Return user_id if refresh token is valid, raise ValueError otherwise."""
-    from app.core.config import get_settings
-    get_settings()
 
     redis = await get_session_redis()
     user_id: str | None = await redis.get(f"{REFRESH_KEY_PREFIX}{token}")

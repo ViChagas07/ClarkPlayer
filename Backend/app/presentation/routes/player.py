@@ -61,8 +61,6 @@ async def set_sleep_timer(
     Set a sleep timer. The timer auto-expires in Redis — no background worker needed.
     Body: { "expires_at": <Unix timestamp in ms> }
     """
-    from app.core.config import get_settings
-    get_settings()
 
     now_ms = int(datetime.now(UTC).timestamp() * 1000)
     if body.expires_at <= now_ms:

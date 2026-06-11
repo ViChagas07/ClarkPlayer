@@ -56,8 +56,9 @@ USER appuser
 
 EXPOSE 8000
 
-# Health check using the /health endpoint
+# Health check using the /health endpoint (port may be overridden by $PORT on Render)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-    CMD curl -sf http://localhost:8000/health || exit 1
+    CMD curl -sf http://localhost:${PORT:-8000}/health || exit 1
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Use shell form so $PORT is expanded (Render injects PORT env var; defaults to 8000 locally)
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

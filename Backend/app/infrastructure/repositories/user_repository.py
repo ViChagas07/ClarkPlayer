@@ -52,7 +52,7 @@ class UserRepository(IUserRepository):
             return await self.create(user)
 
         for field, value in user_to_model(user).__dict__.items():
-            if not field.startswith("_") and field != "id":
+            if not field.startswith("_") and field not in ("id", "created_at"):
                 setattr(model, field, value)
 
         await self._session.flush()

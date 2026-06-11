@@ -53,10 +53,10 @@ export default function AudiosPage() {
   const [trendingLoading, setTrendingLoading] = useState(true)
 
   // Simulate loading
-  useState(() => {
+  useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 800)
     return () => clearTimeout(timer)
-  })
+  }, [])
 
   // Fetch trending tracks from APIs
   useEffect(() => {
