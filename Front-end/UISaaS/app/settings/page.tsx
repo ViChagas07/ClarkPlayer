@@ -428,28 +428,33 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="p-4 rounded-lg bg-clark-bg-secondary border border-clark-steel/20">
-                    <div className="flex items-center justify-between gap-2 h-40">
+                    <div className="flex items-end justify-between gap-1 h-48">
                       {EQ_FREQUENCIES.map((freq, i) => (
-                        <div key={freq} className="flex flex-col items-center justify-center gap-2 flex-1">
-                          <span className="font-condensed text-xs text-clark-text-muted tabular-nums">{eqBands[i] > 0 ? '+' : ''}{eqBands[i]}dB</span>
-                          <input
-                            type="range"
-                            min="-12"
-                            max="12"
-                            step="1"
-                            value={eqBands[i]}
-                            onChange={(e) => setEqBand(i, parseInt(e.target.value))}
-                            className="appearance-none cursor-pointer rounded-full bg-clark-bg-secondary"
-                            style={{
-                              transform: 'rotate(-90deg)',
-                              width: '112px',
-                              height: '4px',
-                              margin: '42px 0 26px 0',
-                              background: `linear-gradient(to right, #F5C518 ${((eqBands[i] + 12) / 24) * 100}%, #0D1B4B ${((eqBands[i] + 12) / 24) * 100}%)`,
-                            }}
-                            aria-label={`${freq}, current value: ${eqBands[i]} dB`}
-                          />
-                          <span className="font-condensed text-[10px] text-clark-text-muted">{freq}</span>
+                        <div key={freq} className="flex flex-col items-center flex-1 min-w-0 h-full">
+                          <span className="font-condensed text-xs text-clark-text-muted tabular-nums mb-1 shrink-0">
+                            {eqBands[i] > 0 ? '+' : ''}{eqBands[i]}dB
+                          </span>
+                          <div className="flex-1 flex items-center justify-center">
+                            <input
+                              type="range"
+                              min="-12"
+                              max="12"
+                              step="1"
+                              value={eqBands[i]}
+                              onChange={(e) => setEqBand(i, parseInt(e.target.value))}
+                              className="appearance-none cursor-pointer rounded-full"
+                              style={{
+                                transform: 'rotate(-90deg)',
+                                width: '96px',
+                                height: '4px',
+                                background: `linear-gradient(to right, #F5C518 ${((eqBands[i] + 12) / 24) * 100}%, #0D1B4B ${((eqBands[i] + 12) / 24) * 100}%)`,
+                              }}
+                              aria-label={`${freq}, current value: ${eqBands[i]} dB`}
+                            />
+                          </div>
+                          <span className="font-condensed text-[10px] text-clark-text-muted mt-1 shrink-0">
+                            {freq}
+                          </span>
                         </div>
                       ))}
                     </div>
