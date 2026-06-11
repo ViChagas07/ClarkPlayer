@@ -6,8 +6,8 @@
  * cookie that we set alongside the Zustand persist data.
  *
  * Rules:
- * - If the user has an auth cookie and visits `/login`, `/register`, or
- *   `/forgot-password`, redirect them to `/` (they're already logged in).
+ * - If the user has an auth cookie and visits `/login` or `/forgot-password`,
+ *   redirect them to `/` (they're already logged in).
  * - Allow access to all other pages - the AuthModal will handle unauthenticated states.
  * - The callback page must be accessible to handle OAuth redirects.
  */
@@ -15,7 +15,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const PUBLIC_AUTH_PAGES = ['/login', '/register', '/forgot-password']
+const PUBLIC_AUTH_PAGES = ['/login', '/forgot-password']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -31,5 +31,5 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   // Run middleware on auth pages and root to handle redirects
-  matcher: ['/', '/login', '/register', '/forgot-password'],
+  matcher: ['/', '/login', '/forgot-password'],
 }

@@ -14,7 +14,7 @@ import { useAuthStore } from '@/store/authStore'
 import { AuthModal } from './AuthModal'
 
 // Pages where we don't want to show the modal (they have their own auth forms)
-const AUTH_PAGES = ['/login', '/register', '/forgot-password', '/auth/callback']
+const AUTH_PAGES = ['/login', '/forgot-password', '/auth/callback']
 
 export function AuthModalWrapper() {
   const [defaultTab, setDefaultTab] = useState<'login' | 'register'>('login')
