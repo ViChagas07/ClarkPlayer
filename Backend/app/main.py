@@ -40,6 +40,29 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     except Exception as exc:
         logger.warning("Database not available at startup (%s). Retrying on first request...", exc)
 
+    # Run pending Alembic migrations (safe for production — idempotent)
+    try:
+        import asyncio as _asyncio
+        from alembic.config import Config as AlembicConfig
+        from alembic import command
+        from pathlib import Path
+
+        _alembic_ini = Path(__file__).resolve().parents[2] / "alembic.ini"
+        if _alembic_ini.exists():
+            _alembic_cfg = AlembicConfig(str(_alembic_ini))
+            _alembic_cfg.set_main_option("sqlalchemy.url", _settings.DATABASE_URL)
+
+            def _run_migrations() -> None:
+                command.upgrade(_alembic_cfg, "head")
+
+            # alembic env.py uses asyncio.run() internally — run in a thread
+            await _asyncio.get_event_loop().run_in_executor(None, _run_migrations)
+            logger.info("Alembic migrations applied successfully.")
+        else:
+            logger.warning("alembic.ini not found — skipping migrations.")
+    except Exception as exc:
+        logger.warning("Alembic migration skipped (%s). If columns are missing, run manually.", exc)
+
     # Ensure media root exists
     try:
         _settings.MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
