@@ -366,7 +366,7 @@ class AuthService:
             user = User(
                 username=username,
                 email=email,
-                hashed_password=hash_password(str(UUID(int=0))),  # unusable password
+                hashed_password=hash_password(secrets.token_hex(16)),  # unusable password (32 hex chars < 72 bcrypt limit)
                 display_name=google_name or None,
                 avatar_url=google_picture,
                 email_verified=True,  # Google has already verified the email
