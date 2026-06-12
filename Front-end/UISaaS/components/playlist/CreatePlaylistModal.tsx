@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { X, Image as ImageIcon, Lock, Globe, Music, Pencil, Trash2 } from 'lucide-react'
+import { X, Image as ImageIcon, Lock, Globe, Music, Pencil, Trash2, HardDrive, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { usePlayerStore } from '@/store/playerStore'
 import { useTranslation } from '@/hooks/useTranslation'
+import { useGooglePicker } from '@/hooks/useGooglePicker'
 
 interface CreatePlaylistModalProps {
   onClose: () => void
@@ -20,15 +21,38 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [driveError, setDriveError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const modalRef = useRef<HTMLDivElement>(null)
 
-  // Hide player bar while modal is open
+  // ── Google Drive picker ──────────────────────────────────────
+  const handleDriveFile = useCallback((file: File) => {
+    setDriveError(null)
+    if (!file.type.startsWith('image/')) return
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl)
+    }
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
+    setImageFile(file)
+  }, [previewUrl])
+
+  const handleDriveError = useCallback((message: string) => {
+    setDriveError(message)
+  }, [])
+
+  const { openPicker, ready: driveReady, loading: driveLoading } = useGooglePicker({
+    onFilePicked: handleDriveFile,
+    onError: handleDriveError,
+  })
+
+  // ── Player bar visibility ───────────────────────────────────
   useEffect(() => {
     setPlayerVisible(false)
     return () => setPlayerVisible(true)
   }, [setPlayerVisible])
 
+  // ── Focus trap + Escape ─────────────────────────────────────
   useEffect(() => {
     const modal = modalRef.current
     if (!modal) return
@@ -59,15 +83,16 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
+  // ── Local file handling ─────────────────────────────────────
   const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) return
-    // Revoke previous blob URL to avoid memory leaks
     if (previewUrl && previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl)
     }
     const url = URL.createObjectURL(file)
     setPreviewUrl(url)
     setImageFile(file)
+    setDriveError(null)
   }, [previewUrl])
 
   const handleRemoveImage = useCallback(() => {
@@ -76,6 +101,7 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
     }
     setPreviewUrl(null)
     setImageFile(null)
+    setDriveError(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -88,7 +114,7 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
     if (file) handleFile(file)
   }, [handleFile])
 
-  /// Convert a File to a base64 data URL, then call onCreate
+  // ── Submit ──────────────────────────────────────────────────
   const handleSubmit = useCallback(() => {
     if (!name.trim()) return
 
@@ -107,7 +133,6 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
         submit(reader.result as string)
       }
       reader.onerror = () => {
-        // If reading fails, still create the playlist without the image
         submit(undefined)
       }
       reader.readAsDataURL(imageFile)
@@ -133,6 +158,7 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
         className="bg-clark-bg-secondary rounded-xl border border-clark-steel/30 w-full max-w-sm shadow-modal"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* ── Header ──────────────────────────────────── */}
         <div className="flex items-center justify-between p-4 pb-0">
           <div className="flex items-center gap-2">
             <h2 id="create-playlist-title" className="font-display text-xl tracking-widest uppercase text-clark-text-primary">{t('newPlaylist')}</h2>
@@ -143,7 +169,7 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
         </div>
 
         <div className="p-4 space-y-3">
-          {/* Cover upload — with edit/remove overlay when image is selected */}
+          {/* ── Cover upload: drop zone + Google Drive CTA ── */}
           <div
             className={cn(
               'relative h-28 rounded-xl border-2 border-dashed transition-colors overflow-hidden group/cover',
@@ -158,7 +184,7 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
             {previewUrl ? (
               <>
                 <img src={previewUrl} alt={t('playlistCoverPreview')} className="w-full h-full object-cover" />
-                {/* Edit/Remove overlay — visible on hover */}
+                {/* Edit/Remove overlay */}
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/cover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                   <button
                     type="button"
@@ -188,13 +214,15 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
               </>
             ) : (
               <div
-                className="flex items-center justify-center gap-3 h-full text-clark-text-muted px-4 cursor-pointer"
+                className="flex flex-col items-center justify-center gap-2 h-full text-clark-text-muted px-4 cursor-pointer"
                 onClick={() => fileInputRef.current?.click()}
               >
-                <ImageIcon className="w-6 h-6 flex-shrink-0 text-clark-gold" />
-                <div className="text-left">
-                  <p className="font-body text-sm">{t('dropImageUpload')}</p>
-                  <p className="font-body text-xs text-clark-text-muted/50 mt-0.5">{t('pngJpgLimit')}</p>
+                <div className="flex items-center gap-3">
+                  <ImageIcon className="w-6 h-6 flex-shrink-0 text-clark-gold" />
+                  <div className="text-left">
+                    <p className="font-body text-sm">{t('dropImageUpload')}</p>
+                    <p className="font-body text-xs text-clark-text-muted/50 mt-0.5">{t('pngJpgLimit')}</p>
+                  </div>
                 </div>
               </div>
             )}
@@ -210,7 +238,42 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
             />
           </div>
 
-          {/* Name */}
+          {/* ── Google Drive picker row ────────────────── */}
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-px bg-clark-steel/20" />
+            <span className="font-body text-[10px] uppercase tracking-widest text-clark-text-muted/50">{t('orDivider')}</span>
+            <div className="flex-1 h-px bg-clark-steel/20" />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setDriveError(null)
+              openPicker()
+            }}
+            disabled={driveLoading}
+            className={cn(
+              'w-full h-10 flex items-center justify-center gap-2 rounded-lg border border-clark-steel/20 bg-clark-bg-card hover:bg-clark-bg-card/80 font-body text-sm text-clark-text-muted hover:text-clark-text-primary transition-all',
+              driveLoading && 'opacity-50 cursor-wait',
+            )}
+            aria-label={t('chooseFromDrive')}
+          >
+            {driveLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <HardDrive className="w-4 h-4" />
+            )}
+            {driveLoading ? t('loadingDrive') : t('chooseFromDrive')}
+          </button>
+
+          {/* Drive error feedback */}
+          {driveError && (
+            <p className="font-body text-xs text-clark-danger flex items-center gap-1" role="alert">
+              <span aria-hidden="true">!</span> {driveError}
+            </p>
+          )}
+
+          {/* ── Name ───────────────────────────────────── */}
           <div>
             <label htmlFor="playlist-name" className="block font-body font-semibold text-xs mb-1 text-clark-text-primary">{t('nameLabel')}</label>
             <input
@@ -224,7 +287,7 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
             />
           </div>
 
-          {/* Description */}
+          {/* ── Description ────────────────────────────── */}
           <div>
             <label htmlFor="playlist-desc" className="block font-body font-semibold text-xs mb-1 text-clark-text-primary">{t('descriptionOptional')}</label>
             <textarea
@@ -238,7 +301,7 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
             <p className="font-body text-xs text-clark-text-muted text-right mt-0.5">{charCount}/{maxChars}</p>
           </div>
 
-          {/* Privacy toggle */}
+          {/* ── Privacy toggle ─────────────────────────── */}
           <div className="flex items-center justify-between p-2.5 rounded-lg bg-clark-bg-card border border-clark-steel/20">
             <div className="flex items-center gap-2">
               {isPrivate
@@ -266,7 +329,7 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
             </button>
           </div>
 
-          {/* Submit */}
+          {/* ── Submit ─────────────────────────────────── */}
           <button
             onClick={handleSubmit}
             disabled={!name.trim()}

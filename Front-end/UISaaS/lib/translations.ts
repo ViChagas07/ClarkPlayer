@@ -322,6 +322,8 @@ export interface TranslationMap {
   togglePrivacy: string
   changeCoverImage: string
   removeCoverImage: string
+  chooseFromDrive: string
+  loadingDrive: string
 
   // ── TrackRow ──
   addToFavorites: string
@@ -620,6 +622,8 @@ const translations = {
     togglePrivacy: 'Toggle privacy',
     changeCoverImage: 'Change image',
     removeCoverImage: 'Remove image',
+    chooseFromDrive: 'Choose from Google Drive',
+    loadingDrive: 'Loading Drive\u2026',
     // ── TrackRow ──
     addToFavorites: 'Add to favorites',
     unfavorite: 'Unfavorite',
@@ -916,6 +920,8 @@ const translations = {
     togglePrivacy: 'Alternar privacidade',
     changeCoverImage: 'Alterar imagem',
     removeCoverImage: 'Remover imagem',
+    chooseFromDrive: 'Escolher do Google Drive',
+    loadingDrive: 'Carregando Drive\u2026',
     // ── TrackRow ──
     addToFavorites: 'Adicionar aos favoritos',
     unfavorite: 'Remover dos favoritos',
@@ -1212,6 +1218,8 @@ const translations = {
     togglePrivacy: 'Alternar privacidad',
     changeCoverImage: 'Cambiar imagen',
     removeCoverImage: 'Quitar imagen',
+    chooseFromDrive: 'Elegir de Google Drive',
+    loadingDrive: 'Cargando Drive\u2026',
     // ── TrackRow ──
     addToFavorites: 'A\u00f1adir a favoritos',
     unfavorite: 'Quitar de favoritos',
@@ -1508,6 +1516,8 @@ const translations = {
     togglePrivacy: 'Basculer la confidentialit\u00e9',
     changeCoverImage: "Changer l'image",
     removeCoverImage: "Supprimer l'image",
+    chooseFromDrive: 'Choisir depuis Google Drive',
+    loadingDrive: 'Chargement de Drive\u2026',
     // ── TrackRow ──
     addToFavorites: 'Ajouter aux favoris',
     unfavorite: 'Retirer des favoris',
@@ -1804,6 +1814,8 @@ const translations = {
     togglePrivacy: 'Privatsph\u00e4re umschalten',
     changeCoverImage: 'Bild \u00e4ndern',
     removeCoverImage: 'Bild entfernen',
+    chooseFromDrive: 'Von Google Drive w\u00e4hlen',
+    loadingDrive: 'Drive wird geladen\u2026',
     // ── TrackRow ──
     addToFavorites: 'Zu Favoriten hinzuf\u00fcgen',
     unfavorite: 'Aus Favoriten entfernen',
