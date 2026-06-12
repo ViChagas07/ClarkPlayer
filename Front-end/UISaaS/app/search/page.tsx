@@ -6,6 +6,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { useTranslation } from '@/hooks/useTranslation'
 import { usePlayerStore } from '@/store/playerStore'
 import { api } from '@/lib/api'
+import { getSessionTracks, getSessionArtists } from '@/lib/seedCatalog'
 import { cn } from '@/lib/utils'
 import type { UnifiedSearchResponse, UnifiedSearchResult, Track } from '@/types'
 import {
@@ -24,28 +25,9 @@ import {
 
 const KEY_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
-// ── Popular queries for pre-search suggestions ──────────────────────
-const POPULAR_TRACK_QUERIES = [
-  'Blinding Lights',
-  'Bohemian Rhapsody',
-  'Shape of You',
-  'Billie Jean',
-  'Hotel California',
-  'Smells Like Teen Spirit',
-  'Imagine',
-  'Lose Yourself',
-]
-
-const POPULAR_ARTIST_QUERIES = [
-  'The Weeknd',
-  'Taylor Swift',
-  'Drake',
-  'Queen',
-  'Eminem',
-  'Coldplay',
-  'Beyonce',
-  'Kendrick Lamar',
-]
+// ── Seed queries — randomly rotated per session ───────────────────
+const POPULAR_TRACK_QUERIES = getSessionTracks(12)
+const POPULAR_ARTIST_QUERIES = getSessionArtists(12)
 
 export default function SearchPage() {
   const { t } = useTranslation()

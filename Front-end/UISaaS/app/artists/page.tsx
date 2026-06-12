@@ -5,14 +5,11 @@ import Link from 'next/link'
 import { AppShell } from '@/components/layout/AppShell'
 import { useTranslation } from '@/hooks/useTranslation'
 import { api } from '@/lib/api'
+import { getSessionArtists } from '@/lib/seedCatalog'
 import { Check, Music, Loader2, RefreshCw } from 'lucide-react'
 import type { UnifiedSearchResult } from '@/types'
 
-const FAMOUS_ARTISTS = [
-  'Coldplay', 'Drake', 'Taylor Swift', 'The Weeknd', 'Ed Sheeran',
-  'Beyoncé', 'Kendrick Lamar', 'Billie Eilish', 'Post Malone', 'Dua Lipa',
-  'Bruno Mars', 'Adele', 'Eminem', 'Rihanna', 'Harry Styles',
-]
+const FAMOUS_ARTISTS = getSessionArtists(20)
 
 export default function ArtistsPage() {
   const { t } = useTranslation()
