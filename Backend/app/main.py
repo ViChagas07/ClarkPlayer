@@ -90,6 +90,27 @@ async def app_exception_handler(_request: Request, exc: AppError) -> JSONRespons
     )
 
 
+@app.exception_handler(Exception)
+async def generic_exception_handler(_request: Request, exc: Exception) -> JSONResponse:
+    """Catch-all handler — prevents HTML error pages leaking to the frontend."""
+    import logging
+    import traceback
+
+    logger = logging.getLogger("clarkplayer")
+    logger.error("Unhandled exception: %s\n%s", exc, traceback.format_exc())
+
+    # Don't leak internal details unless DEBUG is on
+    settings = get_settings()
+    detail = str(exc) if settings.DEBUG else "Internal server error"
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "internal_error",
+            "message": detail,
+        },
+    )
+
+
 # Routers 
 
 app.include_router(api_router)

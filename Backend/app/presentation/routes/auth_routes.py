@@ -437,19 +437,28 @@ async def google_oidc_callback(
 
     user = result["user"]
 
-    # Issue new refresh token in Redis
-    refresh_token = await _create_refresh_token(str(user.id))
+    # Issue new refresh token in Redis (non-critical — if Redis is down,
+    # the user still gets an access token and the front-end can fall back).
+    refresh_token: str | None = None
+    try:
+        refresh_token = await _create_refresh_token(str(user.id))
+    except Exception as exc:
+        import logging
+        logging.getLogger("clarkplayer").warning(
+            "Failed to store Google OIDC refresh token in Redis: %s", exc
+        )
 
-    # Set HttpOnly cookie
-    max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400
-    response.set_cookie(
-        key=REFRESH_COOKIE_NAME,
-        value=refresh_token,
-        max_age=max_age,
-        httponly=True,
-        samesite="strict",
-        secure=True,
-    )
+    # Set HttpOnly cookie (only if we have a refresh token)
+    if refresh_token:
+        max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400
+        response.set_cookie(
+            key=REFRESH_COOKIE_NAME,
+            value=refresh_token,
+            max_age=max_age,
+            httponly=True,
+            samesite="strict",
+            secure=True,
+        )
 
     return GoogleCallbackResponse(
         access_token=result["access_token"],

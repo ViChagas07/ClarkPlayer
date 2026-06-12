@@ -144,7 +144,7 @@ export async function musicSearchITunes(query: string, limit: number = 8): Promi
   const tracks: UnifiedSearchResult[] = (data.results ?? []).map((r) => iTunesToUnified(r))
 
   // Also search for artists — with album artwork lookup
-  const artistUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=${Math.floor(limit / 2)}&entity=musicArtist`
+  const artistUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=${Math.max(1, Math.floor(limit / 2))}&entity=musicArtist`
   let artists: UnifiedSearchResult[] = []
   try {
     const artistRes = await fetch(artistUrl)
