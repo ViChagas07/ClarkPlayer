@@ -323,10 +323,29 @@ class AuthService:
         if not email:
             raise CredentialsError("Google did not return an email address.")
 
-        # Verify the ID token's audience matches our client ID
-        # (basic check — in production also verify the JWT signature)
-        if userinfo.get("aud") != settings.GOOGLE_CLIENT_ID:
-            raise CredentialsError("ID token audience mismatch.")
+        # Verify the ID token's audience matches our client ID.
+        # The ID token is a JWT — decode its payload (without signature
+        # verification) to check the `aud` claim.  Full JWT signature
+        # verification against Google's JWKS endpoint is recommended for
+        # production deployments.
+        try:
+            import base64
+            import json as _json
+
+            _payload_b64 = id_token.split(".")[1]
+            # Add padding; base64url-decode
+            _rem = len(_payload_b64) % 4
+            if _rem:
+                _payload_b64 += "=" * (4 - _rem)
+            _payload_bytes = base64.urlsafe_b64decode(_payload_b64)
+            _claims = _json.loads(_payload_bytes)
+            _token_aud: str = _claims.get("aud", "")
+            if _token_aud != settings.GOOGLE_CLIENT_ID:
+                raise CredentialsError("ID token audience mismatch.")
+        except CredentialsError:
+            raise
+        except Exception as exc:
+            raise CredentialsError(f"Failed to verify ID token: {exc}") from exc
 
         # ── Step 3: Find or create the local user ─────────────────────────
         user = await self._user_repo.get_by_email(email)
