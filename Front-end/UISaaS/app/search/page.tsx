@@ -26,8 +26,8 @@ import {
 const KEY_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
 // ── Seed queries — randomly rotated per session ───────────────────
-const POPULAR_TRACK_QUERIES = getSessionTracks(12)
-const POPULAR_ARTIST_QUERIES = getSessionArtists(12)
+const POPULAR_TRACK_QUERIES = getSessionTracks(20)
+const POPULAR_ARTIST_QUERIES = getSessionArtists(20)
 
 export default function SearchPage() {
   const { t } = useTranslation()
@@ -48,29 +48,30 @@ export default function SearchPage() {
     let cancelled = false
 
     async function loadSuggestions() {
-      // Fetch popular tracks
-      const trackResults: UnifiedSearchResult[] = []
-      for (const q of POPULAR_TRACK_QUERIES) {
-        if (cancelled) return
-        try {
-          const data = await api.musicSearch(q, 1)
-          const track = data.tracks[0]
-          if (track?.track?.title) trackResults.push(track)
-        } catch { /* skip */ }
+      // ── Parallel batch loading for speed ──────────────
+      async function loadBatch(queries: string[], pickFn: (data: UnifiedSearchResponse) => UnifiedSearchResult | null) {
+        const results: UnifiedSearchResult[] = []
+        for (let i = 0; i < queries.length; i += 5) {
+          if (cancelled) return results
+          const batch = queries.slice(i, i + 5)
+          const batchResults = await Promise.allSettled(
+            batch.map(async (q) => {
+              const data = await api.musicSearch(q, 1)
+              return pickFn(data)
+            })
+          )
+          for (const r of batchResults) {
+            if (r.status === 'fulfilled' && r.value) results.push(r.value)
+          }
+        }
+        return results
       }
-      if (!cancelled) setSuggestedTracks(trackResults)
 
-      // Fetch popular artists
-      const artistResults: UnifiedSearchResult[] = []
-      for (const q of POPULAR_ARTIST_QUERIES) {
-        if (cancelled) return
-        try {
-          const data = await api.musicSearch(q, 1)
-          const artist = data.artists[0]
-          if (artist?.artist?.name) artistResults.push(artist)
-        } catch { /* skip */ }
-      }
-      if (!cancelled) setSuggestedArtists(artistResults)
+      const tracks = await loadBatch(POPULAR_TRACK_QUERIES, (d) => d.tracks[0]?.track?.title ? d.tracks[0] : null)
+      if (!cancelled) setSuggestedTracks(tracks)
+
+      const artists = await loadBatch(POPULAR_ARTIST_QUERIES, (d) => d.artists[0]?.artist?.name ? d.artists[0] : null)
+      if (!cancelled) setSuggestedArtists(artists)
       if (!cancelled) setSuggestionsLoading(false)
     }
 
