@@ -6,7 +6,7 @@ import type { Playlist, Track } from '@/types'
 // playlists.
 interface PlaylistState {
   playlists: Playlist[]
-  createPlaylist: (data: { name: string; description?: string; isPrivate: boolean }) => void
+  createPlaylist: (data: { name: string; description?: string; isPrivate: boolean; coverUrl?: string }) => void
   deletePlaylist: (id: string) => void
   renamePlaylist: (id: string, name: string) => void
   addTrackToPlaylist: (playlistId: string, track: Track) => void
@@ -28,6 +28,7 @@ export const usePlaylistStore = create<PlaylistState>()(
             description: data.description,
             isPrivate: data.isPrivate,
             isCollaborative: false,
+            coverUrl: data.coverUrl,
             collaborators: [],
             tracks: [],
             createdAt: new Date().toISOString(),

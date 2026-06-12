@@ -12,7 +12,7 @@ import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/hooks/useTranslation'
 import Image from 'next/image'
-import ClarkLogo from '@/public/ClarkPlayer_White.png'
+import ClarkLogo from '@/public/ClarkPlayer_Transparent.png'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -265,7 +265,7 @@ function AuthFormInner() {
           <div className="absolute inset-0 bg-gradient-to-t from-clark-shadow/80 to-transparent pointer-events-none" />
           <div className="relative z-10 flex flex-col items-center justify-center w-full px-8 py-12 lg:py-0">
             <div className="flex items-center justify-center mb-6">
-              <Image src={ClarkLogo} alt="ClarkPlayer" className="w-28 h-28 lg:w-32 lg:h-32 object-contain drop-shadow-[0_0_20px_rgba(245,197,24,0.3)]" width={128} height={128} priority />
+              <Image src={ClarkLogo} alt="ClarkPlayer" className="w-28 h-28 lg:w-32 lg:h-32 object-contain drop-shadow-[0_0_20px_rgba(245,197,24,0.3)] animate-logo-float" width={128} height={128} priority />
             </div>
             <h1 className="font-display text-4xl lg:text-5xl tracking-widest uppercase text-clark-text-primary mb-3 text-center">
               Clark<span className="text-clark-accent">Player</span>
@@ -277,7 +277,7 @@ function AuthFormInner() {
         </section>
 
         {/* RIGHT PANEL — Success */}
-        <section className="flex items-center justify-center px-6 py-12 lg:py-0">
+      <section className="flex items-center justify-center px-6 py-12 lg:py-8">
           <div className="w-full max-w-md text-center">
             <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-6">
               <Check className="w-8 h-8 text-emerald-400" />
@@ -336,7 +336,7 @@ function AuthFormInner() {
         <div className="relative z-10 flex flex-col items-center justify-center w-full px-8 py-12 lg:py-0">
           {/* Logo */}
           <div className="flex items-center justify-center mb-6">
-            <Image src={ClarkLogo} alt="ClarkPlayer" className="w-28 h-28 lg:w-32 lg:h-32 object-contain drop-shadow-[0_0_20px_rgba(245,197,24,0.3)]" width={128} height={128} priority />
+            <Image src={ClarkLogo} alt="ClarkPlayer" className="w-28 h-28 lg:w-32 lg:h-32 object-contain drop-shadow-[0_0_20px_rgba(245,197,24,0.3)] animate-logo-float" width={128} height={128} priority />
           </div>
 
           {/* Wordmark */}
@@ -352,11 +352,11 @@ function AuthFormInner() {
       {/* ════════════════════════════════════════════════════════════════
           RIGHT PANEL — Authentication Form (50% on lg+, full on mobile)
           ════════════════════════════════════════════════════════════════ */}
-      <section className="flex items-center justify-center px-6 py-12 lg:py-0">
-        <div className="w-full max-w-md">
+      <section className="flex justify-center px-6 py-12 lg:py-8">
+        <div className="w-full max-w-md my-auto">
           {/* Mobile-only branding header */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-xl bg-clark-bg-card flex items-center justify-center overflow-hidden">
+            <div className="w-10 h-10 rounded-xl bg-clark-bg-card flex items-center justify-center animate-logo-float">
               <Image src={ClarkLogo} alt="ClarkPlayer" className="w-full h-full object-contain p-0.5" width={40} height={40} />
             </div>
             <span className="font-display text-xl tracking-wider">Clark<span className="text-clark-accent">Player</span></span>

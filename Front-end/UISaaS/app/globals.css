@@ -632,6 +632,22 @@ summary {
   opacity: 0.6;
 }
 
+/* ── ClarkPlayer Logo Levitation ─────────────────────────────────────────── */
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.animate-logo-float {
+  animation: logoFloat 3.5s ease-in-out infinite;
+  will-change: transform;
+}
+
 /* ── Superman S-Shield Background Pattern ─────────────────────────────────── */
 
 .superman-surface {

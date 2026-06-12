@@ -1,14 +1,14 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { X, Upload, Image as ImageIcon, Lock, Globe, Music } from 'lucide-react'
+import { X, Image as ImageIcon, Lock, Globe, Music, Pencil, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { usePlayerStore } from '@/store/playerStore'
 import { useTranslation } from '@/hooks/useTranslation'
 
 interface CreatePlaylistModalProps {
   onClose: () => void
-  onCreate: (data: { name: string; description?: string; isPrivate: boolean }) => void
+  onCreate: (data: { name: string; description?: string; isPrivate: boolean; coverUrl?: string }) => void
 }
 
 export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalProps) {
@@ -18,6 +18,7 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
   const [description, setDescription] = useState('')
   const [isPrivate, setIsPrivate] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const modalRef = useRef<HTMLDivElement>(null)
@@ -60,9 +61,25 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
 
   const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) return
+    // Revoke previous blob URL to avoid memory leaks
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl)
+    }
     const url = URL.createObjectURL(file)
     setPreviewUrl(url)
-  }, [])
+    setImageFile(file)
+  }, [previewUrl])
+
+  const handleRemoveImage = useCallback(() => {
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl)
+    }
+    setPreviewUrl(null)
+    setImageFile(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }, [previewUrl])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -70,6 +87,34 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
     const file = e.dataTransfer.files[0]
     if (file) handleFile(file)
   }, [handleFile])
+
+  /// Convert a File to a base64 data URL, then call onCreate
+  const handleSubmit = useCallback(() => {
+    if (!name.trim()) return
+
+    const submit = (coverUrl?: string) => {
+      onCreate({
+        name: name.trim(),
+        description: description.trim() || undefined,
+        isPrivate,
+        coverUrl,
+      })
+    }
+
+    if (imageFile) {
+      const reader = new FileReader()
+      reader.onload = () => {
+        submit(reader.result as string)
+      }
+      reader.onerror = () => {
+        // If reading fails, still create the playlist without the image
+        submit(undefined)
+      }
+      reader.readAsDataURL(imageFile)
+    } else {
+      submit(undefined)
+    }
+  }, [name, description, isPrivate, imageFile, onCreate])
 
   const charCount = description.length
   const maxChars = 200
@@ -98,10 +143,10 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
         </div>
 
         <div className="p-4 space-y-3">
-          {/* Cover upload — reduced size */}
+          {/* Cover upload — with edit/remove overlay when image is selected */}
           <div
             className={cn(
-              'relative h-28 rounded-xl border-2 border-dashed transition-colors overflow-hidden',
+              'relative h-28 rounded-xl border-2 border-dashed transition-colors overflow-hidden group/cover',
               isDragging
                 ? 'border-clark-gold bg-clark-gold/5'
                 : 'border-clark-steel/30 bg-clark-bg-card hover:border-clark-gold/40',
@@ -109,12 +154,43 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
           >
             {previewUrl ? (
-              <img src={previewUrl} alt={t('playlistCoverPreview')} className="w-full h-full object-cover" />
+              <>
+                <img src={previewUrl} alt={t('playlistCoverPreview')} className="w-full h-full object-cover" />
+                {/* Edit/Remove overlay — visible on hover */}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/cover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      fileInputRef.current?.click()
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white font-body text-xs font-medium transition-colors"
+                    aria-label={t('changeCoverImage')}
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    {t('changeCoverImage')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleRemoveImage()
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/30 hover:bg-red-500/50 text-white font-body text-xs font-medium transition-colors"
+                    aria-label={t('removeCoverImage')}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    {t('removeCoverImage')}
+                  </button>
+                </div>
+              </>
             ) : (
-              <div className="flex items-center justify-center gap-3 h-full text-clark-text-muted px-4">
+              <div
+                className="flex items-center justify-center gap-3 h-full text-clark-text-muted px-4 cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+              >
                 <ImageIcon className="w-6 h-6 flex-shrink-0 text-clark-gold" />
                 <div className="text-left">
                   <p className="font-body text-sm">{t('dropImageUpload')}</p>
@@ -192,10 +268,7 @@ export function CreatePlaylistModal({ onClose, onCreate }: CreatePlaylistModalPr
 
           {/* Submit */}
           <button
-            onClick={() => {
-              if (!name.trim()) return
-              onCreate({ name: name.trim(), description: description.trim() || undefined, isPrivate })
-            }}
+            onClick={handleSubmit}
             disabled={!name.trim()}
             className="w-full h-11 bg-clark-accent hover:bg-clark-accent-hover disabled:opacity-50 font-body font-semibold text-sm text-white rounded-lg transition-all hover:-translate-y-0.5 shadow-glow-hero flex items-center justify-center gap-2"
           >

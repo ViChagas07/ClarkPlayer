@@ -320,6 +320,8 @@ export interface TranslationMap {
   playlistNamePlaceholder: string
   playlistCoverPreview: string
   togglePrivacy: string
+  changeCoverImage: string
+  removeCoverImage: string
 
   // ── TrackRow ──
   addToFavorites: string
@@ -616,6 +618,8 @@ const translations = {
     playlistNamePlaceholder: 'My Playlist',
     playlistCoverPreview: 'Playlist cover preview',
     togglePrivacy: 'Toggle privacy',
+    changeCoverImage: 'Change image',
+    removeCoverImage: 'Remove image',
     // ── TrackRow ──
     addToFavorites: 'Add to favorites',
     unfavorite: 'Unfavorite',
@@ -910,6 +914,8 @@ const translations = {
     playlistNamePlaceholder: 'Minha Playlist',
     playlistCoverPreview: 'Pr\u00e9-visualiza\u00e7\u00e3o da capa',
     togglePrivacy: 'Alternar privacidade',
+    changeCoverImage: 'Alterar imagem',
+    removeCoverImage: 'Remover imagem',
     // ── TrackRow ──
     addToFavorites: 'Adicionar aos favoritos',
     unfavorite: 'Remover dos favoritos',
@@ -1204,6 +1210,8 @@ const translations = {
     playlistNamePlaceholder: 'Mi Playlist',
     playlistCoverPreview: 'Vista previa de la portada',
     togglePrivacy: 'Alternar privacidad',
+    changeCoverImage: 'Cambiar imagen',
+    removeCoverImage: 'Quitar imagen',
     // ── TrackRow ──
     addToFavorites: 'A\u00f1adir a favoritos',
     unfavorite: 'Quitar de favoritos',
@@ -1498,6 +1506,8 @@ const translations = {
     playlistNamePlaceholder: 'Ma Playlist',
     playlistCoverPreview: 'Aper\u00e7u de la pochette',
     togglePrivacy: 'Basculer la confidentialit\u00e9',
+    changeCoverImage: "Changer l'image",
+    removeCoverImage: "Supprimer l'image",
     // ── TrackRow ──
     addToFavorites: 'Ajouter aux favoris',
     unfavorite: 'Retirer des favoris',
@@ -1792,6 +1802,8 @@ const translations = {
     playlistNamePlaceholder: 'Meine Playlist',
     playlistCoverPreview: 'Cover-Vorschau',
     togglePrivacy: 'Privatsph\u00e4re umschalten',
+    changeCoverImage: 'Bild \u00e4ndern',
+    removeCoverImage: 'Bild entfernen',
     // ── TrackRow ──
     addToFavorites: 'Zu Favoriten hinzuf\u00fcgen',
     unfavorite: 'Aus Favoriten entfernen',
