@@ -592,7 +592,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <button className="p-2 font-body text-clark-text-muted hover:text-clark-sky transition-colors" aria-label={t('queue')}>
             <ListOrdered className="w-4 h-4" />
           </button>
-          {/* Volume slider — vertical */}
+          {/* Volume slider — vertical, compact & centered */}
           <div className="flex flex-col items-center justify-center gap-1">
             <input
               type="range"
@@ -604,14 +604,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="appearance-none cursor-pointer rounded-full"
               style={{
                 transform: 'rotate(-90deg)',
-                width: '72px',
-                height: '4px',
-                margin: '24px 0 24px 0',
+                width: '50px',
+                height: '3px',
+                margin: '0',
                 background: `linear-gradient(to right, #F5C518 ${volume * 100}%, #0D1B4B ${volume * 100}%)`,
               }}
               aria-label={t('volumeLabel')}
             />
-            <Volume2 className="w-4 h-4 text-clark-text-muted mt-2" />
+            <Volume2 className="w-3.5 h-3.5 text-clark-text-muted" />
           </div>
         </div>
         {/* Mobile: volume icon button only */}
