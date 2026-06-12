@@ -86,7 +86,7 @@ export default function ArtistsPage() {
               return (
                 <Link
                   key={mbid}
-                  href={`/artists/${mbid}`}
+                  href={`/artists/${mbid}?name=${encodeURIComponent(artist.name)}`}
                   className="group flex flex-col items-center text-center p-3 rounded-xl hover:bg-clark-bg-secondary/50 transition-colors"
                 >
                   <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card group-hover:scale-105 transition-transform duration-200">

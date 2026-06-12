@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { useTranslation } from '@/hooks/useTranslation'
 import { usePlayerStore } from '@/store/playerStore'
@@ -20,22 +21,24 @@ import {
   Headphones,
 } from 'lucide-react'
 
-export default function ArtistDetailPage({ params }: { params: Promise<{ id: string }> }) {
+function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
   const { t } = useTranslation()
   const resolvedParams = React.use(params)
+  const searchParams = useSearchParams()
   const { setQueue, currentTrack, isPlaying } = usePlayerStore()
   const [artist, setArtist] = useState<UnifiedArtistResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const mbid = resolvedParams.id
+  const artistNameFromQuery = searchParams.get('name') ?? undefined
 
   useEffect(() => {
     async function load() {
       setIsLoading(true)
       setError(null)
       try {
-        const data = await api.musicArtist(mbid)
+        const data = await api.musicArtist(mbid, artistNameFromQuery)
         setArtist(data)
       } catch {
         setError('Failed to load artist profile.')
@@ -44,7 +47,7 @@ export default function ArtistDetailPage({ params }: { params: Promise<{ id: str
       }
     }
     load()
-  }, [mbid])
+  }, [mbid, artistNameFromQuery])
 
   function toTrack(t: Record<string, unknown>, idx: number): Track {
     const name = (t as { name?: string }).name ?? 'Unknown'
@@ -325,7 +328,7 @@ export default function ArtistDetailPage({ params }: { params: Promise<{ id: str
                 return (
                   <Link
                     key={saMbid ?? idx}
-                    href={saMbid ? `/artists/${saMbid}` : '#'}
+                    href={saMbid ? `/artists/${saMbid}?name=${encodeURIComponent(name)}` : '#'}
                     className="flex flex-col items-center text-center flex-shrink-0 group"
                   >
                     <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card group-hover:scale-105 transition-transform">
@@ -348,5 +351,13 @@ export default function ArtistDetailPage({ params }: { params: Promise<{ id: str
         )}
       </div>
     </AppShell>
+  )
+}
+
+export default function ArtistDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <Suspense>
+      <ArtistDetailInner params={params} />
+    </Suspense>
   )
 }

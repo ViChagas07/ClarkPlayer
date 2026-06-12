@@ -29,9 +29,11 @@ function GoogleCallbackHandler() {
       return
     }
 
+    const redirectUri = `${window.location.origin}/auth/callback`
+
     api.googleCallback({
       code,
-      redirect_uri: `${window.location.origin}/auth/callback`,
+      redirect_uri: redirectUri,
     })
       .then((response) => {
         useAuthStore.getState().setSession(
@@ -41,8 +43,10 @@ function GoogleCallbackHandler() {
         )
         router.replace('/')
       })
-      .catch(() => {
-        router.push('/login?error=auth_failed')
+      .catch((err) => {
+        const detail = err instanceof Error ? err.message : String(err)
+        console.error('[ClarkPlayer] Google callback failed:', detail)
+        router.push(`/login?error=auth_failed&detail=${encodeURIComponent(detail)}`)
       })
   }, [searchParams, router])
 

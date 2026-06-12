@@ -102,10 +102,13 @@ function AuthFormInner() {
   useEffect(() => {
     if (urlError) {
       if (urlError === 'access_denied') setError(t('accessDeniedGoogle'))
-      else if (urlError === 'auth_failed') setError(t('authFailedGoogle'))
+      else if (urlError === 'auth_failed') {
+        const detail = searchParams.get('detail')
+        setError(detail ? `${t('authFailedGoogle')} (${detail})` : t('authFailedGoogle'))
+      }
       else setError(t('authFailed'))
     }
-  }, [urlError, t])
+  }, [urlError, t, searchParams])
 
   useEffect(() => {
     if (!attemptState.lockedUntil) { setCountdown(0); return }

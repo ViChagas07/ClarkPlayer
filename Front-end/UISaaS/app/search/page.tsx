@@ -362,9 +362,10 @@ export default function SearchPage() {
                     return (
                       <Link
                         key={artist.mbid ?? `artist-${idx}`}
-                        href={artist.mbid ? `/artists/${artist.mbid}` : `#`}
+                        href={artist.mbid ? `/artists/${artist.mbid}?name=${encodeURIComponent(artist.name)}` : `#`}
                         className="group flex flex-col items-center p-4 rounded-2xl bg-clark-bg-secondary/40 hover:bg-clark-bg-secondary transition-all duration-200 hover:scale-[1.02] border border-transparent hover:border-clark-steel/20"
                       >
+                        {/* Popular Artists section */}
                         <div className="relative w-24 h-24 rounded-full overflow-hidden mb-3 bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-lg group-hover:shadow-xl transition-shadow">
                           {result.cover_url || artist.image_url ? (
                             <img
@@ -485,7 +486,7 @@ export default function SearchPage() {
                 return (
                   <Link
                     key={artist.mbid ?? `artist-${idx}`}
-                    href={artist.mbid ? `/artists/${artist.mbid}` : `#`}
+                    href={artist.mbid ? `/artists/${artist.mbid}?name=${encodeURIComponent(artist.name)}` : `#`}
                     className="group flex flex-col items-center p-4 rounded-2xl bg-clark-bg-secondary/40 hover:bg-clark-bg-secondary transition-all duration-200 hover:scale-[1.02] border border-transparent hover:border-clark-steel/20"
                   >
                     <div className="relative w-28 h-28 rounded-full overflow-hidden mb-3 bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-lg group-hover:shadow-xl transition-shadow">

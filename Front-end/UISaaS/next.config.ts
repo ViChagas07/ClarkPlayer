@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://clarkplayer.onrender.com'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,

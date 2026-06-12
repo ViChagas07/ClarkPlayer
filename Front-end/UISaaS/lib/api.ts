@@ -153,7 +153,7 @@ export async function musicSearchITunes(query: string, limit: number = 8): Promi
       }))
     }
   } catch {
-    // Artists are optional — return empty if the artist search fails
+    // Artists are optional
   }
 
   return {
@@ -162,6 +162,129 @@ export async function musicSearchITunes(query: string, limit: number = 8): Promi
     artists,
     total_tracks: tracks.length,
     total_artists: artists.length,
+  }
+}
+
+/**
+ * iTunes Artist Lookup — builds a complete artist profile from the public
+ * iTunes Search API (free, no auth, CORS-enabled).
+ *
+ * @param artistId  — numeric iTunes artist ID (or any ID; will try lookup first)
+ * @param artistName — fallback name search if ID lookup fails
+ */
+export async function iTunesArtistLookup(artistId: string, artistName?: string): Promise<UnifiedArtistResponse> {
+  // ── Try ID-based lookup ──────────────────────────────────
+  let foundName = artistName ?? ''
+  let foundGenre = ''
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let topTracksRaw: any[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let albumsRaw: any[] = []
+
+  // Try iTunes Lookup by artist ID for albums + tracks
+  const isNumeric = /^\d+$/.test(artistId)
+  if (isNumeric) {
+    try {
+      const lookupUrl = `https://itunes.apple.com/lookup?id=${artistId}&entity=song&limit=30`
+      const res = await fetch(lookupUrl)
+      if (res.ok) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const data = await res.json() as { resultCount: number; results: any[] }
+        topTracksRaw = (data.results ?? []).filter((r) => r.wrapperType === 'track')
+        if (topTracksRaw.length > 0 && !foundName) {
+          foundName = topTracksRaw[0].artistName ?? ''
+          foundGenre = topTracksRaw[0].primaryGenreName ?? ''
+        }
+      }
+
+      // Albums
+      const albumUrl = `https://itunes.apple.com/lookup?id=${artistId}&entity=album&limit=20`
+      const albumRes = await fetch(albumUrl)
+      if (albumRes.ok) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const albumData = await albumRes.json() as { resultCount: number; results: any[] }
+        albumsRaw = (albumData.results ?? []).filter((r) => r.collectionType === 'Album')
+      }
+    } catch {
+      // ID lookup failed — fall through to name search
+    }
+  }
+
+  // ── Fallback: search by name ─────────────────────────────
+  if (topTracksRaw.length === 0 && foundName) {
+    try {
+      const searchUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(foundName)}&entity=song&limit=30`
+      const res = await fetch(searchUrl)
+      if (res.ok) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const data = await res.json() as { resultCount: number; results: any[] }
+        topTracksRaw = (data.results ?? []).filter((r) => r.wrapperType === 'track')
+      }
+    } catch { /* silent */ }
+  }
+
+  if (topTracksRaw.length === 0 && !foundName) {
+    throw new Error('Artist not found')
+  }
+
+  // ── Build top_tracks array ───────────────────────────────
+  // Use a Set to deduplicate by track name
+  const seen = new Set<string>()
+  const topTracks: UnifiedArtistResponse['top_tracks'] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const t of topTracksRaw) {
+    const trackName: string = t.trackName ?? t.trackCensoredName ?? ''
+    if (!trackName || seen.has(trackName.toLowerCase())) continue
+    seen.add(trackName.toLowerCase())
+
+    topTracks.push({
+      name: trackName,
+      id: t.trackId ? String(t.trackId) : undefined,
+      album: {
+        name: t.collectionName ?? '',
+        images: t.artworkUrl100
+          ? [{ url: t.artworkUrl100.replace('100x100', '600x600') }]
+          : [],
+      },
+      artists: [{ name: t.artistName ?? foundName }],
+      duration_ms: t.trackTimeMillis ?? undefined,
+      preview_url: t.previewUrl ?? null,
+    })
+  }
+
+  // ── Build albums ─────────────────────────────────────────
+  const albumSeen = new Set<string>()
+  const albums: Array<Record<string, unknown>> = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const a of albumsRaw) {
+    const name: string = a.collectionName ?? ''
+    if (!name || albumSeen.has(name.toLowerCase())) continue
+    albumSeen.add(name.toLowerCase())
+    albums.push({
+      name,
+      artworkUrl100: a.artworkUrl100 ?? null,
+      releaseDate: a.releaseDate ?? null,
+      trackCount: a.trackCount ?? 0,
+      collectionId: a.collectionId ? String(a.collectionId) : null,
+    })
+  }
+
+  // ── Artist image — use first album's artwork ─────────────
+  const firstArtwork = topTracksRaw[0]?.artworkUrl100?.replace('100x100', '600x600') ?? null
+
+  return {
+    name: foundName || 'Unknown Artist',
+    bio: null,
+    mbid: isNumeric ? artistId : null,
+    spotify_id: null,
+    image_url: firstArtwork,
+    genres: foundGenre ? [foundGenre] : [],
+    popularity: 0,
+    playcount: 0,
+    similar_artists: [],
+    top_tracks: topTracks,
+    albums,
+    tags: foundGenre ? [foundGenre] : [],
   }
 }
 
@@ -301,12 +424,19 @@ export const api = {
   },
 
   /**
-   * Get full aggregated artist profile by MusicBrainz artist ID.
+   * Get full aggregated artist profile.
+   * Tries the backend first; falls back to iTunes by ID or name.
+   * @param mbid — MusicBrainz / Spotify / iTunes artist ID
+   * @param artistName — optional name for iTunes fallback when ID lookup fails
    */
-  musicArtist(mbid: string): Promise<UnifiedArtistResponse> {
-    return _fetch<UnifiedArtistResponse>(
-      `/api/v1/music/artist/${encodeURIComponent(mbid)}`,
-    )
+  async musicArtist(mbid: string, artistName?: string): Promise<UnifiedArtistResponse> {
+    try {
+      return await _fetch<UnifiedArtistResponse>(
+        `/api/v1/music/artist/${encodeURIComponent(mbid)}`,
+      )
+    } catch {
+      return iTunesArtistLookup(mbid, artistName)
+    }
   },
 
   /**
