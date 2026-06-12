@@ -152,6 +152,11 @@ export interface TranslationMap {
   libraryOverview: string
   libraryOverviewBrowse: string
   libraryOverviewOr: string
+  signInToViewLibrary: string
+  signInToViewLibraryDesc: string
+  loadingLibrary: string
+  noTracksYet: string
+  startUploading: string
 
   // ── Playlists list ──
   sortLabel: string
@@ -467,6 +472,11 @@ const translations = {
     libraryOverview: 'Library overview coming soon.',
     libraryOverviewBrowse: 'Browse',
     libraryOverviewOr: 'or',
+    signInToViewLibrary: 'Sign in to view your library',
+    signInToViewLibraryDesc: 'Create an account or sign in to start building your music collection. Your tracks, playlists, and stats live here.',
+    loadingLibrary: 'Loading library\u2026',
+    noTracksYet: 'No tracks yet',
+    startUploading: 'Start uploading music to see your library come to life.',
     // ── Playlists list ──
     sortLabel: 'Sort:',
     sortAZ: 'A–Z',
@@ -765,6 +775,11 @@ const translations = {
     libraryOverview: 'Vis\u00e3o geral da biblioteca em breve.',
     libraryOverviewBrowse: 'Navegar',
     libraryOverviewOr: 'ou',
+    signInToViewLibrary: 'Entre para ver sua biblioteca',
+    signInToViewLibraryDesc: 'Crie uma conta ou faça login para começar a montar sua coleção musical. Suas faixas, playlists e estatísticas ficam aqui.',
+    loadingLibrary: 'Carregando biblioteca\u2026',
+    noTracksYet: 'Nenhuma faixa ainda',
+    startUploading: 'Comece a enviar músicas para ver sua biblioteca ganhar vida.',
     // ── Playlists list ──
     sortLabel: 'Ordenar:',
     sortAZ: 'A–Z',
@@ -1063,6 +1078,11 @@ const translations = {
     libraryOverview: 'Vista general de la biblioteca pronto.',
     libraryOverviewBrowse: 'Explorar',
     libraryOverviewOr: 'o',
+    signInToViewLibrary: 'Inicia sesión para ver tu biblioteca',
+    signInToViewLibraryDesc: 'Crea una cuenta o inicia sesión para empezar a construir tu colección musical. Tus pistas, playlists y estadísticas viven aquí.',
+    loadingLibrary: 'Cargando biblioteca\u2026',
+    noTracksYet: 'Sin pistas aún',
+    startUploading: 'Comienza a subir música para ver tu biblioteca cobrar vida.',
     // ── Playlists list ──
     sortLabel: 'Ordenar:',
     sortAZ: 'A–Z',
@@ -1361,6 +1381,11 @@ const translations = {
     libraryOverview: "Aper\u00e7u de la biblioth\u00e8que \u00e0 venir.",
     libraryOverviewBrowse: 'Parcourir',
     libraryOverviewOr: 'ou',
+    signInToViewLibrary: 'Connectez-vous pour voir votre bibliothèque',
+    signInToViewLibraryDesc: 'Créez un compte ou connectez-vous pour commencer à bâtir votre collection musicale. Vos pistes, playlists et statistiques se trouvent ici.',
+    loadingLibrary: 'Chargement de la bibliothèque\u2026',
+    noTracksYet: 'Aucune piste pour le moment',
+    startUploading: 'Commencez à télécharger de la musique pour donner vie à votre bibliothèque.',
     // ── Playlists list ──
     sortLabel: 'Trier :',
     sortAZ: 'A–Z',
@@ -1659,6 +1684,11 @@ const translations = {
     libraryOverview: 'Bibliotheks\u00fcbersicht folgt in K\u00fcrze.',
     libraryOverviewBrowse: 'Durchsuchen',
     libraryOverviewOr: 'oder',
+    signInToViewLibrary: 'Melde dich an, um deine Bibliothek zu sehen',
+    signInToViewLibraryDesc: 'Erstelle ein Konto oder melde dich an, um deine Musiksammlung aufzubauen. Deine Titel, Playlists und Statistiken findest du hier.',
+    loadingLibrary: 'Bibliothek wird geladen\u2026',
+    noTracksYet: 'Noch keine Titel',
+    startUploading: 'Lade Musik hoch, um deine Bibliothek zum Leben zu erwecken.',
     // ── Playlists list ──
     sortLabel: 'Sortieren:',
     sortAZ: 'A–Z',

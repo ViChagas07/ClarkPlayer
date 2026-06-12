@@ -101,6 +101,12 @@ export const api = {
     })
   },
 
+  listFavorites(token: string): Promise<TrackListResponse> {
+    return _fetch<TrackListResponse>('/api/v1/tracks/favorites', {
+      headers: authHeader(token),
+    })
+  },
+
   listPlaylists(token: string): Promise<unknown[]> {
     return _fetch<unknown[]>('/api/v1/playlists', {
       headers: authHeader(token),
