@@ -30,6 +30,7 @@ import {
   ChevronLeft,
   Disc3,
   ArrowUp,
+  Headphones,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { usePlayerStore } from '@/store/playerStore'
@@ -39,6 +40,8 @@ import { useSidebarStore } from '@/store/sidebarStore'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { api } from '@/lib/api'
 import { useTranslation } from '@/hooks/useTranslation'
+import { useDesktopAudioEngine } from '@/hooks/useDesktopAudioEngine'
+import { usePreviewPlayer } from '@/hooks/usePreviewPlayer'
 
 /* ── 26 unique aura animation classes — randomly selected per layer ── */
 const AURA_ANIMATIONS = [
@@ -102,12 +105,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [auraAnimationMid] = useState(() => pickRandom(AURA_ANIMATIONS))
 
   const {
-    currentTrack, isPlaying, progress, volume, isShuffled, repeatMode,
+    currentTrack, isPlaying, isPreview, progress, volume, isShuffled, repeatMode,
     queue, queueIndex, isPlayerVisible,
     togglePlay, nextTrack, prevTrack, setProgress, setVolume,
     toggleShuffle, toggleRepeat, setPlayerVisible,
+    stopPreview,
   } = usePlayerStore()
   const { sleepTimer, accentColor } = useSettingsStore()
+
+  // Wire audio engines — library + preview
+  useDesktopAudioEngine()
+  const { previewActive } = usePreviewPlayer()
   const { user, isAuthenticated, refreshToken, accessToken } = useAuthStore()
   const clearSession = useAuthStore((s) => s.clearSession)
 
@@ -489,7 +497,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
               <div className="min-w-0">
-                <p className="font-display text-sm tracking-wider truncate">{displayTrack.title}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-display text-sm tracking-wider truncate">{displayTrack.title}</p>
+                  {isPreview && (
+                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-clark-gold/15 text-clark-gold font-condensed text-[10px] uppercase tracking-wider flex-shrink-0">
+                      <Headphones className="w-3 h-3" />
+                      Preview
+                    </span>
+                  )}
+                </div>
                 <p className="font-body text-xs text-clark-text-muted truncate">{displayTrack.artist}</p>
               </div>
               <button className="ml-2 text-clark-text-muted hover:text-clark-accent transition-colors hidden sm:block" aria-label={t('toggleFavorite')}>
@@ -536,7 +552,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button
               className="relative w-11 h-11 sm:w-10 sm:h-10 rounded-full bg-clark-accent hover:bg-clark-accent-hover flex items-center justify-center transition-all hover:scale-105 group"
               style={{ boxShadow: `0 0 14px ${accentColor}60` }}
-              onClick={togglePlay}
+              onClick={() => {
+                if (isPreview && isPlaying) {
+                  stopPreview()
+                } else {
+                  togglePlay()
+                }
+              }}
               aria-label={isPlaying ? t('pauseBtn') : t('playBtn')}
             >
               <div className="absolute inset-0 rounded-full bg-clark-gold/20 blur-sm group-hover:bg-clark-gold/40 transition-colors" />

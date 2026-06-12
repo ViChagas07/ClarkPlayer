@@ -223,6 +223,11 @@ export interface TranslationMap {
   danceabilityLabel: string
   previewLabel: string
   noPreviewLabel: string
+  playPreview: string
+  previewAvailable: string
+  discoverNewMusic: string
+  popularArtists: string
+  newReleases: string
   lyricsLabel: string
   similarTracksLabel: string
   audioFeaturesLabel: string
@@ -537,6 +542,11 @@ const translations = {
     danceabilityLabel: 'Danceability',
     previewLabel: 'Preview',
     noPreviewLabel: 'No preview available',
+    playPreview: 'Play Preview',
+    previewAvailable: 'Preview Available',
+    discoverNewMusic: 'Discover New Music',
+    popularArtists: 'Popular Artists',
+    newReleases: 'New Releases',
     lyricsLabel: 'Lyrics',
     similarTracksLabel: 'Similar Tracks',
     audioFeaturesLabel: 'Audio Features',
@@ -840,6 +850,11 @@ const translations = {
     danceabilityLabel: 'Dan\u00e7abilidade',
     previewLabel: 'Pr\u00e9via',
     noPreviewLabel: 'Pr\u00e9via indispon\u00edvel',
+    playPreview: 'Ouvir Pr\u00e9via',
+    previewAvailable: 'Pr\u00e9via Dispon\u00edvel',
+    discoverNewMusic: 'Descubra Novas M\u00fasicas',
+    popularArtists: 'Artistas Populares',
+    newReleases: 'Novos Lan\u00e7amentos',
     lyricsLabel: 'Letras',
     similarTracksLabel: 'Faixas Semelhantes',
     audioFeaturesLabel: 'Caracter\u00edsticas de \u00c1udio',
@@ -1143,6 +1158,11 @@ const translations = {
     danceabilityLabel: 'Bailabilidad',
     previewLabel: 'Vista previa',
     noPreviewLabel: 'Sin vista previa',
+    playPreview: 'Reproducir Vista Previa',
+    previewAvailable: 'Vista Previa Disponible',
+    discoverNewMusic: 'Descubre Nueva M\u00fasica',
+    popularArtists: 'Artistas Populares',
+    newReleases: 'Nuevos Lanzamientos',
     lyricsLabel: 'Letras',
     similarTracksLabel: 'Pistas Similares',
     audioFeaturesLabel: 'Caracter\u00edsticas de Audio',
@@ -1446,6 +1466,11 @@ const translations = {
     danceabilityLabel: 'Dansabilit\u00e9',
     previewLabel: 'Aper\u00e7u',
     noPreviewLabel: 'Aper\u00e7u non disponible',
+    playPreview: '\u00c9couter l\u2019Aper\u00e7u',
+    previewAvailable: 'Aper\u00e7u Disponible',
+    discoverNewMusic: 'D\u00e9couvrez de la Musique',
+    popularArtists: 'Artistes Populaires',
+    newReleases: 'Nouveaut\u00e9s',
     lyricsLabel: 'Paroles',
     similarTracksLabel: 'Pistes Similaires',
     audioFeaturesLabel: 'Caract\u00e9ristiques Audio',
@@ -1749,6 +1774,11 @@ const translations = {
     danceabilityLabel: 'Tanzbarkeit',
     previewLabel: 'Vorschau',
     noPreviewLabel: 'Keine Vorschau verf\u00fcgbar',
+    playPreview: 'Vorschau abspielen',
+    previewAvailable: 'Vorschau Verf\u00fcgbar',
+    discoverNewMusic: 'Neue Musik Entdecken',
+    popularArtists: 'Beliebte K\u00fcnstler',
+    newReleases: 'Neuerscheinungen',
     lyricsLabel: 'Songtext',
     similarTracksLabel: '\u00c4hnliche Titel',
     audioFeaturesLabel: 'Audio-Merkmale',

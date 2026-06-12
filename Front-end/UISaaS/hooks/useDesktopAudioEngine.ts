@@ -108,9 +108,10 @@ export function useDesktopAudioEngine() {
     }
   }, [initAudio, setProgress, nextTrack])
 
-  // Handle play/pause
+  // Handle play/pause — skip preview tracks (handled by usePreviewPlayer)
   useEffect(() => {
     if (!currentTrack) return
+    if (currentTrack.isPreview) return
 
     if (isPlaying && audioContextRef.current?.state === 'suspended') {
       audioContextRef.current.resume()
@@ -125,9 +126,9 @@ export function useDesktopAudioEngine() {
     }
   }, [isPlaying, currentTrack, progress, loadAndPlay])
 
-  // Handle track changes
+  // Handle track changes — skip previews
   useEffect(() => {
-    if (currentTrack && isPlaying) {
+    if (currentTrack && isPlaying && !currentTrack.isPreview) {
       loadAndPlay(currentTrack.id, 0)
     }
   }, [currentTrack?.id])

@@ -138,6 +138,8 @@ export interface Track {
   duration: number
   format: 'FLAC' | 'MP3' | 'WAV' | 'AAC' | 'OGG' | 'M4A' | 'OPUS' | 'WMA' | 'MIDI' | 'AIFF'
   coverUrl?: string
+  previewUrl?: string | null
+  isPreview?: boolean
   year?: number
   genre?: string
   playCount?: number
@@ -203,6 +205,7 @@ export interface Toast {
 export interface PlayerState {
   currentTrack: Track | null
   isPlaying: boolean
+  isPreview: boolean
   queue: Track[]
   queueIndex: number
   progress: number
@@ -220,6 +223,8 @@ export interface PlayerState {
   toggleShuffle: () => void
   toggleRepeat: () => void
   setPlayerVisible: (visible: boolean) => void
+  playPreview: (url: string, track: Track) => void
+  stopPreview: () => void
 }
 
 // ── Music Metadata API Types ────────────────────────────────────────

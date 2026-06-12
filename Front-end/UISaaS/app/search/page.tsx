@@ -19,6 +19,7 @@ import {
   BarChart3,
   Activity,
   Disc3,
+  Headphones,
 } from 'lucide-react'
 
 const KEY_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
@@ -76,6 +77,7 @@ export default function SearchPage() {
       duration,
       format: 'MP3',
       coverUrl: result.cover_url ?? undefined,
+      previewUrl: result.track?.preview_url ?? null,
     }
   }
 
@@ -251,6 +253,22 @@ export default function SearchPage() {
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-clark-gold/15 text-clark-gold font-condensed uppercase tracking-wider flex-shrink-0">
                             {t('previewLabel')}
                           </span>
+                        )}
+                        {track.preview_url && (
+                          <button
+                            className="flex items-center gap-1 p-1 rounded-lg hover:bg-clark-gold/10 text-clark-gold transition-colors group/preview"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              usePlayerStore.getState().playPreview(track.preview_url!, toTrack(result, idx))
+                            }}
+                            aria-label={`Preview ${track.title}`}
+                            title={t('previewLabel')}
+                          >
+                            <Headphones className="w-4 h-4" />
+                            <span className="hidden group-hover/preview:inline font-condensed text-[10px] tracking-wider uppercase">
+                              {t('previewLabel')}
+                            </span>
+                          </button>
                         )}
                       </div>
                       <div className="flex items-center gap-2">

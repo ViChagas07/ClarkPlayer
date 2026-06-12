@@ -7,7 +7,7 @@ import { useTranslation } from '@/hooks/useTranslation'
 import { usePlayerStore } from '@/store/playerStore'
 import { api } from '@/lib/api'
 import type { UnifiedSearchResult, Track } from '@/types'
-import { Play, Music, Loader2, TrendingUp, ChevronLeft } from 'lucide-react'
+import { Play, Music, Loader2, TrendingUp, ChevronLeft, Headphones } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 /** Map genre slug → display name & API search queries that return good results */
@@ -76,6 +76,7 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
         duration: r.track?.duration ? Math.round(r.track.duration / 1000) : 200,
         format: 'MP3' as const,
         coverUrl: r.cover_url ?? r.album?.cover_url ?? undefined,
+        previewUrl: r.track?.preview_url ?? null,
       }))
     setQueue(all, idx)
   }
@@ -113,7 +114,19 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
               const track = result.track
               const artist = result.artist
               const coverUrl = result.cover_url ?? result.album?.cover_url ?? null
+              const previewUrl = track?.preview_url
               if (!track) return null
+
+              const trackObj: Track = {
+                id: track.mbid ?? `genre-${slug}-${idx}`,
+                title: track.title,
+                artist: artist?.name ?? '',
+                album: result.album?.title ?? '',
+                duration: track.duration ? Math.round(track.duration / 1000) : 200,
+                format: 'MP3',
+                coverUrl: coverUrl ?? undefined,
+                previewUrl: previewUrl ?? null,
+              }
 
               return (
                 <div
@@ -143,9 +156,24 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
                   </div>
 
                   {/* Track info */}
-                  <p className="font-body font-semibold text-sm text-clark-text-primary mt-3 truncate">
-                    {track.title}
-                  </p>
+                  <div className="flex items-center gap-2 mt-3">
+                    <p className="font-body font-semibold text-sm text-clark-text-primary truncate flex-1">
+                      {track.title}
+                    </p>
+                    {previewUrl && (
+                      <button
+                        className="flex-shrink-0 p-1 rounded-lg hover:bg-clark-gold/10 text-clark-gold transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          usePlayerStore.getState().playPreview(previewUrl, trackObj)
+                        }}
+                        aria-label={`Preview ${track.title}`}
+                        title={t('previewLabel')}
+                      >
+                        <Headphones className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                   <p className="font-body text-xs text-clark-text-muted truncate">
                     {artist?.name ?? 'Unknown'}
                   </p>

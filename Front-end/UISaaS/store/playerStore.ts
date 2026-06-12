@@ -5,6 +5,7 @@ import type { Track, PlayerState } from '@/types'
 export const usePlayerStore = create<PlayerState>((set, get) => ({
   currentTrack: null,
   isPlaying: false,
+  isPreview: false,
   queue: [],
   queueIndex: -1,
   progress: 0,
@@ -15,7 +16,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
 // Action to set the current track and start playing it, also resets progress to 0
   setCurrentTrack: (track: Track) => {
-    set({ currentTrack: track, isPlaying: true, progress: 0 })
+    set({ currentTrack: track, isPlaying: true, progress: 0, isPreview: false })
   },
 
   togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
@@ -27,12 +28,16 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       currentTrack: tracks[startIndex] ?? null,
       isPlaying: true,
       progress: 0,
+      isPreview: false,
     })
   },
 
   nextTrack: () => {
-    const { queue, queueIndex, isShuffled, repeatMode } = get()
+    const { queue, queueIndex, isShuffled, repeatMode, isPreview } = get()
     if (queue.length === 0) return
+
+    // Previews are 30-sec clips — stop after one play, don't auto-advance
+    if (isPreview) return
 
     let nextIndex: number
     if (isShuffled) {
@@ -48,6 +53,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       queueIndex: nextIndex,
       currentTrack: queue[nextIndex] ?? null,
       progress: 0,
+      isPreview: false,
     })
   },
 
@@ -67,6 +73,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       queueIndex: prevIndex,
       currentTrack: queue[prevIndex] ?? null,
       progress: 0,
+      isPreview: false,
     })
   },
 
@@ -82,4 +89,24 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     })),
 
   setPlayerVisible: (visible: boolean) => set({ isPlayerVisible: visible }),
+
+  /// Start playing a Spotify/iTunes preview clip (30-second sample)
+  playPreview: (url: string, track: Track) => {
+    set({
+      currentTrack: { ...track, previewUrl: url, isPreview: true },
+      isPlaying: true,
+      isPreview: true,
+      progress: 0,
+    })
+  },
+
+  /// Stop preview playback and return to library/normal state
+  stopPreview: () => {
+    set({
+      isPlaying: false,
+      isPreview: false,
+      currentTrack: null,
+      progress: 0,
+    })
+  },
 }))

@@ -17,6 +17,7 @@ import {
   Activity,
   Users,
   Disc3,
+  Headphones,
 } from 'lucide-react'
 
 export default function ArtistDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -57,6 +58,7 @@ export default function ArtistDetailPage({ params }: { params: Promise<{ id: str
       duration: duration ? Math.round(duration / 1000) : 200,
       format: 'MP3',
       coverUrl: ((t as { album?: { images?: Array<{ url: string }> } }).album)?.images?.[0]?.url ?? artist?.image_url ?? undefined,
+      previewUrl: ((t as { preview_url?: string }).preview_url) ?? null,
     }
   }
 
@@ -203,18 +205,19 @@ export default function ArtistDetailPage({ params }: { params: Promise<{ id: str
             </div>
             <div className="space-y-0.5">
               {artist.top_tracks.map((track, idx) => {
-                const t = track as unknown as Record<string, unknown>
-                const name = (t as { name?: string }).name ?? 'Unknown'
-                const artistNames = (t as { artists?: Array<{ name: string }> }).artists?.map(a => a.name).join(', ') ?? ''
-                const album = (t as { album?: { name: string; images?: Array<{ url: string }> } }).album
-                const duration = (t as { duration_ms?: number }).duration_ms
-                const popularity = (t as { popularity?: number }).popularity ?? 0
+                const tr = track as unknown as Record<string, unknown>
+                const name = (tr as { name?: string }).name ?? 'Unknown'
+                const artistNames = (tr as { artists?: Array<{ name: string }> }).artists?.map(a => a.name).join(', ') ?? ''
+                const album = (tr as { album?: { name: string; images?: Array<{ url: string }> } }).album
+                const duration = (tr as { duration_ms?: number }).duration_ms
+                const popularity = (tr as { popularity?: number }).popularity ?? 0
+                const previewUrl = (tr as { preview_url?: string }).preview_url
 
                 return (
                   <div
-                    key={t.id as string ?? idx}
+                    key={tr.id as string ?? idx}
                     className="group flex items-center gap-4 px-4 py-2.5 rounded-xl hover:bg-clark-bg-secondary/60 transition-all duration-200 cursor-pointer border border-transparent hover:border-clark-steel/20"
-                    onDoubleClick={() => handlePlayTrack(t as Record<string, unknown>, idx)}
+                    onDoubleClick={() => handlePlayTrack(tr as Record<string, unknown>, idx)}
                   >
                     {/* Index */}
                     <span className="w-6 text-right font-condensed text-xs text-clark-text-muted/50 flex-shrink-0">
@@ -232,7 +235,7 @@ export default function ArtistDetailPage({ params }: { params: Promise<{ id: str
                       )}
                       <button
                         className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handlePlayTrack(t as Record<string, unknown>, idx)}
+                        onClick={() => handlePlayTrack(tr as Record<string, unknown>, idx)}
                         aria-label={`Play ${name}`}
                       >
                         <Play className="w-5 h-5 text-white ml-0.5" />
@@ -259,6 +262,23 @@ export default function ArtistDetailPage({ params }: { params: Promise<{ id: str
                           />
                         </div>
                       </div>
+                    )}
+
+                    {previewUrl && (
+                      <button
+                        className="flex items-center gap-1 p-1.5 rounded-lg hover:bg-clark-gold/10 text-clark-gold transition-colors group/preview"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          usePlayerStore.getState().playPreview(previewUrl, toTrack(tr as Record<string, unknown>, idx))
+                        }}
+                        aria-label={`Preview ${name}`}
+                        title={t('previewLabel')}
+                      >
+                        <Headphones className="w-4 h-4" />
+                        <span className="hidden group-hover/preview:inline font-condensed text-[10px] tracking-wider uppercase">
+                          {t('previewLabel')}
+                        </span>
+                      </button>
                     )}
 
                     {/* Duration */}
