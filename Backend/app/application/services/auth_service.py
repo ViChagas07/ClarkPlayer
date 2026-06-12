@@ -74,7 +74,19 @@ class AuthService:
         ``token_type``, and ``expires_in`` (seconds).
         """
         user = await self._user_repo.get_by_email(email)
-        if user is None or not verify_password(password, user.hashed_password):
+        if user is None:
+            raise CredentialsError()
+
+        # Google-only accounts have no password — tell the user
+        if user.provider and not user.hashed_password:
+            raise CredentialsError(
+                "This account uses Google sign-in. Please log in with Google."
+            )
+
+        if not user.hashed_password:
+            raise CredentialsError("Account has no password set.")
+
+        if not verify_password(password, user.hashed_password):
             raise CredentialsError()
 
         if not user.is_active:
@@ -245,41 +257,36 @@ class AuthService:
         Exchange the Google authorization ``code`` for tokens, verify the
         ID token with Google, and return our own JWT pair plus user info.
 
-        Flow:
-        1. POST the ``code`` to Google's token endpoint to get an ID token.
-        2. Call Google's ``userinfo`` endpoint with the access token to
-           fetch the user's profile (email, name, picture).
-        3. Look up or create a local user record.
-        4. Issue our own access + refresh JWT pair.
+        Google-authenticated users do **not** have a password.  The
+        ``hashed_password`` column is ``NULL`` for provider-based accounts.
+        Account linking is supported: if a user with the same email already
+        exists, their ``provider`` / ``provider_id`` fields are updated.
 
-        Returns a dict with keys ``access_token``, ``refresh_token``,
-        ``token_type``, and ``user`` (a :class:`User` entity).
-
-        Parameters
-        ----------
-        code : str
-            The authorization code from Google.
-        redirect_uri : str, optional
-            The redirect URI used in the auth request. If not provided,
-            falls back to ``GOOGLE_OIDC_REDIRECT_URI`` from settings.
+        Flow
+        ----
+        1. Exchange ``code`` for tokens (Google token endpoint).
+        2. Fetch user profile (Google userinfo endpoint).
+        3. Validate ID token audience.
+        4. Find existing user by provider OR email; create if new.
+        5. Issue application JWT pair.
         """
         settings = get_settings()
 
-        # Determine the redirect URI — prefer what the front-end sends
-        # (guarantees it matches the auth request), fall back to config.
+        # ── Redirect URI ───────────────────────────────────────────────
         effective_redirect_uri = redirect_uri or settings.GOOGLE_OIDC_REDIRECT_URI
-
         if not effective_redirect_uri:
             raise CredentialsError(
                 "Google OIDC redirect URI is not configured. "
                 "Set GOOGLE_OIDC_REDIRECT_URI on the server or send "
                 "redirect_uri in the callback request."
             )
-
         if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
             raise CredentialsError("Google OIDC is not configured on the server.")
 
-        # ── Step 1: Exchange authorization code for tokens ────────────────
+        logger.info("[google-oidc] Callback started")
+
+        # ── Step 1: Exchange authorization code for tokens ──────────────
+        logger.info("[google-oidc] Exchanging code for tokens …")
         token_url = "https://oauth2.googleapis.com/token"
         token_data = {
             "code": code,
@@ -288,7 +295,6 @@ class AuthService:
             "redirect_uri": effective_redirect_uri,
             "grant_type": "authorization_code",
         }
-
         async with httpx.AsyncClient() as client:
             token_resp = await client.post(token_url, data=token_data)
 
@@ -296,44 +302,40 @@ class AuthService:
             raise CredentialsError(
                 f"Google token exchange failed: {token_resp.text}"
             )
-
         token_json = token_resp.json()
         id_token: str = token_json.get("id_token", "")
         access_token: str = token_json.get("access_token", "")
-
         if not id_token:
             raise CredentialsError("Google did not return an ID token.")
+        logger.info("[google-oidc] Token exchange OK")
 
-        # ── Step 2: Fetch user info from Google ───────────────────────────
+        # ── Step 2: Fetch user info from Google ─────────────────────────
+        logger.info("[google-oidc] Fetching userinfo …")
         userinfo_url = "https://www.googleapis.com/oauth2/v3/userinfo"
         async with httpx.AsyncClient() as client:
             userinfo_resp = await client.get(
                 userinfo_url,
                 headers={"Authorization": f"Bearer {access_token}"},
             )
-
         if userinfo_resp.status_code != 200:
             raise CredentialsError(
                 f"Google userinfo fetch failed: {userinfo_resp.text}"
             )
-
         userinfo = userinfo_resp.json()
-
         email: str = userinfo.get("email", "")
         if not email:
             raise CredentialsError("Google did not return an email address.")
+        google_sub: str = userinfo.get("sub", "")
+        google_name: str = userinfo.get("name", "")
+        google_picture: str | None = userinfo.get("picture")
+        logger.info("[google-oidc] User extracted — email=%s sub=%s", email, google_sub)
 
-        # Verify the ID token's audience matches our client ID.
-        # The ID token is a JWT — decode its payload (without signature
-        # verification) to check the `aud` claim.  Full JWT signature
-        # verification against Google's JWKS endpoint is recommended for
-        # production deployments.
+        # ── Step 3: Validate ID token audience ──────────────────────────
         try:
             import base64
             import json as _json
 
             _payload_b64 = id_token.split(".")[1]
-            # Add padding; base64url-decode
             _rem = len(_payload_b64) % 4
             if _rem:
                 _payload_b64 += "=" * (4 - _rem)
@@ -347,39 +349,69 @@ class AuthService:
         except Exception as exc:
             raise CredentialsError(f"Failed to verify ID token: {exc}") from exc
 
-        # ── Step 3: Find or create the local user ─────────────────────────
-        user = await self._user_repo.get_by_email(email)
+        # ── Step 4: Find or create the local user ───────────────────────
+        # Priority 1: Look up by provider + provider_id (returning user)
+        user = None
+        if google_sub:
+            user = await self._user_repo.get_by_provider("google", google_sub)
 
-        if user is None:
-            # Auto-register the user from Google identity
-            google_name: str = userinfo.get("name", "")
-            google_picture: str | None = userinfo.get("picture")
+        if user is not None:
+            logger.info("[google-oidc] Returning Google user found — id=%s", user.id)
+        else:
+            # Priority 2: Look up by email (account linking)
+            user = await self._user_repo.get_by_email(email)
+            if user is not None:
+                # Link the Google provider to the existing account
+                logger.info(
+                    "[google-oidc] Linking Google to existing account — id=%s email=%s",
+                    user.id, email,
+                )
+                user = User(
+                    id=user.id,
+                    username=user.username,
+                    email=user.email,
+                    hashed_password=user.hashed_password,
+                    display_name=user.display_name or google_name or None,
+                    avatar_url=user.avatar_url or google_picture,
+                    is_active=user.is_active,
+                    email_verified=True,
+                    provider="google",
+                    provider_id=google_sub,
+                    created_at=user.created_at,
+                )
+                user = await self._user_repo.update(user)
+            else:
+                # Priority 3: Create a brand-new Google-only account
+                logger.info("[google-oidc] Creating new Google user — email=%s", email)
+                username_base = email.split("@")[0]
+                username = username_base
+                counter = 1
+                while await self._user_repo.get_by_username(username):
+                    username = f"{username_base}_{counter}"
+                    counter += 1
 
-            # Derive a unique username from the email prefix
-            username_base = email.split("@")[0]
-            username = username_base
-            counter = 1
-            while await self._user_repo.get_by_username(username):
-                username = f"{username_base}_{counter}"
-                counter += 1
-
-            user = User(
-                username=username,
-                email=email,
-                hashed_password=hash_password(secrets.token_hex(16)),  # unusable password (32 hex chars < 72 bcrypt limit)
-                display_name=google_name or None,
-                avatar_url=google_picture,
-                email_verified=True,  # Google has already verified the email
-            )
-            user = await self._user_repo.create(user)
+                user = User(
+                    username=username,
+                    email=email,
+                    hashed_password=None,       # ← NO password for Google users
+                    display_name=google_name or None,
+                    avatar_url=google_picture,
+                    email_verified=True,
+                    provider="google",
+                    provider_id=google_sub,
+                )
+                user = await self._user_repo.create(user)
+                logger.info("[google-oidc] New Google user created — id=%s", user.id)
 
         if not user.is_active:
             raise CredentialsError("Account is deactivated.")
 
-        # ── Step 4: Issue our own JWT pair ────────────────────────────────
+        # ── Step 5: Issue JWT pair ──────────────────────────────────────
+        logger.info("[google-oidc] Issuing JWT tokens — user_id=%s", user.id)
         our_access_token = create_access_token(str(user.id))
         our_refresh_token = create_refresh_token(str(user.id))
 
+        logger.info("[google-oidc] Callback completed successfully — user_id=%s", user.id)
         return {
             "access_token": our_access_token,
             "refresh_token": our_refresh_token,

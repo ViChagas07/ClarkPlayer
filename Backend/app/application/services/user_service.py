@@ -57,6 +57,10 @@ class UserService:
         from app.core.security import hash_password, verify_password
 
         user = await self.get_by_id(user_id)
+        if not user.hashed_password:
+            raise ConflictError(
+                "This account was created via Google sign-in and does not have a password."
+            )
         if not verify_password(current_password, user.hashed_password):
             raise ConflictError("Current password is incorrect.")
 

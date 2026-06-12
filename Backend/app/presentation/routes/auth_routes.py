@@ -169,7 +169,17 @@ async def login(
     _auth_service(session)
     user = await UserRepository(session).get_by_email(body.email)
 
-    if user is None or not _verify_password(body.password, user.hashed_password):
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+        )
+    if not user.hashed_password:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="This account uses Google sign-in. Please log in with Google.",
+        )
+    if not _verify_password(body.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",

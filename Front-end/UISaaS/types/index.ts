@@ -17,6 +17,8 @@ export interface UserResponse {
   avatar_url: string | null
   is_active: boolean
   email_verified?: boolean
+  provider?: string | null
+  provider_id?: string | null
 }
 
 export interface TokenResponse {

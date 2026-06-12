@@ -25,6 +25,8 @@ def user_to_entity(model: UserModel) -> User:
         avatar_url=model.avatar_url,
         is_active=model.is_active,
         email_verified=model.email_verified,
+        provider=model.provider,
+        provider_id=model.provider_id,
         created_at=model.created_at,
         updated_at=model.updated_at,
     )
@@ -40,6 +42,8 @@ def user_to_model(entity: User) -> UserModel:
         avatar_url=entity.avatar_url,
         is_active=entity.is_active,
         email_verified=entity.email_verified,
+        provider=entity.provider,
+        provider_id=entity.provider_id,
         created_at=entity.created_at,
         updated_at=entity.updated_at,
     )

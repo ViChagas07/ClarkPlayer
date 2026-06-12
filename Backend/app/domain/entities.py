@@ -22,11 +22,14 @@ class User:
     id: UUID = field(default_factory=uuid4)
     username: str
     email: str
-    hashed_password: str
+    hashed_password: str | None = None
     display_name: str | None = None
     avatar_url: str | None = None
     is_active: bool = True
     email_verified: bool = False
+    # ── OAuth / social login ───────────────────────────────────────────
+    provider: str | None = None
+    provider_id: str | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 

@@ -16,11 +16,15 @@ class UserModel(Base, TimestampMixin):
     id = pk_column()
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    hashed_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
     display_name: Mapped[str | None] = mapped_column(String(100))
     avatar_url: Mapped[str | None] = mapped_column(String(500))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    # ── OAuth / social login ───────────────────────────────────────────
+    provider: Mapped[str | None] = mapped_column(String(20), nullable=True, index=True)
+    provider_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
 
     # ── Relationships ─────────────────────────────────────────────────
     tracks = relationship("TrackModel", back_populates="owner", cascade="all, delete-orphan")

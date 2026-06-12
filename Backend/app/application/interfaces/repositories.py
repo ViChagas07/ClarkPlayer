@@ -32,6 +32,9 @@ class IUserRepository(ABC):
     async def get_by_username(self, username: str) -> User | None: ...
 
     @abstractmethod
+    async def get_by_provider(self, provider: str, provider_id: str) -> User | None: ...
+
+    @abstractmethod
     async def create(self, user: User) -> User: ...
 
     @abstractmethod

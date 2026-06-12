@@ -69,6 +69,8 @@ class UserResponse(BaseModel):
     avatar_url: str | None = None
     is_active: bool
     email_verified: bool = False
+    provider: str | None = None
+    provider_id: str | None = None
 
 
 class GoogleCallbackResponse(BaseModel):

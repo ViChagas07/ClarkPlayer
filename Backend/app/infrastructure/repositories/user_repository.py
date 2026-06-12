@@ -40,6 +40,16 @@ class UserRepository(IUserRepository):
         model = result.scalar_one_or_none()
         return user_to_entity(model) if model else None
 
+    async def get_by_provider(self, provider: str, provider_id: str) -> User | None:
+        result = await self._session.execute(
+            select(UserModel).where(
+                UserModel.provider == provider,
+                UserModel.provider_id == provider_id,
+            )
+        )
+        model = result.scalar_one_or_none()
+        return user_to_entity(model) if model else None
+
     async def create(self, user: User) -> User:
         model = user_to_model(user)
         self._session.add(model)
