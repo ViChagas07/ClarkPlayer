@@ -41,6 +41,11 @@ class LogoutResponse(BaseModel):
 class GoogleCallbackRequest(BaseModel):
     """Request body for the Google OIDC callback — the frontend POSTs the code here."""
     code: str = Field(..., description="Authorization code received from Google")
+    redirect_uri: str | None = Field(
+        None,
+        description="The redirect_uri that was used in the Google auth request. "
+                    "If omitted, the server falls back to GOOGLE_OIDC_REDIRECT_URI.",
+    )
 
 
 # Response schemas, whose function is mostly to provide type hints and documentation for the structure of the JSON responses returned by the

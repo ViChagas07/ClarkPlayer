@@ -20,6 +20,7 @@ import type {
   ResetPasswordRequest,
   ResetPasswordResponse,
   UnifiedSearchResponse,
+  UnifiedSearchResult,
   UnifiedTrackResponse,
   UnifiedArtistResponse,
   SimilarArtistsResponse,
@@ -62,6 +63,106 @@ async function _fetch<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
 
 function authHeader(token: string): Record<string, string> {
   return { Authorization: `Bearer ${token}` }
+}
+
+// ── iTunes Search API helpers (standalone — no backend needed) ──────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function iTunesToUnified(raw: any): UnifiedSearchResult {
+  const trackName: string = raw.trackName ?? raw.collectionName ?? ''
+  const artistName: string = raw.artistName ?? ''
+  const albumName: string = raw.collectionName ?? ''
+  const artwork: string = raw.artworkUrl100?.replace('100x100', '600x600') ?? raw.artworkUrl60?.replace('60x60', '600x600') ?? ''
+  const preview: string | null = raw.previewUrl ?? null
+  const duration: number | null = raw.trackTimeMillis ?? null
+  const genres: string[] = raw.primaryGenreName ? [raw.primaryGenreName] : []
+
+  return {
+    type: 'track' as const,
+    track: {
+      title: trackName,
+      duration,
+      mbid: raw.trackId ? String(raw.trackId) : null,
+      spotify_id: null,
+      preview_url: preview,
+    },
+    artist: {
+      name: artistName,
+      bio: null,
+      mbid: raw.artistId ? String(raw.artistId) : null,
+      spotify_id: null,
+      image_url: null,
+      similar: [],
+      tags: [],
+    },
+    album: {
+      title: albumName,
+      cover_url: artwork || null,
+      release_date: raw.releaseDate ?? null,
+      country: raw.country ?? null,
+      mbid: null,
+    },
+    audio_features: null,
+    popularity: 0,
+    playcount: 0,
+    genres,
+    cover_url: artwork || null,
+  }
+}
+
+/**
+ * Direct iTunes Search API call.
+ * Public, free, no API key required, CORS-enabled.
+ * Returns preview URLs (30-second clips) for most tracks.
+ */
+export async function musicSearchITunes(query: string, limit: number = 8): Promise<UnifiedSearchResponse> {
+  const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=${limit}&entity=song`
+  const response = await fetch(url)
+  if (!response.ok) throw new Error(`iTunes API error: ${response.status}`)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data = await response.json() as { resultCount: number; results: any[] }
+
+  const tracks: UnifiedSearchResult[] = (data.results ?? []).map((r) => iTunesToUnified(r))
+
+  // Also search for artists
+  const artistUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=${Math.floor(limit / 2)}&entity=musicArtist`
+  let artists: UnifiedSearchResult[] = []
+  try {
+    const artistRes = await fetch(artistUrl)
+    if (artistRes.ok) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const artistData = await artistRes.json() as { resultCount: number; results: any[] }
+      artists = (artistData.results ?? []).map((r) => ({
+        type: 'artist' as const,
+        track: null,
+        artist: {
+          name: r.artistName ?? '',
+          bio: null,
+          mbid: r.artistId ? String(r.artistId) : null,
+          spotify_id: null,
+          image_url: null,
+          similar: [],
+          tags: r.primaryGenreName ? [r.primaryGenreName] : [],
+        },
+        album: null,
+        audio_features: null,
+        popularity: 0,
+        playcount: 0,
+        genres: r.primaryGenreName ? [r.primaryGenreName] : [],
+        cover_url: null,
+      }))
+    }
+  } catch {
+    // Artists are optional — return empty if the artist search fails
+  }
+
+  return {
+    query,
+    tracks,
+    artists,
+    total_tracks: tracks.length,
+    total_artists: artists.length,
+  }
 }
 
 export const api = {
@@ -170,16 +271,24 @@ export const api = {
       body: JSON.stringify({ token, new_password: newPassword } as ResetPasswordRequest),
     })
   },
+
   // ── Music Metadata ───────────────────────────────────────────────────
 
   /**
-   * Search tracks and artists across all integrated music APIs
-   * (MusicBrainz, iTunes, Spotify, Genius, Last.fm).
+   * Search tracks and artists.
+   * Tries the backend first; if unreachable or returns empty, falls back
+   * to the public iTunes Search API (free, no auth required, CORS-enabled).
    */
-  musicSearch(query: string, limit: number = 5): Promise<UnifiedSearchResponse> {
-    return _fetch<UnifiedSearchResponse>(
-      `/api/v1/music/search?q=${encodeURIComponent(query)}&limit=${limit}`,
-    )
+  async musicSearch(query: string, limit: number = 5): Promise<UnifiedSearchResponse> {
+    try {
+      const result = await _fetch<UnifiedSearchResponse>(
+        `/api/v1/music/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+      )
+      if (result.tracks && result.tracks.length > 0) return result
+      return musicSearchITunes(query, limit)
+    } catch {
+      return musicSearchITunes(query, limit)
+    }
   },
 
   /**

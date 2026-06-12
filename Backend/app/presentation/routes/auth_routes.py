@@ -433,7 +433,7 @@ async def google_oidc_callback(
     settings = get_settings()
 
     service = _auth_service(session)
-    result = await service.handle_google_callback(body.code)
+    result = await service.handle_google_callback(body.code, body.redirect_uri)
 
     user = result["user"]
 

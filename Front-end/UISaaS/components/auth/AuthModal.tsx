@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Music, Loader2, X, AlertCircle, Lock } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, getGoogleAuthUrl } from '@/lib/utils'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -47,18 +47,6 @@ const MAX_ATTEMPTS = 5
 const LOCKOUT_DURATION_MINUTES = 30
 const LOCKOUT_DURATION_MS = LOCKOUT_DURATION_MINUTES * 60 * 1000
 const STORAGE_KEY = 'clark_login_attempts'
-
-function getGoogleAuthUrl(): string {
-  const params = new URLSearchParams({
-    client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '',
-    redirect_uri: process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI ?? '',
-    response_type: 'code',
-    scope: 'openid email profile',
-    access_type: 'offline',
-    prompt: 'consent',
-  })
-  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
-}
 
 function getRemainingLockoutTime(lockedUntil: number | null): number {
   if (!lockedUntil) return 0

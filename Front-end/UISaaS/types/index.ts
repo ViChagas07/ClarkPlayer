@@ -48,6 +48,7 @@ export interface LogoutResponse {
 
 export interface GoogleCallbackRequest {
   code: string
+  redirect_uri?: string
 }
 
 export interface GoogleCallbackResponse {

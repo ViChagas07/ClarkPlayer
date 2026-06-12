@@ -238,7 +238,9 @@ class AuthService:
 
     # ── Google OIDC ──────────────────────────────────────────────────────
 
-    async def handle_google_callback(self, code: str) -> dict[str, Any]:
+    async def handle_google_callback(
+        self, code: str, redirect_uri: str | None = None
+    ) -> dict[str, Any]:
         """
         Exchange the Google authorization ``code`` for tokens, verify the
         ID token with Google, and return our own JWT pair plus user info.
@@ -252,8 +254,27 @@ class AuthService:
 
         Returns a dict with keys ``access_token``, ``refresh_token``,
         ``token_type``, and ``user`` (a :class:`User` entity).
+
+        Parameters
+        ----------
+        code : str
+            The authorization code from Google.
+        redirect_uri : str, optional
+            The redirect URI used in the auth request. If not provided,
+            falls back to ``GOOGLE_OIDC_REDIRECT_URI`` from settings.
         """
         settings = get_settings()
+
+        # Determine the redirect URI — prefer what the front-end sends
+        # (guarantees it matches the auth request), fall back to config.
+        effective_redirect_uri = redirect_uri or settings.GOOGLE_OIDC_REDIRECT_URI
+
+        if not effective_redirect_uri:
+            raise CredentialsError(
+                "Google OIDC redirect URI is not configured. "
+                "Set GOOGLE_OIDC_REDIRECT_URI on the server or send "
+                "redirect_uri in the callback request."
+            )
 
         if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
             raise CredentialsError("Google OIDC is not configured on the server.")
@@ -264,7 +285,7 @@ class AuthService:
             "code": code,
             "client_id": settings.GOOGLE_CLIENT_ID,
             "client_secret": settings.GOOGLE_CLIENT_SECRET,
-            "redirect_uri": settings.GOOGLE_OIDC_REDIRECT_URI,
+            "redirect_uri": effective_redirect_uri,
             "grant_type": "authorization_code",
         }
 

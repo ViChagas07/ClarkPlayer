@@ -99,7 +99,7 @@ class Settings:
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
     GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
     GOOGLE_OIDC_REDIRECT_URI: str = os.getenv(
-        "GOOGLE_OIDC_REDIRECT_URI", "http://localhost:3000/auth/callback"
+        "GOOGLE_OIDC_REDIRECT_URI", ""
     )
     GOOGLE_DISCOVERY_URL: str = "https://accounts.google.com/.well-known/openid-configuration"
 

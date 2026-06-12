@@ -29,7 +29,10 @@ function GoogleCallbackHandler() {
       return
     }
 
-    api.googleCallback({ code })
+    api.googleCallback({
+      code,
+      redirect_uri: `${window.location.origin}/auth/callback`,
+    })
       .then((response) => {
         useAuthStore.getState().setSession(
           response.access_token,
