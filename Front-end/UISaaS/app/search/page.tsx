@@ -26,8 +26,8 @@ import {
 const KEY_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
 // ── Seed queries — randomly rotated per session ───────────────────
-const POPULAR_TRACK_QUERIES = getSessionTracks(20)
-const POPULAR_ARTIST_QUERIES = getSessionArtists(20)
+const POPULAR_TRACK_QUERIES = getSessionTracks(30)
+const POPULAR_ARTIST_QUERIES = getSessionArtists(30)
 
 export default function SearchPage() {
   const { t } = useTranslation()
@@ -51,9 +51,9 @@ export default function SearchPage() {
       // ── Parallel batch loading for speed ──────────────
       async function loadBatch(queries: string[], pickFn: (data: UnifiedSearchResponse) => UnifiedSearchResult | null) {
         const results: UnifiedSearchResult[] = []
-        for (let i = 0; i < queries.length; i += 5) {
+        for (let i = 0; i < queries.length; i += 8) {
           if (cancelled) return results
-          const batch = queries.slice(i, i + 5)
+          const batch = queries.slice(i, i + 8)
           const batchResults = await Promise.allSettled(
             batch.map(async (q) => {
               const data = await api.musicSearch(q, 1)

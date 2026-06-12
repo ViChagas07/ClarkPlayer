@@ -19,16 +19,22 @@ type GenreTab = {
 }
 
 const GENRE_TABS: GenreTab[] = [
-  { key: 'all', label: 'All', pool: [...ALL_BRAZILIAN, ...ALL_INTERNATIONAL], count: 40 },
-  { key: 'brazilian', label: '🇧🇷 Brazilian', pool: [...ALL_BRAZILIAN], count: 30 },
-  { key: 'pop', label: 'Pop', pool: [...(BRAZILIAN_ARTISTS.pop_br ?? []), ...(INTERNATIONAL_ARTISTS.pop ?? [])], count: 20 },
-  { key: 'rock', label: 'Rock', pool: [...(BRAZILIAN_ARTISTS.rock_br ?? []), ...(INTERNATIONAL_ARTISTS.rock ?? [])], count: 20 },
-  { key: 'rap', label: 'Rap/Hip-Hop', pool: [...(BRAZILIAN_ARTISTS.rap_trap_br ?? []), ...(INTERNATIONAL_ARTISTS.rap ?? [])], count: 20 },
+  { key: 'all', label: 'All', pool: [...ALL_BRAZILIAN, ...ALL_INTERNATIONAL], count: 100 },
+  { key: 'brazilian', label: '🇧🇷 Brazilian', pool: [...ALL_BRAZILIAN], count: 50 },
+  { key: 'pop', label: 'Pop', pool: [...(BRAZILIAN_ARTISTS.pop_br ?? []), ...(INTERNATIONAL_ARTISTS.pop ?? [])], count: 30 },
+  { key: 'rock', label: 'Rock', pool: [...(BRAZILIAN_ARTISTS.rock_br ?? []), ...(INTERNATIONAL_ARTISTS.rock ?? [])], count: 30 },
+  { key: 'rap', label: 'Rap/Hip-Hop', pool: [...(BRAZILIAN_ARTISTS.rap_trap_br ?? []), ...(INTERNATIONAL_ARTISTS.rap ?? [])], count: 30 },
   { key: 'sertanejo', label: 'Sertanejo', pool: BRAZILIAN_ARTISTS.sertanejo ?? [], count: 8 },
   { key: 'mpb', label: 'MPB', pool: BRAZILIAN_ARTISTS.mpb ?? [], count: 10 },
-  { key: 'rnb', label: 'R&B', pool: INTERNATIONAL_ARTISTS.rnb ?? [], count: 12 },
-  { key: 'electronic', label: 'Electronic', pool: INTERNATIONAL_ARTISTS.electronic ?? [], count: 12 },
-  { key: 'latin', label: 'Latin', pool: INTERNATIONAL_ARTISTS.latin ?? [], count: 12 },
+  { key: 'rnb', label: 'R&B', pool: INTERNATIONAL_ARTISTS.rnb ?? [], count: 16 },
+  { key: 'electronic', label: 'Electronic', pool: INTERNATIONAL_ARTISTS.electronic ?? [], count: 16 },
+  { key: 'latin', label: 'Latin', pool: INTERNATIONAL_ARTISTS.latin ?? [], count: 16 },
+  { key: 'indie', label: 'Indie', pool: INTERNATIONAL_ARTISTS.indie ?? [], count: 16 },
+  { key: 'samba', label: 'Samba/Pagode', pool: BRAZILIAN_ARTISTS.samba_pagode ?? [], count: 10 },
+  { key: 'country', label: 'Country', pool: INTERNATIONAL_ARTISTS.country ?? [], count: 12 },
+  { key: 'kpop', label: 'K-Pop', pool: INTERNATIONAL_ARTISTS.kpop ?? [], count: 8 },
+  { key: 'afrobeats', label: 'Afrobeats', pool: INTERNATIONAL_ARTISTS.afrobeats ?? [], count: 8 },
+  { key: 'jazz', label: 'Jazz/Classical', pool: [...(INTERNATIONAL_ARTISTS.jazz ?? []), ...(INTERNATIONAL_ARTISTS.classical ?? [])], count: 16 },
 ]
 
 export default function ArtistsPage() {
@@ -48,10 +54,10 @@ export default function ArtistsPage() {
       const seeds = pickRandom(tab.pool, tab.count)
       const results: UnifiedSearchResult[] = []
 
-      // Process in parallel batches of 5 for speed
-      for (let i = 0; i < seeds.length; i += 5) {
+      // Process in parallel batches of 8 for speed
+      for (let i = 0; i < seeds.length; i += 8) {
         if (cancelled) return
-        const batch = seeds.slice(i, i + 5)
+        const batch = seeds.slice(i, i + 8)
         const batchResults = await Promise.allSettled(
           batch.map(async (name) => {
             const data = await api.musicSearch(name, 1)

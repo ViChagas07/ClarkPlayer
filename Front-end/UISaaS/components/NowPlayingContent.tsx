@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Music, ListMusic, TrendingUp, Headphones, Loader2, Globe, Mic2 } from 'lucide-react'
+import { Music, ListMusic, TrendingUp, Headphones, Loader2, Globe, Mic2, Disc3, Zap, Radio, Heart } from 'lucide-react'
 import { usePlayerStore } from '@/store/playerStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -35,7 +35,11 @@ export function NowPlayingContent() {
   // ── Seed queries — rotated per session ─────────────────
   const discoverQueries = useMemo(() => getSessionTracks(8), [])
   const brazilianQueries = useMemo(() => getBrazilianHighlights(6), [])
-  const popQueries = useMemo(() => getArtistsByGenre('pop', 6), [])
+  const popQueries = useMemo(() => getArtistsByGenre('pop', 8), [])
+  const rockQueries = useMemo(() => getArtistsByGenre('rock', 8), [])
+  const rapQueries = useMemo(() => getArtistsByGenre('rap', 8), [])
+  const electronicQueries = useMemo(() => getArtistsByGenre('electronic', 8), [])
+  const rnbQueries = useMemo(() => getArtistsByGenre('rnb', 6), [])
 
   // ── Discovery state ────────────────────────────────────
   const [discoverTracks, setDiscoverTracks] = useState<UnifiedSearchResult[]>([])
@@ -44,6 +48,14 @@ export function NowPlayingContent() {
   const [brazilianLoading, setBrazilianLoading] = useState(true)
   const [popTracks, setPopTracks] = useState<UnifiedSearchResult[]>([])
   const [popLoading, setPopLoading] = useState(true)
+  const [rockTracks, setRockTracks] = useState<UnifiedSearchResult[]>([])
+  const [rockLoading, setRockLoading] = useState(true)
+  const [rapTracks, setRapTracks] = useState<UnifiedSearchResult[]>([])
+  const [rapLoading, setRapLoading] = useState(true)
+  const [electronicTracks, setElectronicTracks] = useState<UnifiedSearchResult[]>([])
+  const [electronicLoading, setElectronicLoading] = useState(true)
+  const [rnbTracks, setRnbTracks] = useState<UnifiedSearchResult[]>([])
+  const [rnbLoading, setRnbLoading] = useState(true)
 
   useEffect(() => {
     if (!currentTrack || !isPlaying) return
@@ -98,22 +110,27 @@ export function NowPlayingContent() {
   useEffect(() => {
     let cancelled = false
     async function loadAll() {
-      const [discover, brazilian, pop] = await Promise.all([
+      const [discover, brazilian, pop, rock, rap, electronic, rnb] = await Promise.all([
         fetchSectionTracks(discoverQueries, true),
         fetchSectionTracks(brazilianQueries, false),
         fetchSectionTracks(popQueries, true),
+        fetchSectionTracks(rockQueries, true),
+        fetchSectionTracks(rapQueries, true),
+        fetchSectionTracks(electronicQueries, true),
+        fetchSectionTracks(rnbQueries, true),
       ])
       if (cancelled) return
-      setDiscoverTracks(discover)
-      setDiscoverLoading(false)
-      setBrazilianTracks(brazilian)
-      setBrazilianLoading(false)
-      setPopTracks(pop)
-      setPopLoading(false)
+      setDiscoverTracks(discover); setDiscoverLoading(false)
+      setBrazilianTracks(brazilian); setBrazilianLoading(false)
+      setPopTracks(pop); setPopLoading(false)
+      setRockTracks(rock); setRockLoading(false)
+      setRapTracks(rap); setRapLoading(false)
+      setElectronicTracks(electronic); setElectronicLoading(false)
+      setRnbTracks(rnb); setRnbLoading(false)
     }
     loadAll()
     return () => { cancelled = true }
-  }, [discoverQueries, brazilianQueries, popQueries])
+  }, [discoverQueries, brazilianQueries, popQueries, rockQueries, rapQueries, electronicQueries, rnbQueries])
 
   function handlePreviewPlay(result: UnifiedSearchResult, idx: number) {
     const track = result.track
@@ -248,6 +265,42 @@ export function NowPlayingContent() {
           <h2 className="font-condensed text-xs tracking-widest text-clark-sky uppercase">Pop Hits</h2>
         </div>
         {popLoading ? renderSkeleton(6) : renderCardGrid(popTracks, 'pop')}
+      </section>
+
+      {/* ── Rock ──────────────────────────────────────────── */}
+      <section className="w-full max-w-6xl mt-10">
+        <div className="flex items-center gap-2 mb-4">
+          <Disc3 className="w-5 h-5 text-red-400" />
+          <h2 className="font-condensed text-xs tracking-widest text-red-400 uppercase">Rock</h2>
+        </div>
+        {rockLoading ? renderSkeleton(6) : renderCardGrid(rockTracks, 'rock')}
+      </section>
+
+      {/* ── Rap/Hip-Hop ───────────────────────────────────── */}
+      <section className="w-full max-w-6xl mt-10">
+        <div className="flex items-center gap-2 mb-4">
+          <Radio className="w-5 h-5 text-amber-400" />
+          <h2 className="font-condensed text-xs tracking-widest text-amber-400 uppercase">Rap / Hip-Hop</h2>
+        </div>
+        {rapLoading ? renderSkeleton(6) : renderCardGrid(rapTracks, 'rap')}
+      </section>
+
+      {/* ── Electronic ────────────────────────────────────── */}
+      <section className="w-full max-w-6xl mt-10">
+        <div className="flex items-center gap-2 mb-4">
+          <Zap className="w-5 h-5 text-violet-400" />
+          <h2 className="font-condensed text-xs tracking-widest text-violet-400 uppercase">Electronic</h2>
+        </div>
+        {electronicLoading ? renderSkeleton(6) : renderCardGrid(electronicTracks, 'electronic')}
+      </section>
+
+      {/* ── R&B ───────────────────────────────────────────── */}
+      <section className="w-full max-w-6xl mt-10">
+        <div className="flex items-center gap-2 mb-4">
+          <Heart className="w-5 h-5 text-pink-400" />
+          <h2 className="font-condensed text-xs tracking-widest text-pink-400 uppercase">R&B</h2>
+        </div>
+        {rnbLoading ? renderSkeleton(6) : renderCardGrid(rnbTracks, 'rnb')}
       </section>
 
       {/* ── Recently Played ────────────────────────────────── */}
