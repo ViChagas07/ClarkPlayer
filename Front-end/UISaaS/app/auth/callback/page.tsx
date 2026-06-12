@@ -46,7 +46,12 @@ function GoogleCallbackHandler() {
       .catch((err) => {
         const detail = err instanceof Error ? err.message : String(err)
         console.error('[ClarkPlayer] Google callback failed:', detail)
-        router.push(`/login?error=auth_failed&detail=${encodeURIComponent(detail)}`)
+        // If it looks like a network error, suggest checking the backend
+        const isNetworkError = detail.includes('Network error') || detail.includes('Failed to fetch')
+        const hint = isNetworkError ? ' (Backend may be sleeping — Render cold start)' : ''
+        router.push(
+          `/login?error=auth_failed&detail=${encodeURIComponent(detail + hint)}`,
+        )
       })
   }, [searchParams, router])
 

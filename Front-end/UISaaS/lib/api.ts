@@ -39,18 +39,37 @@ class ApiError extends Error {
 }
 
 async function _fetch<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
-  const response = await fetch(input, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...init?.headers,
-    },
-  })
+  let response: Response
+  try {
+    response = await fetch(input, {
+      ...init,
+      headers: {
+        'Content-Type': 'application/json',
+        ...init?.headers,
+      },
+    })
+  } catch (networkErr) {
+    const msg = networkErr instanceof Error ? networkErr.message : String(networkErr)
+    console.error('[ClarkPlayer] Network error:', msg)
+    throw new ApiError(`Network error: ${msg}`, 0, null)
+  }
 
   if (!response.ok) {
-    const body = await response.json().catch(() => ({}))
-    // Handle specific auth error messages from backend
-    const errorMessage = body.message || body.detail || 'Request failed'
+    const contentType = response.headers.get('content-type') ?? ''
+    let body: unknown = {}
+    let errorMessage = 'Request failed'
+
+    if (contentType.includes('application/json')) {
+      body = await response.json().catch(() => ({}))
+      const b = body as Record<string, unknown>
+      errorMessage = String(b.message || b.detail || `HTTP ${response.status}`)
+    } else {
+      // Non-JSON response (crash, proxy error, cold-start page, etc.)
+      const text = await response.text().catch(() => '')
+      console.error(`[ClarkPlayer] Non-JSON error response (${response.status}):`, text.slice(0, 500))
+      errorMessage = `HTTP ${response.status}: ${text.slice(0, 120) || 'empty response'}`
+    }
+
     throw new ApiError(errorMessage, response.status, body)
   }
 
