@@ -124,7 +124,7 @@ export async function musicSearchITunes(query: string, limit: number = 8): Promi
 
   const tracks: UnifiedSearchResult[] = (data.results ?? []).map((r) => iTunesToUnified(r))
 
-  // Also search for artists
+  // Also search for artists — with album artwork lookup
   const artistUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=${Math.floor(limit / 2)}&entity=musicArtist`
   let artists: UnifiedSearchResult[] = []
   try {
@@ -132,25 +132,52 @@ export async function musicSearchITunes(query: string, limit: number = 8): Promi
     if (artistRes.ok) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const artistData = await artistRes.json() as { resultCount: number; results: any[] }
-      artists = (artistData.results ?? []).map((r) => ({
-        type: 'artist' as const,
-        track: null,
-        artist: {
-          name: r.artistName ?? '',
-          bio: null,
-          mbid: r.artistId ? String(r.artistId) : null,
-          spotify_id: null,
-          image_url: null,
-          similar: [],
-          tags: r.primaryGenreName ? [r.primaryGenreName] : [],
-        },
-        album: null,
-        audio_features: null,
-        popularity: 0,
-        playcount: 0,
-        genres: r.primaryGenreName ? [r.primaryGenreName] : [],
-        cover_url: null,
-      }))
+      const rawArtists = artistData.results ?? []
+
+      // ── Batch-fetch album artwork for each artist ──────
+      const artworkMap = new Map<string, string>()
+      const artworkPromises = rawArtists
+        .filter((r: { artistId?: number }) => r.artistId)
+        .map(async (r: { artistId: number; artistName?: string }) => {
+          try {
+            const albumUrl = `https://itunes.apple.com/lookup?id=${r.artistId}&entity=album&limit=1`
+            const albumRes = await fetch(albumUrl)
+            if (albumRes.ok) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const albumData = await albumRes.json() as { results?: any[] }
+              const firstAlbum = (albumData.results ?? []).find((a: { wrapperType?: string }) => a.wrapperType === 'collection')
+              if (firstAlbum?.artworkUrl100) {
+                artworkMap.set(String(r.artistId), firstAlbum.artworkUrl100.replace('100x100', '600x600'))
+              }
+            }
+          } catch { /* skip */ }
+        })
+      await Promise.allSettled(artworkPromises)
+
+      // ── Map to UnifiedSearchResult ─────────────────────
+      artists = rawArtists.map((r: { artistId?: number; artistName?: string; primaryGenreName?: string; artistLinkUrl?: string }) => {
+        const id = r.artistId ? String(r.artistId) : null
+        const artwork = id ? (artworkMap.get(id) ?? null) : null
+        return {
+          type: 'artist' as const,
+          track: null,
+          artist: {
+            name: r.artistName ?? '',
+            bio: null,
+            mbid: id,
+            spotify_id: null,
+            image_url: artwork,
+            similar: [],
+            tags: r.primaryGenreName ? [r.primaryGenreName] : [],
+          },
+          album: null,
+          audio_features: null,
+          popularity: 0,
+          playcount: 0,
+          genres: r.primaryGenreName ? [r.primaryGenreName] : [],
+          cover_url: artwork,
+        }
+      })
     }
   } catch {
     // Artists are optional
