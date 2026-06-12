@@ -1,24 +1,24 @@
 'use client'
 
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { TrackRow } from '@/components/library/TrackRow'
 import { usePlayerStore } from '@/store/playerStore'
 import { useTranslation } from '@/hooks/useTranslation'
-import { mockTracks } from '@/lib/mockData'
+import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
-import type { Track, UnifiedSearchResult } from '@/types'
+import type { Track, TrackResponse, UnifiedSearchResult } from '@/types'
 import {
   ArrowDownAZ,
   ArrowUpAZ,
   Clock,
   Music,
-  Filter,
   List,
   Check,
   Play,
   TrendingUp,
   Loader2,
+  LogIn,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -40,25 +40,71 @@ function formatTrackDuration(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+function apiTrackToTrack(api: TrackResponse): Track {
+  return {
+    id: api.id,
+    title: api.title,
+    artist: api.artist ?? 'Unknown',
+    album: api.album ?? 'Unknown',
+    duration: api.duration ?? 0,
+    format: (api.file_format as Track['format']) ?? 'MP3',
+    coverUrl: api.cover_art_path ?? undefined,
+    year: api.year ?? undefined,
+    genre: api.genre ?? undefined,
+    playCount: api.play_count,
+    isFavorite: api.is_favorite,
+    addedAt: api.created_at,
+  }
+}
+
 export default function AudiosPage() {
   const { t } = useTranslation()
   const { setQueue, currentTrack, isPlaying } = usePlayerStore()
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const accessToken = useAuthStore((s) => s.accessToken)
+  const setShowAuthModal = useAuthStore((s) => s.setShowAuthModal)
+
   const [sortKey, setSortKey] = useState<SortKey>('title')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [formatFilter, setFormatFilter] = useState<string>('All')
   const [multiSelect, setMultiSelect] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  const [tracks, setTracks] = useState<Track[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+
   const [trendingTracks, setTrendingTracks] = useState<UnifiedSearchResult[]>([])
   const [trendingLoading, setTrendingLoading] = useState(true)
 
-  // Simulate loading
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800)
-    return () => clearTimeout(timer)
-  }, [])
+    if (!isAuthenticated || !accessToken) {
+      setTracks([])
+      setIsLoading(false)
+      setLoadError(false)
+      return
+    }
 
-  // Fetch trending tracks from APIs
+    let cancelled = false
+    setIsLoading(true)
+    setLoadError(false)
+
+    async function loadTracks() {
+      try {
+        const res = await api.listTracks(accessToken!, new URLSearchParams('limit=100'))
+        if (cancelled) return
+        setTracks(res.items.map(apiTrackToTrack))
+      } catch {
+        if (!cancelled) setLoadError(true)
+      } finally {
+        if (!cancelled) setIsLoading(false)
+      }
+    }
+
+    loadTracks()
+    return () => { cancelled = true }
+  }, [isAuthenticated, accessToken])
+
   useEffect(() => {
     let cancelled = false
     async function loadTrending() {
@@ -83,12 +129,12 @@ export default function AudiosPage() {
   }, [])
 
   const formats = useMemo(() => {
-    const set = new Set(mockTracks.map((t) => t.format))
+    const set = new Set(tracks.map((t) => t.format))
     return ['All', ...Array.from(set).sort()]
-  }, [])
+  }, [tracks])
 
   const sortedTracks = useMemo(() => {
-    let filtered = formatFilter === 'All' ? [...mockTracks] : mockTracks.filter((t) => t.format === formatFilter)
+    let filtered = formatFilter === 'All' ? [...tracks] : tracks.filter((t) => t.format === formatFilter)
 
     filtered.sort((a, b) => {
       let cmp = 0
@@ -104,7 +150,7 @@ export default function AudiosPage() {
     })
 
     return filtered
-  }, [sortKey, sortDir, formatFilter])
+  }, [tracks, sortKey, sortDir, formatFilter])
 
   const totalDuration = useMemo(() => sortedTracks.reduce((a, t) => a + t.duration, 0), [sortedTracks])
 
@@ -136,12 +182,131 @@ export default function AudiosPage() {
     </span>
   )
 
+  if (!isAuthenticated) {
+    return (
+      <AppShell>
+        <div className="space-y-6">
+          <h1 className="font-display text-3xl tracking-widest uppercase">{t('allTracks')}</h1>
+
+          {/* Login CTA */}
+          <div className="flex flex-col items-center justify-center py-12 px-6 rounded-2xl bg-gradient-to-b from-clark-bg-secondary to-clark-bg-card border border-clark-steel/20 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-clark-accent/10 flex items-center justify-center mb-4">
+              <LogIn className="w-8 h-8 text-clark-accent" />
+            </div>
+            <h2 className="font-display text-xl tracking-wider text-clark-text-primary mb-2">
+              {t('signInToViewLibrary')}
+            </h2>
+            <p className="font-body text-sm text-clark-text-muted max-w-md mb-6">
+              {t('signInToViewLibraryDesc')}
+            </p>
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-clark-accent hover:bg-clark-accent-hover font-body font-semibold text-white rounded-lg transition-all hover:-translate-y-0.5 shadow-glow-hero"
+            >
+              <LogIn className="w-4 h-4" />
+              {t('signIn')}
+            </button>
+          </div>
+
+          {/* Trending Now section */}
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="w-5 h-5 text-clark-gold" />
+              <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase">Trending Now</h2>
+            </div>
+
+            {trendingLoading ? (
+              <div className="flex gap-4 overflow-x-auto pb-2">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-44 animate-pulse">
+                    <div className="w-44 h-44 rounded-xl bg-clark-bg-secondary" />
+                    <div className="h-4 bg-clark-bg-secondary rounded mt-3 w-3/4" />
+                    <div className="h-3 bg-clark-bg-secondary rounded mt-1 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-thin">
+                {trendingTracks.map((result, idx) => {
+                  const track = result.track
+                  const artist = result.artist
+                  const album = result.album
+                  const coverUrl = result.cover_url ?? album?.cover_url ?? null
+                  if (!track) return null
+
+                  function playThis() {
+                    const allTrackObjs: Track[] = trendingTracks
+                      .filter((r) => r.track)
+                      .map((r, i) => ({
+                        id: r.track?.mbid ?? `trending-${i}`,
+                        title: r.track?.title ?? '',
+                        artist: r.artist?.name ?? '',
+                        album: r.album?.title ?? '',
+                        duration: r.track?.duration ? Math.round(r.track.duration / 1000) : 200,
+                        format: 'MP3' as const,
+                        coverUrl: r.cover_url ?? r.album?.cover_url ?? undefined,
+                      }))
+                    setQueue(allTrackObjs, idx)
+                  }
+
+                  return (
+                    <div
+                      key={track.mbid ?? `trending-${idx}`}
+                      onClick={playThis}
+                      className="group flex-shrink-0 w-44 cursor-pointer p-2.5 rounded-xl hover:bg-clark-bg-secondary/60 transition-all duration-200 hover:scale-[1.02]"
+                    >
+                      <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-lg">
+                        {coverUrl ? (
+                          <img
+                            src={coverUrl}
+                            alt={track.title}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Music className="w-10 h-10 text-white/20" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-full bg-clark-accent flex items-center justify-center shadow-xl">
+                            <Play className="w-5 h-5 text-white ml-0.5" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="font-body font-semibold text-sm text-clark-text-primary mt-3 truncate">
+                        {track.title}
+                      </p>
+                      <p className="font-body text-xs text-clark-text-muted truncate">
+                        {artist?.name ?? 'Unknown'}
+                      </p>
+
+                      {result.popularity > 0 && (
+                        <div className="mt-2 h-1 bg-clark-bg-secondary rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-clark-gold to-clark-accent"
+                            style={{ width: `${result.popularity}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </section>
+        </div>
+      </AppShell>
+    )
+  }
+
   return (
     <AppShell>
       <div className="space-y-6">
         <h1 className="font-display text-3xl tracking-widest uppercase">{t('allTracks')}</h1>
 
-        {/* ── Trending Now — Real API Data in Spotify-style cards ── */}
+        {/* Trending Now */}
         <section>
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-clark-gold" />
@@ -188,7 +353,6 @@ export default function AudiosPage() {
                     onClick={playThis}
                     className="group flex-shrink-0 w-44 cursor-pointer p-2.5 rounded-xl hover:bg-clark-bg-secondary/60 transition-all duration-200 hover:scale-[1.02]"
                   >
-                    {/* Album cover */}
                     <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-lg">
                       {coverUrl ? (
                         <img
@@ -202,7 +366,6 @@ export default function AudiosPage() {
                           <Music className="w-10 h-10 text-white/20" />
                         </div>
                       )}
-                      {/* Play button overlay */}
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <div className="w-12 h-12 rounded-full bg-clark-accent flex items-center justify-center shadow-xl">
                           <Play className="w-5 h-5 text-white ml-0.5" />
@@ -210,7 +373,6 @@ export default function AudiosPage() {
                       </div>
                     </div>
 
-                    {/* Track info */}
                     <p className="font-body font-semibold text-sm text-clark-text-primary mt-3 truncate">
                       {track.title}
                     </p>
@@ -218,7 +380,6 @@ export default function AudiosPage() {
                       {artist?.name ?? 'Unknown'}
                     </p>
 
-                    {/* Popularity bar */}
                     {result.popularity > 0 && (
                       <div className="mt-2 h-1 bg-clark-bg-secondary rounded-full overflow-hidden">
                         <div
@@ -233,8 +394,6 @@ export default function AudiosPage() {
             </div>
           )}
         </section>
-
-        {/* ── Your Library ── */}
 
         {/* Controls bar */}
         <div className="flex flex-wrap items-center gap-4">
@@ -334,36 +493,71 @@ export default function AudiosPage() {
 
         {/* Track list */}
         <div className="space-y-0.5">
-          {isLoading
-            ? Array.from({ length: 20 }).map((_, i) => (
-                <div key={i} className="grid grid-cols-[36px_1fr_44px_36px] sm:grid-cols-[40px_1fr_1fr_80px_60px_40px] gap-4 px-4 py-3 h-14 items-center bg-clark-bg-secondary/50 rounded-lg animate-pulse">
-                  <div className="w-4 h-4 bg-clark-steel/20 rounded" />
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-clark-steel/20 rounded" />
-                    <div className="space-y-2">
-                      <div className="w-32 h-4 bg-clark-steel/20 rounded" />
-                      <div className="w-20 h-3 bg-clark-steel/20 rounded" />
-                    </div>
+          {isLoading ? (
+            Array.from({ length: 20 }).map((_, i) => (
+              <div key={i} className="grid grid-cols-[36px_1fr_44px_36px] sm:grid-cols-[40px_1fr_1fr_80px_60px_40px] gap-4 px-4 py-3 h-14 items-center bg-clark-bg-secondary/50 rounded-lg animate-pulse">
+                <div className="w-4 h-4 bg-clark-steel/20 rounded" />
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-clark-steel/20 rounded" />
+                  <div className="space-y-2">
+                    <div className="w-32 h-4 bg-clark-steel/20 rounded" />
+                    <div className="w-20 h-3 bg-clark-steel/20 rounded" />
                   </div>
-                  <div className="hidden sm:block w-24 h-4 bg-clark-steel/20 rounded" />
-                  <div className="w-10 h-4 bg-clark-steel/20 rounded ml-auto" />
-                  <div className="hidden sm:block w-10 h-5 bg-clark-steel/20 rounded" />
-                  <div className="w-4 h-4 bg-clark-steel/20 rounded" />
                 </div>
-              ))
-            : sortedTracks.map((track, index) => (
-                <TrackRow
-                  key={track.id}
-                  track={track}
-                  index={index}
-                  isSelected={selectedIds.has(track.id)}
-                  isPlaying={currentTrack?.id === track.id && isPlaying}
-                  isMultiSelectActive={multiSelect}
-                  onPlay={() => handlePlay(track, index)}
-                  onSelect={() => handleSelect(track.id)}
-                  onContextMenu={() => {}}
-                />
-              ))}
+                <div className="hidden sm:block w-24 h-4 bg-clark-steel/20 rounded" />
+                <div className="w-10 h-4 bg-clark-steel/20 rounded ml-auto" />
+                <div className="hidden sm:block w-10 h-5 bg-clark-steel/20 rounded" />
+                <div className="w-4 h-4 bg-clark-steel/20 rounded" />
+              </div>
+            ))
+          ) : loadError ? (
+            <div className="flex flex-col items-center justify-center py-16 px-6 rounded-2xl bg-clark-bg-secondary border border-clark-steel/20 text-center">
+              <p className="font-display text-lg tracking-wider text-clark-text-primary mb-2">
+                Failed to load tracks
+              </p>
+              <p className="font-body text-sm text-clark-text-muted mb-4">
+                Please check your connection and try again.
+              </p>
+              <button
+                onClick={() => {
+                  setLoadError(false)
+                  setIsLoading(true)
+                  api.listTracks(accessToken!, new URLSearchParams('limit=100'))
+                    .then((res) => {
+                      setTracks(res.items.map(apiTrackToTrack))
+                      setIsLoading(false)
+                    })
+                    .catch(() => {
+                      setLoadError(true)
+                      setIsLoading(false)
+                    })
+                }}
+                className="px-5 py-2 bg-clark-accent hover:bg-clark-accent-hover font-body font-medium text-white rounded-lg transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          ) : sortedTracks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-6 rounded-2xl bg-clark-bg-secondary border border-clark-steel/20 text-center">
+              <Music className="w-10 h-10 text-clark-text-muted/30 mb-3" />
+              <p className="font-display text-lg tracking-wider text-clark-text-primary mb-1">{t('noTracksYet')}</p>
+              <p className="font-body text-sm text-clark-text-muted max-w-sm">{t('startUploading')}</p>
+            </div>
+          ) : (
+            sortedTracks.map((track, index) => (
+              <TrackRow
+                key={track.id}
+                track={track}
+                index={index}
+                isSelected={selectedIds.has(track.id)}
+                isPlaying={currentTrack?.id === track.id && isPlaying}
+                isMultiSelectActive={multiSelect}
+                onPlay={() => handlePlay(track, index)}
+                onSelect={() => handleSelect(track.id)}
+                onContextMenu={() => {}}
+              />
+            ))
+          )}
         </div>
 
         {/* Bulk action bar */}

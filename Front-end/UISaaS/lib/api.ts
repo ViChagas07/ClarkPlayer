@@ -5,9 +5,11 @@ import type {
   LoginRequest,
   LogoutRequest,
   LogoutResponse,
+  PlaylistResponse,
   RegisterRequest,
   TokenResponse,
   TrackListResponse,
+  TrackResponse,
   UserResponse,
   VerifyEmailRequest,
   VerifyEmailResponse,
@@ -107,8 +109,20 @@ export const api = {
     })
   },
 
-  listPlaylists(token: string): Promise<unknown[]> {
-    return _fetch<unknown[]>('/api/v1/playlists', {
+  listPlaylists(token: string): Promise<PlaylistResponse[]> {
+    return _fetch<PlaylistResponse[]>('/api/v1/playlists', {
+      headers: authHeader(token),
+    })
+  },
+
+  getPlaylist(token: string, playlistId: string): Promise<PlaylistResponse & { tracks?: TrackResponse[] }> {
+    return _fetch<PlaylistResponse & { tracks?: TrackResponse[] }>(`/api/v1/playlists/${encodeURIComponent(playlistId)}`, {
+      headers: authHeader(token),
+    })
+  },
+
+  recentlyPlayed(token: string): Promise<TrackResponse[]> {
+    return _fetch<TrackResponse[]>('/api/v1/player/recently-played', {
       headers: authHeader(token),
     })
   },

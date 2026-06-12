@@ -37,7 +37,6 @@ import { useSettingsStore } from '@/store/settingsStore'
 import { useAuthStore } from '@/store/authStore'
 import { useSidebarStore } from '@/store/sidebarStore'
 import { AuthGuard } from '@/components/auth/AuthGuard'
-import { mockTracks } from '@/lib/mockData'
 import { api } from '@/lib/api'
 import { useTranslation } from '@/hooks/useTranslation'
 
@@ -112,8 +111,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated, refreshToken, accessToken } = useAuthStore()
   const clearSession = useAuthStore((s) => s.clearSession)
 
-  const displayTrack = currentTrack ?? mockTracks[0]
-  const trackDuration = displayTrack.duration ?? 240
+  const displayTrack = currentTrack
+  const trackDuration = displayTrack?.duration ?? 0
 
   async function handleLogout() {
     if (refreshToken) {
@@ -365,10 +364,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <h3 className="font-display text-xl tracking-wider text-clark-text-primary truncate text-center">
-              {displayTrack.title}
+              {displayTrack?.title ?? 'No track playing'}
             </h3>
             <p className="font-body text-sm text-clark-text-muted truncate text-center mt-1">
-              {displayTrack.artist}
+              {displayTrack?.artist ?? '\u00A0'}
             </p>
           </div>
 
@@ -481,26 +480,41 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       >
         {/* Track info — left (slim on mobile, full on desktop) */}
         <div className="hidden items-center gap-3 min-w-0 flex-1 sm:flex sm:w-56 sm:flex-shrink-0 sm:flex-none">
-            <div className="relative flex-shrink-0 hidden sm:block">
-              <div className="absolute inset-0 rounded-md blur-md animate-gold-pulse" style={{ backgroundColor: accentColor + '30' }} />
-              <div className="relative w-12 h-12 rounded-md bg-gradient-to-br from-clark-steel to-clark-accent flex items-center justify-center" style={{ boxShadow: `0 0 12px ${accentColor}40` }}>
-                <Music className="w-5 h-5 text-white/70" />
+          {displayTrack ? (
+            <>
+              <div className="relative flex-shrink-0 hidden sm:block">
+                <div className="absolute inset-0 rounded-md blur-md animate-gold-pulse" style={{ backgroundColor: accentColor + '30' }} />
+                <div className="relative w-12 h-12 rounded-md bg-gradient-to-br from-clark-steel to-clark-accent flex items-center justify-center" style={{ boxShadow: `0 0 12px ${accentColor}40` }}>
+                  <Music className="w-5 h-5 text-white/70" />
+                </div>
               </div>
+              <div className="min-w-0">
+                <p className="font-display text-sm tracking-wider truncate">{displayTrack.title}</p>
+                <p className="font-body text-xs text-clark-text-muted truncate">{displayTrack.artist}</p>
+              </div>
+              <button className="ml-2 text-clark-text-muted hover:text-clark-accent transition-colors hidden sm:block" aria-label={t('toggleFavorite')}>
+                <Heart className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
+            <div className="min-w-0">
+              <p className="font-display text-sm tracking-wider text-clark-text-muted/50 truncate">No track playing</p>
+              <p className="font-body text-xs text-clark-text-muted/30 truncate">{'\u00A0'}</p>
             </div>
-          <div className="min-w-0">
-            <p className="font-display text-sm tracking-wider truncate">{displayTrack.title}</p>
-            <p className="font-body text-xs text-clark-text-muted truncate">{displayTrack.artist}</p>
-          </div>
-          <button className="ml-2 text-clark-text-muted hover:text-clark-accent transition-colors hidden sm:block" aria-label={t('toggleFavorite')}>
-            <Heart className="w-4 h-4" />
-          </button>
+          )}
         </div>
 
         {/* Mobile-only: track info line above controls */}
         <div className="flex sm:hidden items-center gap-2 flex-1 min-w-0 mr-2 overflow-hidden">
-          <p className="font-condensed text-xs text-clark-text-muted truncate">
-            {displayTrack.title} · {displayTrack.artist}
-          </p>
+          {displayTrack ? (
+            <p className="font-condensed text-xs text-clark-text-muted truncate">
+              {displayTrack.title} · {displayTrack.artist}
+            </p>
+          ) : (
+            <p className="font-condensed text-xs text-clark-text-muted/40 truncate">
+              No track playing
+            </p>
+          )}
         </div>
 
         {/* Controls — center */}
@@ -563,7 +577,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <div
                   className="h-full rounded-full relative group-hover:brightness-110 transition-all"
                   style={{
-                    width: `${(progress / trackDuration) * 100}%`,
+                    width: `${trackDuration > 0 ? (progress / trackDuration) * 100 : 0}%`,
                     backgroundColor: accentColor,
                     boxShadow: `0 0 8px ${accentColor}80`,
                   }}
@@ -594,23 +608,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </button>
           {/* Volume slider — vertical, compact & centered */}
           <div className="flex flex-col items-center justify-center gap-1">
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={volume}
-              onChange={(e) => setVolume(parseFloat(e.target.value))}
-              className="appearance-none cursor-pointer rounded-full"
-              style={{
-                transform: 'rotate(-90deg)',
-                width: '50px',
-                height: '3px',
-                margin: '0',
-                background: `linear-gradient(to right, #F5C518 ${volume * 100}%, #0D1B4B ${volume * 100}%)`,
-              }}
-              aria-label={t('volumeLabel')}
-            />
+            <div className="flex items-center justify-center" style={{ height: '50px' }}>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={volume}
+                onChange={(e) => setVolume(parseFloat(e.target.value))}
+                className="appearance-none cursor-pointer rounded-full"
+                style={{
+                  transform: 'rotate(-90deg)',
+                  width: '50px',
+                  height: '3px',
+                  margin: '0',
+                  background: `linear-gradient(to right, #F5C518 ${volume * 100}%, #0D1B4B ${volume * 100}%)`,
+                }}
+                aria-label={t('volumeLabel')}
+              />
+            </div>
             <Volume2 className="w-3.5 h-3.5 text-clark-text-muted" />
           </div>
         </div>

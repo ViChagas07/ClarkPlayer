@@ -1,10 +1,11 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { AppShell } from '@/components/layout/AppShell'
 import { TrackRow } from '@/components/library/TrackRow'
 import { useTranslation } from '@/hooks/useTranslation'
-import { mockPlaylists, mockTracks } from '@/lib/mockData'
+import { usePlaylistStore } from '@/store/playlistStore'
 import { usePlayerStore } from '@/store/playerStore'
 import type { Track } from '@/types'
 import {
@@ -20,6 +21,8 @@ import {
   Calendar,
   Plus,
   FileJson,
+  ArrowLeft,
+  Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -32,12 +35,19 @@ function formatDuration(totalSeconds: number): string {
 export default function PlaylistDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { t } = useTranslation()
   const resolvedParams = React.use(params)
+  const { playlists } = usePlaylistStore()
   const { setQueue, currentTrack, isPlaying } = usePlayerStore()
   const [searchQuery, setSearchQuery] = useState('')
   const [showMenu, setShowMenu] = useState(false)
+  const [hydrated, setHydrated] = useState(false)
 
-  const playlist = mockPlaylists.find((p) => p.id === resolvedParams.id) ?? mockPlaylists[0]
-  const tracks = playlist.tracks
+  useEffect(() => {
+    const timer = setTimeout(() => setHydrated(true), 100)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const playlist = playlists.find((p) => p.id === resolvedParams.id)
+  const tracks = playlist?.tracks ?? []
 
   const filteredTracks = searchQuery
     ? tracks.filter(
@@ -57,7 +67,7 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${playlist.name}.json`
+      a.download = `${playlist?.name ?? 'playlist'}.json`
       a.click()
       URL.revokeObjectURL(url)
     } else {
@@ -66,10 +76,41 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${playlist.name}.m3u8`
+      a.download = `${playlist?.name ?? 'playlist'}.m3u8`
       a.click()
       URL.revokeObjectURL(url)
     }
+  }
+
+  if (!hydrated) {
+    return (
+      <AppShell>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 text-clark-accent animate-spin" />
+        </div>
+      </AppShell>
+    )
+  }
+
+  if (!playlist) {
+    return (
+      <AppShell>
+        <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-clark-bg-secondary flex items-center justify-center mb-4">
+            <ArrowLeft className="w-8 h-8 text-clark-text-muted" />
+          </div>
+          <h2 className="font-display text-xl tracking-wider text-clark-text-primary mb-2">Playlist not found</h2>
+          <p className="font-body text-sm text-clark-text-muted mb-6">This playlist may have been deleted or does not exist.</p>
+          <Link
+            href="/playlists"
+            className="flex items-center gap-2 px-6 py-3 bg-clark-accent hover:bg-clark-accent-hover font-body font-semibold text-white rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to playlists
+          </Link>
+        </div>
+      </AppShell>
+    )
   }
 
   return (
@@ -79,20 +120,29 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
         <div className="flex flex-col md:flex-row gap-6 items-start">
           {/* Cover */}
           <div className="w-48 h-48 rounded-xl bg-gradient-to-br from-clark-steel to-clark-bg-card flex-shrink-0 grid grid-cols-2 grid-rows-2 overflow-hidden">
-            {tracks.slice(0, 4).map((t, i) => (
-              <div
-                key={i}
-                className={cn(
-                  'flex items-center justify-center',
-                  i === 0 ? 'bg-gradient-to-br from-clark-steel to-clark-bg-secondary' :
-                  i === 1 ? 'bg-gradient-to-br from-clark-accent/80 to-clark-bg-secondary' :
-                  i === 2 ? 'bg-gradient-to-br from-clark-gold/80 to-clark-bg-secondary' :
-                  'bg-gradient-to-br from-clark-bg-card to-clark-bg-secondary',
-                )}
-              >
-                <span className="font-display text-white/30 text-xl">{t.title.charAt(0)}</span>
-              </div>
-            ))}
+            {playlist.coverUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={playlist.coverUrl}
+                alt={playlist.name}
+                className="col-span-2 row-span-2 w-full h-full object-cover"
+              />
+            ) : (
+              tracks.slice(0, 4).map((t, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    'flex items-center justify-center',
+                    i === 0 ? 'bg-gradient-to-br from-clark-steel to-clark-bg-secondary' :
+                    i === 1 ? 'bg-gradient-to-br from-clark-accent/80 to-clark-bg-secondary' :
+                    i === 2 ? 'bg-gradient-to-br from-clark-gold/80 to-clark-bg-secondary' :
+                    'bg-gradient-to-br from-clark-bg-card to-clark-bg-secondary',
+                  )}
+                >
+                  <span className="font-display text-white/30 text-xl">{t.title.charAt(0)}</span>
+                </div>
+              ))
+            )}
           </div>
 
           {/* Info */}
@@ -113,7 +163,6 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
             <h1 className="font-display text-4xl md:text-6xl tracking-widest uppercase mb-2 text-clark-text-primary">{playlist.name}</h1>
             {playlist.description && <p className="font-body text-sm text-clark-text-muted mb-4">{playlist.description}</p>}
 
-            {/* Collaborators */}
             {playlist.isCollaborative && playlist.collaborators.length > 0 && (
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex -space-x-2">
@@ -195,36 +244,49 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
         </div>
 
         {/* Track list */}
-        <div className="space-y-0.5">
-          <div className="grid grid-cols-[36px_1fr_44px_36px] sm:grid-cols-[40px_1fr_1fr_80px_60px_40px] gap-4 px-4 py-2 font-body font-medium text-xs text-clark-text-muted uppercase tracking-wider border-b border-clark-steel/20">
-            <span>#</span>
-            <span>{t('titleColumn')}</span>
-            <span className="hidden sm:block">{t('albumColumn')}</span>
-            <span className="text-right">{t('durationColumn')}</span>
-            <span className="hidden sm:block">{t('formatColumn')}</span>
-            <span />
+        {tracks.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 px-6 rounded-2xl bg-clark-bg-secondary border border-clark-steel/20 text-center">
+            <div className="w-12 h-12 rounded-full bg-clark-bg-card flex items-center justify-center mb-4">
+              <Play className="w-6 h-6 text-clark-text-muted" />
+            </div>
+            <p className="font-display text-lg tracking-wider text-clark-text-primary mb-1">No tracks in this playlist yet</p>
+            <p className="font-body text-sm text-clark-text-muted mb-6">Search for tracks and add them to this playlist.</p>
+            <button className="flex items-center gap-3 px-4 py-2.5 font-body text-sm bg-clark-accent hover:bg-clark-accent-hover text-white rounded-lg transition-colors">
+              <Plus className="w-5 h-5" />
+              <span className="font-medium">{t('addTracks')}</span>
+            </button>
           </div>
+        ) : (
+          <div className="space-y-0.5">
+            <div className="grid grid-cols-[36px_1fr_44px_36px] sm:grid-cols-[40px_1fr_1fr_80px_60px_40px] gap-4 px-4 py-2 font-body font-medium text-xs text-clark-text-muted uppercase tracking-wider border-b border-clark-steel/20">
+              <span>#</span>
+              <span>{t('titleColumn')}</span>
+              <span className="hidden sm:block">{t('albumColumn')}</span>
+              <span className="text-right">{t('durationColumn')}</span>
+              <span className="hidden sm:block">{t('formatColumn')}</span>
+              <span />
+            </div>
 
-          {filteredTracks.map((track, index) => (
-            <TrackRow
-              key={track.id}
-              track={track}
-              index={index}
-              isSelected={false}
-              isPlaying={currentTrack?.id === track.id && isPlaying}
-              isMultiSelectActive={false}
-              onPlay={() => handlePlay(track, index)}
-              onSelect={() => {}}
-              onContextMenu={() => {}}
-            />
-          ))}
+            {filteredTracks.map((track, index) => (
+              <TrackRow
+                key={track.id}
+                track={track}
+                index={index}
+                isSelected={false}
+                isPlaying={currentTrack?.id === track.id && isPlaying}
+                isMultiSelectActive={false}
+                onPlay={() => handlePlay(track, index)}
+                onSelect={() => {}}
+                onContextMenu={() => {}}
+              />
+            ))}
 
-          {/* Add tracks CTA */}
-          <button className="w-full flex items-center gap-3 px-4 py-4 font-body text-sm text-clark-text-muted hover:text-clark-text-primary hover:bg-clark-bg-secondary rounded-lg transition-colors">
-            <Plus className="w-5 h-5" />
-            <span className="font-medium">{t('addTracks')}</span>
-          </button>
-        </div>
+            <button className="w-full flex items-center gap-3 px-4 py-4 font-body text-sm text-clark-text-muted hover:text-clark-text-primary hover:bg-clark-bg-secondary rounded-lg transition-colors">
+              <Plus className="w-5 h-5" />
+              <span className="font-medium">{t('addTracks')}</span>
+            </button>
+          </div>
+        )}
       </div>
     </AppShell>
   )
