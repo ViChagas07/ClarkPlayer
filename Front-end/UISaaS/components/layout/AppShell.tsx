@@ -27,12 +27,13 @@ import {
   FileText,
   LogOut,
   LogIn,
+  User,
   ChevronLeft,
   Disc3,
   ArrowUp,
   Headphones,
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { usePlayerStore } from '@/store/playerStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useAuthStore } from '@/store/authStore'
@@ -119,6 +120,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated, refreshToken, accessToken } = useAuthStore()
   const clearSession = useAuthStore((s) => s.clearSession)
 
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!showUserMenu) return
+    function handleClick(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [showUserMenu])
+
   const displayTrack = currentTrack
   const trackDuration = displayTrack?.duration ?? 0
 
@@ -176,30 +192,64 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         rightPanelOpen ? 'pointer-events-none opacity-30' : 'pointer-events-auto',
       )}>
         {isAuthenticated ? (
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-3 py-2 rounded-full bg-clark-bg-card/80 backdrop-blur-sm border border-clark-steel/30 hover:border-clark-gold/50 transition-colors"
-            aria-label={t('signOut')}
-          >
-            <div className="relative flex-shrink-0">
-              <div className="absolute inset-0 rounded-full bg-clark-gold/20 blur-sm" />
-              {user?.avatar_url ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={user.avatar_url}
-                  alt={user.display_name ?? user.username}
-                  className="relative w-8 h-8 rounded-full object-cover ring-1 ring-clark-gold/50"
-                />
-              ) : (
-                <div className="relative w-7 h-7 rounded-full bg-gradient-to-br from-clark-steel to-clark-accent flex items-center justify-center text-xs font-condensed text-clark-text-primary ring-1 ring-clark-gold/50">
-                  {initials}
-                </div>
-              )}
-            </div>
-            <span className="font-body text-sm text-clark-text-muted hidden sm:block max-w-28 truncate">
-              {user?.display_name ?? user?.username}
-            </span>
-          </button>
+          <div ref={userMenuRef} className="relative">
+            <button
+              onClick={() => setShowUserMenu((v) => !v)}
+              className="flex items-center gap-2 px-3 py-2 rounded-full bg-clark-bg-card/80 backdrop-blur-sm border border-clark-steel/30 hover:border-clark-gold/50 transition-colors"
+              aria-label={t('signOut')}
+            >
+              <div className="relative flex-shrink-0">
+                <div className="absolute inset-0 rounded-full bg-clark-gold/20 blur-sm" />
+                {user?.avatar_url ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={user.avatar_url}
+                    alt={user.display_name ?? user.username}
+                    className="relative w-8 h-8 rounded-full object-cover ring-1 ring-clark-gold/50"
+                  />
+                ) : (
+                  <div className="relative w-7 h-7 rounded-full bg-gradient-to-br from-clark-steel to-clark-accent flex items-center justify-center text-xs font-condensed text-clark-text-primary ring-1 ring-clark-gold/50">
+                    {initials}
+                  </div>
+                )}
+              </div>
+              <span className="font-body text-sm text-clark-text-muted hidden sm:block max-w-28 truncate">
+                {user?.display_name ?? user?.username}
+              </span>
+            </button>
+
+            {/* Dropdown menu */}
+            {showUserMenu && (
+              <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-clark-bg-card/95 backdrop-blur-md border border-clark-steel/30 shadow-xl shadow-black/30 overflow-hidden z-50">
+                {/* Profile */}
+                <button
+                  onClick={() => { setShowUserMenu(false); router.push('/account') }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-body text-clark-text-muted hover:bg-clark-steel/20 hover:text-clark-text-primary transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  {t('profileInformation')}
+                </button>
+                {/* Settings */}
+                <button
+                  onClick={() => { setShowUserMenu(false); router.push('/settings') }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-body text-clark-text-muted hover:bg-clark-steel/20 hover:text-clark-text-primary transition-colors"
+                >
+                  <Settings className="w-4 h-4" />
+                  {t('settingsNav')}
+                </button>
+                {/* Divider */}
+                <div className="mx-3 border-t border-clark-steel/20" />
+                {/* Logout */}
+                <button
+                  onClick={() => { setShowUserMenu(false); handleLogout() }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-body text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  {t('signOut')}
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
           <button
             onClick={() => router.push('/login')}
