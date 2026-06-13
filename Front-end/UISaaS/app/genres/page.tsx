@@ -8,6 +8,30 @@ import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { Loader2, LogIn, Music, RefreshCw } from 'lucide-react'
+import Image from 'next/image'
+
+// Genre name → image filename in public/genres/
+const genreImages: Record<string, string> = {
+  Rock: '/genres/Rock_Guitar.png',
+  Jazz: '/genres/Jazz.png',
+  Classical: '/genres/Classical.png',
+  'R&B': '/genres/RnB.png',
+  'Hip-Hop': '/genres/HipHop.png',
+  Ambient: '/genres/Ambient.png',
+  Electronic: '/genres/Electronic.png',
+  Reggae: '/genres/Reggae.png',
+  Samba: '/genres/Samba.png',
+  Latin: '/genres/Latin.png',
+  Gospel: '/genres/Gospel.png',
+  Pagode: '/genres/Pagode.png',
+  'Heavy Metal': '/genres/HeavyMetal.png',
+  Rap: '/genres/Rap.png',
+  'Forró': '/genres/Forro.png',
+  Funk: '/genres/Funk.png',
+  Sertanejo: '/genres/Sertanejo.png',
+  Romantic: '/genres/Romantic.png',
+  Trap: '/genres/Trap.png',
+}
 
 const mosaicLayout = [
   'col-span-2 row-span-2',
@@ -174,6 +198,7 @@ export default function GenresPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[120px]">
             {genres.map((genre, i) => {
               const gradients = genreGradients[genre.name] ?? { from: 'from-clark-steel', to: 'to-clark-bg-secondary' }
+              const imageSrc = genreImages[genre.name]
               const layoutIdx = i % mosaicLayout.length
               return (
                 <Link
@@ -184,7 +209,20 @@ export default function GenresPage() {
                     mosaicLayout[layoutIdx],
                   )}
                 >
-                  <div className={cn('absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent', gradients.from, gradients.to, 'opacity-80')} />
+                  {/* Genre cover image (falls back to gradient if no image) */}
+                  {imageSrc ? (
+                    <Image
+                      src={imageSrc}
+                      alt={genre.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    />
+                  ) : (
+                    <div className={cn('absolute inset-0', gradients.from, gradients.to)} />
+                  )}
+                  {/* Gradient overlay for text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
                   <div className="relative z-10 p-5 flex flex-col justify-end h-full">
                     <h2 className="font-display text-2xl tracking-widest uppercase text-white drop-shadow-lg">{genre.name}</h2>
