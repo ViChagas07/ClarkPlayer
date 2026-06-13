@@ -40,6 +40,53 @@ class ApiError extends Error {
   }
 }
 
+// ── Token refresh interceptor ─────────────────────────────────────────────
+let _refreshPromise: Promise<string | null> | null = null
+
+async function refreshAccessToken(): Promise<string | null> {
+  // Dynamically import to avoid circular dependency at module level
+  const { useAuthStore } = await import('@/store/authStore')
+  const { refreshToken } = useAuthStore.getState()
+
+  if (!refreshToken) return null
+
+  try {
+    const res = await fetch('/api/v1/auth/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    })
+
+    if (!res.ok) {
+      // Refresh failed — clear session
+      useAuthStore.getState().clearSession()
+      return null
+    }
+
+    const data: TokenResponse = await res.json()
+    const { user } = useAuthStore.getState()
+    useAuthStore.getState().setSession(
+      data.access_token,
+      data.refresh_token,
+      user as UserResponse,
+    )
+    return data.access_token
+  } catch {
+    useAuthStore.getState().clearSession()
+    return null
+  }
+}
+
+/** Throttle to a single in-flight refresh; queue other callers */
+function getOrCreateRefresh(): Promise<string | null> {
+  if (!_refreshPromise) {
+    _refreshPromise = refreshAccessToken().finally(() => {
+      _refreshPromise = null
+    })
+  }
+  return _refreshPromise
+}
+
 async function _fetch<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   let response: Response
   try {
@@ -56,6 +103,23 @@ async function _fetch<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
     throw new ApiError(`Network error: ${msg}`, 0, null)
   }
 
+  // ── Auto-refresh on 401 ─────────────────────────────────────────
+  if (response.status === 401) {
+    const newToken = await getOrCreateRefresh()
+    if (newToken) {
+      // Retry the original request with the fresh token
+      const retryInit = {
+        ...init,
+        headers: {
+          'Content-Type': 'application/json',
+          ...init?.headers,
+          Authorization: `Bearer ${newToken}`,
+        },
+      }
+      response = await fetch(input, retryInit)
+    }
+  }
+
   if (!response.ok) {
     const contentType = response.headers.get('content-type') ?? ''
     let body: unknown = {}
@@ -68,7 +132,6 @@ async function _fetch<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
     } else {
       // Non-JSON response (crash, proxy error, cold-start page, etc.)
       const text = await response.text().catch(() => '')
-      console.error(`[ClarkPlayer] Non-JSON error response (${response.status}):`, text.slice(0, 500))
       errorMessage = `HTTP ${response.status}: ${text.slice(0, 120) || 'empty response'}`
     }
 
