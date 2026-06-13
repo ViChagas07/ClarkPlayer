@@ -5,7 +5,7 @@ Concrete SQLAlchemy implementation of :class:`IPlaylistRepository`.
 from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -127,3 +127,18 @@ class PlaylistRepository(IPlaylistRepository):
         result = await self._session.execute(stmt)
         associations = result.scalars().all()
         return [track_to_entity(a.track) for a in associations]
+
+    async def count_tracks_batch(self, playlist_ids: list[UUID]) -> dict[UUID, int]:
+        """Return track counts for multiple playlists in a single query (avoids N+1)."""
+        if not playlist_ids:
+            return {}
+        stmt = (
+            select(
+                PlaylistTrackModel.playlist_id,
+                func.count(PlaylistTrackModel.track_id),
+            )
+            .where(PlaylistTrackModel.playlist_id.in_(playlist_ids))
+            .group_by(PlaylistTrackModel.playlist_id)
+        )
+        result = await self._session.execute(stmt)
+        return {row[0]: row[1] for row in result.all()}

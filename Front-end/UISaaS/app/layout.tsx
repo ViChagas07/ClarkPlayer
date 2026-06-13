@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import { Bebas_Neue, Barlow, Barlow_Condensed } from 'next/font/google'
 import './globals.css'
 import { ToastProvider } from '@/components/ui/Toast'
@@ -8,8 +9,15 @@ import { AuthModalWrapper } from '@/components/auth/AuthModalWrapper'
 import { SleepTimerRestore } from '@/components/SleepTimerRestore'
 import { ThemeRestore } from '@/components/ThemeRestore'
 import { PersistentShell } from '@/components/layout/PersistentShell'
+import { QueryProvider } from '@/components/providers/QueryProvider'
 import { WebSiteStructuredData } from '@/components/seo/WebSite'
 import { OrganizationStructuredData } from '@/components/seo/Organization'
+
+const ReactQueryDevtoolsProduction = dynamic(() =>
+  import('@tanstack/react-query-devtools').then((mod) => ({
+    default: mod.ReactQueryDevtools,
+  }))
+)
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://clark-player.vercel.app'
 
@@ -156,16 +164,19 @@ export default function RootLayout({
         </a>
         <WebSiteStructuredData />
         <OrganizationStructuredData />
-        <ToastProvider>
-          <AuthProvider>
-            <ThemeRestore />
-            <SleepTimerRestore />
-            <Suspense>
-              <AuthModalWrapper />
-            </Suspense>
-            <PersistentShell>{children}</PersistentShell>
-          </AuthProvider>
-        </ToastProvider>
+        <QueryProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <ThemeRestore />
+              <SleepTimerRestore />
+              <Suspense>
+                <AuthModalWrapper />
+              </Suspense>
+              <PersistentShell>{children}</PersistentShell>
+            </AuthProvider>
+          </ToastProvider>
+          <ReactQueryDevtoolsProduction initialIsOpen={false} />
+        </QueryProvider>
       </body>
     </html>
   )

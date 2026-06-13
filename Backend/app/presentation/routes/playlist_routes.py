@@ -65,11 +65,12 @@ async def list_my_playlists(
     """List all playlists owned by the authenticated user."""
     service = PlaylistService(PlaylistRepository(session))
     playlists = await service.list_user_playlists(user_id)
-    result: list[PlaylistResponse] = []
-    for p in playlists:
-        tracks = await service.list_tracks(p.id)
-        result.append(_playlist_to_response(p, track_count=len(tracks)))
-    return result
+    # Batch-fetch track counts in a single query instead of N+1
+    track_counts = await service.count_tracks_batch([p.id for p in playlists])
+    return [
+        _playlist_to_response(p, track_count=track_counts.get(p.id, 0))
+        for p in playlists
+    ]
 
 
 @router.get("/{playlist_id}", response_model=PlaylistResponse)

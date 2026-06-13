@@ -8,6 +8,7 @@ Recently played uses a Redis Sorted Set where score = Unix timestamp.
 """
 
 from datetime import UTC, datetime
+import json
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, status
@@ -19,7 +20,7 @@ from app.application.services.history_service import (
     record_play,
 )
 from app.core.dependencies import CurrentUserId, SessionDep
-from app.core.redis import get_session_redis
+from app.core.redis import get_cache_redis, get_session_redis
 from app.infrastructure.repositories.track_repository import TrackRepository
 
 router = APIRouter(prefix="/player", tags=["Player"])
@@ -129,7 +130,15 @@ async def get_recently_played_tracks(
 ) -> RecentlyPlayedResponse:
     """
     Fetch recently played track IDs and resolve them to full track objects.
+    Results are cached in Redis for 60 seconds.
     """
+    cache_key = f"clark:cache:recently_played:{user_id}:{limit}"
+    cache_redis = await get_cache_redis()
+    cached = await cache_redis.get(cache_key)
+    if cached:
+        data = json.loads(cached)
+        return RecentlyPlayedResponse(**data)
+
     track_ids = await get_recently_played(str(user_id), limit)
 
     if not track_ids:
@@ -157,7 +166,9 @@ async def get_recently_played_tracks(
                 duration=model.duration,
             ))
 
-    return RecentlyPlayedResponse(track_ids=track_ids, tracks=tracks)
+    response = RecentlyPlayedResponse(track_ids=track_ids, tracks=tracks)
+    await cache_redis.setex(cache_key, 60, response.model_dump_json())
+    return response
 
 
 @router.delete("/history", status_code=status.HTTP_204_NO_CONTENT)

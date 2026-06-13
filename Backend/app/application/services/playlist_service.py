@@ -80,3 +80,6 @@ class PlaylistService:
 
     async def list_tracks(self, playlist_id: UUID) -> list[Track]:
         return list(await self._playlist_repo.list_tracks(playlist_id))
+
+    async def count_tracks_batch(self, playlist_ids: list[UUID]) -> dict[UUID, int]:
+        return await self._playlist_repo.count_tracks_batch(playlist_ids)

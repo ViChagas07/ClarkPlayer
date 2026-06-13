@@ -26,6 +26,17 @@ import type {
   UnifiedTrackResponse,
   UnifiedArtistResponse,
   SimilarArtistsResponse,
+  CatalogDiscoveryResponse,
+  CatalogSearchResponse,
+  CatalogListResponse,
+  CatalogArtistItem,
+  CatalogArtistResponse,
+  CatalogAlbumResponse,
+  CatalogTrackResponse,
+  CatalogGenreItem,
+  CatalogTrackItem,
+  CatalogAlbumItem,
+  CatalogAutocompleteResponse,
 } from '@/types'
 
 class ApiError extends Error {
@@ -582,6 +593,69 @@ export const api = {
     return _fetch<SimilarArtistsResponse>(
       `/api/v1/music/artist/${encodeURIComponent(mbid)}/similar?limit=${limit}`,
     )
+  },
+
+  // ── Catalog endpoints (local DB) ──────────────────────────────────
+
+  catalogDiscovery(): Promise<CatalogDiscoveryResponse> {
+    return _fetch<CatalogDiscoveryResponse>('/api/v1/catalog/discovery')
+  },
+
+  catalogSearch(query: string, limit: number = 20, offset: number = 0): Promise<CatalogSearchResponse> {
+    const qs = new URLSearchParams({ q: query, limit: String(limit), offset: String(offset) })
+    return _fetch<CatalogSearchResponse>(`/api/v1/catalog/search?${qs.toString()}`)
+  },
+
+  catalogArtists(limit: number = 30, offset: number = 0, sort: string = 'popularity'): Promise<CatalogListResponse<CatalogArtistItem>> {
+    const qs = new URLSearchParams({ limit: String(limit), offset: String(offset), sort })
+    return _fetch<CatalogListResponse<CatalogArtistItem>>(`/api/v1/catalog/artists?${qs.toString()}`)
+  },
+
+  catalogArtist(artistId: string): Promise<CatalogArtistResponse> {
+    return _fetch<CatalogArtistResponse>(`/api/v1/catalog/artists/${encodeURIComponent(artistId)}`)
+  },
+
+  catalogArtistTracks(artistId: string, limit: number = 20, offset: number = 0): Promise<CatalogListResponse<CatalogTrackItem>> {
+    const qs = new URLSearchParams({ limit: String(limit), offset: String(offset) })
+    return _fetch<CatalogListResponse<CatalogTrackItem>>(`/api/v1/catalog/artists/${encodeURIComponent(artistId)}/tracks?${qs.toString()}`)
+  },
+
+  catalogArtistAlbums(artistId: string): Promise<CatalogAlbumItem[]> {
+    return _fetch<CatalogAlbumItem[]>(`/api/v1/catalog/artists/${encodeURIComponent(artistId)}/albums`)
+  },
+
+  catalogAlbum(albumId: string): Promise<CatalogAlbumResponse> {
+    return _fetch<CatalogAlbumResponse>(`/api/v1/catalog/albums/${encodeURIComponent(albumId)}`)
+  },
+
+  catalogAlbumTracks(albumId: string): Promise<CatalogTrackItem[]> {
+    return _fetch<CatalogTrackItem[]>(`/api/v1/catalog/albums/${encodeURIComponent(albumId)}/tracks`)
+  },
+
+  catalogTrack(trackId: string): Promise<CatalogTrackResponse> {
+    return _fetch<CatalogTrackResponse>(`/api/v1/catalog/tracks/${encodeURIComponent(trackId)}`)
+  },
+
+  catalogGenres(): Promise<CatalogGenreItem[]> {
+    return _fetch<CatalogGenreItem[]>('/api/v1/catalog/genres')
+  },
+
+  catalogGenre(slug: string): Promise<CatalogGenreItem> {
+    return _fetch<CatalogGenreItem>(`/api/v1/catalog/genres/${encodeURIComponent(slug)}`)
+  },
+
+  catalogGenreTracks(slug: string, limit: number = 20, offset: number = 0): Promise<CatalogListResponse<CatalogTrackItem>> {
+    const qs = new URLSearchParams({ limit: String(limit), offset: String(offset) })
+    return _fetch<CatalogListResponse<CatalogTrackItem>>(`/api/v1/catalog/genres/${encodeURIComponent(slug)}/tracks?${qs.toString()}`)
+  },
+
+  catalogBrazilian(limit: number = 20, offset: number = 0): Promise<CatalogListResponse<CatalogArtistItem>> {
+    const qs = new URLSearchParams({ limit: String(limit), offset: String(offset) })
+    return _fetch<CatalogListResponse<CatalogArtistItem>>(`/api/v1/catalog/brazilian?${qs.toString()}`)
+  },
+
+  catalogAutocomplete(query: string): Promise<CatalogAutocompleteResponse> {
+    return _fetch<CatalogAutocompleteResponse>(`/api/v1/catalog/autocomplete?q=${encodeURIComponent(query)}`)
   },
 } as const
 

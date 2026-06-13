@@ -15,7 +15,18 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from uuid import UUID
 
-from app.domain.entities import Playlist, PlaylistTrack, Track, User
+from app.domain.entities import (
+    CatalogAlbum,
+    CatalogArtist,
+    CatalogArtistGenre,
+    CatalogGenre,
+    CatalogTrack,
+    Playlist,
+    PlaylistTrack,
+    Track,
+    TrackPreview,
+    User,
+)
 from app.domain.enums import AudioFormat
 
 # ── User repository ──────────────────────────────────────────────────────
@@ -120,3 +131,173 @@ class IPlaylistRepository(ABC):
 
     @abstractmethod
     async def list_tracks(self, playlist_id: UUID) -> Sequence[Track]: ...
+
+    @abstractmethod
+    async def count_tracks_batch(self, playlist_ids: list[UUID]) -> dict[UUID, int]: ...
+
+
+# ── Catalog Artist repository ──────────────────────────────────────────────
+
+
+class ICatalogArtistRepository(ABC):
+    @abstractmethod
+    async def get_by_id(self, artist_id: UUID) -> CatalogArtist | None: ...
+
+    @abstractmethod
+    async def get_by_name(self, name: str) -> CatalogArtist | None: ...
+
+    @abstractmethod
+    async def get_by_external_id(
+        self, source: str, external_id: str
+    ) -> CatalogArtist | None: ...
+
+    @abstractmethod
+    async def search(
+        self, query: str, *, limit: int = 20, offset: int = 0
+    ) -> list[CatalogArtist]: ...
+
+    @abstractmethod
+    async def list_by_popularity(self, limit: int = 50) -> list[CatalogArtist]: ...
+
+    @abstractmethod
+    async def list_brazilian(self, limit: int = 50) -> list[CatalogArtist]: ...
+
+    @abstractmethod
+    async def list_international(self, limit: int = 50) -> list[CatalogArtist]: ...
+
+    @abstractmethod
+    async def upsert(self, artist: CatalogArtist) -> CatalogArtist: ...
+
+    @abstractmethod
+    async def count(self) -> int: ...
+
+
+# ── Catalog Album repository ───────────────────────────────────────────────
+
+
+class ICatalogAlbumRepository(ABC):
+    @abstractmethod
+    async def get_by_id(self, album_id: UUID) -> CatalogAlbum | None: ...
+
+    @abstractmethod
+    async def get_by_title_and_artist(
+        self, title: str, artist_id: UUID
+    ) -> CatalogAlbum | None: ...
+
+    @abstractmethod
+    async def get_by_external_id(
+        self, source: str, external_id: str
+    ) -> CatalogAlbum | None: ...
+
+    @abstractmethod
+    async def search(
+        self, query: str, *, limit: int = 20, offset: int = 0
+    ) -> list[CatalogAlbum]: ...
+
+    @abstractmethod
+    async def list_by_artist(self, artist_id: UUID) -> list[CatalogAlbum]: ...
+
+    @abstractmethod
+    async def upsert(self, album: CatalogAlbum) -> CatalogAlbum: ...
+
+    @abstractmethod
+    async def count(self) -> int: ...
+
+
+# ── Catalog Track repository ───────────────────────────────────────────────
+
+
+class ICatalogTrackRepository(ABC):
+    @abstractmethod
+    async def get_by_id(self, track_id: UUID) -> CatalogTrack | None: ...
+
+    @abstractmethod
+    async def get_by_isrc(self, isrc: str) -> CatalogTrack | None: ...
+
+    @abstractmethod
+    async def get_by_external_id(
+        self, source: str, external_id: str
+    ) -> CatalogTrack | None: ...
+
+    @abstractmethod
+    async def search(
+        self, query: str, *, limit: int = 20, offset: int = 0
+    ) -> list[CatalogTrack]: ...
+
+    @abstractmethod
+    async def list_by_artist(
+        self, artist_id: UUID, *, limit: int = 50, offset: int = 0
+    ) -> list[CatalogTrack]: ...
+
+    @abstractmethod
+    async def list_by_album(self, album_id: UUID) -> list[CatalogTrack]: ...
+
+    @abstractmethod
+    async def list_popular(self, limit: int = 50) -> list[CatalogTrack]: ...
+
+    @abstractmethod
+    async def upsert(self, track: CatalogTrack) -> CatalogTrack: ...
+
+    @abstractmethod
+    async def count(self) -> int: ...
+
+
+# ── Catalog Genre repository ───────────────────────────────────────────────
+
+
+class ICatalogGenreRepository(ABC):
+    @abstractmethod
+    async def get_by_id(self, genre_id: UUID) -> CatalogGenre | None: ...
+
+    @abstractmethod
+    async def get_by_slug(self, slug: str) -> CatalogGenre | None: ...
+
+    @abstractmethod
+    async def get_by_name(self, name: str) -> CatalogGenre | None: ...
+
+    @abstractmethod
+    async def list_all(self) -> list[CatalogGenre]: ...
+
+    @abstractmethod
+    async def list_artists_by_genre(
+        self, genre_id: UUID, *, limit: int = 50
+    ) -> list[CatalogArtist]: ...
+
+    @abstractmethod
+    async def add_artist_to_genre(
+        self, artist_id: UUID, genre_id: UUID
+    ) -> CatalogArtistGenre: ...
+
+    @abstractmethod
+    async def remove_artist_from_genre(
+        self, artist_id: UUID, genre_id: UUID
+    ) -> None: ...
+
+    @abstractmethod
+    async def upsert(self, genre: CatalogGenre) -> CatalogGenre: ...
+
+    @abstractmethod
+    async def count(self) -> int: ...
+
+
+# ── Track Preview repository ───────────────────────────────────────────────
+
+
+class ITrackPreviewRepository(ABC):
+    @abstractmethod
+    async def get_by_id(self, preview_id: UUID) -> TrackPreview | None: ...
+
+    @abstractmethod
+    async def get_latest_for_track(self, track_id: UUID) -> TrackPreview | None: ...
+
+    @abstractmethod
+    async def list_by_track(self, track_id: UUID) -> list[TrackPreview]: ...
+
+    @abstractmethod
+    async def create(self, preview: TrackPreview) -> TrackPreview: ...
+
+    @abstractmethod
+    async def delete(self, preview_id: UUID) -> None: ...
+
+    @abstractmethod
+    async def delete_expired(self) -> int: ...

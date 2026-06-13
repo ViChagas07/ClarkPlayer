@@ -9,6 +9,8 @@ from fastapi import APIRouter
 
 from app.presentation.routes import (
     auth_routes,
+    catalog_routes,
+    metrics_routes,
     music_routes,
     player,
     playlist_routes,
@@ -35,3 +37,5 @@ api_router.include_router(track_routes.router)
 api_router.include_router(playlist_routes.router)
 api_router.include_router(player.router)
 api_router.include_router(music_routes.router)
+api_router.include_router(catalog_routes.router)
+api_router.include_router(metrics_routes.router)

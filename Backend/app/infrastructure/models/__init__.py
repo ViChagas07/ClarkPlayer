@@ -5,9 +5,30 @@ Imports every model so Alembic can discover them for auto-generation.
 """
 
 from app.infrastructure.models.base import Base
+from app.infrastructure.models.catalog import (  # noqa: F401
+    CatalogAlbumModel,
+    CatalogArtistGenreModel,
+    CatalogArtistModel,
+    CatalogGenreModel,
+    CatalogTrackModel,
+    TrackPreviewModel,
+)
 from app.infrastructure.models.playlist import PlaylistModel, PlaylistTrackModel  # noqa: F401
 from app.infrastructure.models.token_blacklist import TokenBlacklistModel  # noqa: F401
 from app.infrastructure.models.track import TrackModel  # noqa: F401
 from app.infrastructure.models.user import UserModel  # noqa: F401
 
-__all__ = ["Base"]
+__all__ = [
+    "Base",
+    "CatalogAlbumModel",
+    "CatalogArtistGenreModel",
+    "CatalogArtistModel",
+    "CatalogGenreModel",
+    "CatalogTrackModel",
+    "TrackPreviewModel",
+    "PlaylistModel",
+    "PlaylistTrackModel",
+    "TokenBlacklistModel",
+    "TrackModel",
+    "UserModel",
+]

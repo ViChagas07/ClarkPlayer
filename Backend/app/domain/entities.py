@@ -82,3 +82,92 @@ class PlaylistTrack:
     track_id: UUID
     position: int
     added_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+
+
+# ── Catalog Artist ─────────────────────────────────────────────────────────
+
+
+@dataclass(kw_only=True, slots=True)
+class CatalogArtist:
+    id: UUID = field(default_factory=uuid4)
+    name: str
+    bio: str | None = None
+    image_url: str | None = None
+    external_mb_id: str | None = None
+    external_spotify_id: str | None = None
+    external_itunes_id: str | None = None
+    external_lastfm_url: str | None = None
+    popularity: int = 0
+    country: str | None = None
+    is_brazilian: bool = False
+
+
+# ── Catalog Album ──────────────────────────────────────────────────────────
+
+
+@dataclass(kw_only=True, slots=True)
+class CatalogAlbum:
+    id: UUID = field(default_factory=uuid4)
+    title: str
+    artist_id: UUID
+    cover_url: str | None = None
+    release_date: str | None = None
+    country: str | None = None
+    track_count: int = 0
+    external_mb_id: str | None = None
+    external_spotify_id: str | None = None
+    external_itunes_id: str | None = None
+
+
+# ── Catalog Track ──────────────────────────────────────────────────────────
+
+
+@dataclass(kw_only=True, slots=True)
+class CatalogTrack:
+    id: UUID = field(default_factory=uuid4)
+    title: str
+    artist_id: UUID
+    album_id: UUID | None = None
+    duration_ms: int | None = None
+    track_number: int | None = None
+    disc_number: int | None = None
+    preview_url: str | None = None
+    isrc: str | None = None
+    external_mb_id: str | None = None
+    external_spotify_id: str | None = None
+    external_itunes_id: str | None = None
+    explicit: bool = False
+    popularity: int = 0
+
+
+# ── Catalog Genre ──────────────────────────────────────────────────────────
+
+
+@dataclass(kw_only=True, slots=True)
+class CatalogGenre:
+    id: UUID = field(default_factory=uuid4)
+    name: str
+    slug: str
+    gradient_from: str = '#1a1a2e'
+    gradient_to: str = '#16213e'
+
+
+# ── Catalog Artist ↔ Genre association ────────────────────────────────────
+
+
+@dataclass(kw_only=True, slots=True)
+class CatalogArtistGenre:
+    artist_id: UUID
+    genre_id: UUID
+
+
+# ── Track Preview ──────────────────────────────────────────────────────────
+
+
+@dataclass(kw_only=True, slots=True)
+class TrackPreview:
+    id: UUID = field(default_factory=uuid4)
+    track_id: UUID
+    url: str
+    expires_at: datetime | None = None
+    fetched_at: datetime = field(default_factory=lambda: datetime.now(UTC))

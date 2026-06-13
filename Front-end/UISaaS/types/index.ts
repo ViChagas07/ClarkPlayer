@@ -355,3 +355,117 @@ export interface SimilarArtistsResponse {
   }>
   total: number
 }
+
+// ── Catalog Types ─────────────────────────────────────────────────────
+
+export interface CatalogTrackItem {
+  id: string
+  title: string
+  artist_name: string
+  album_name: string | null
+  cover_url: string | null
+  preview_url: string | null
+  duration: number | null
+  genres: string[]
+  popularity: number
+  playcount: number
+}
+
+export interface CatalogArtistItem {
+  id: string
+  name: string
+  image_url: string | null
+  genres: string[]
+  bio: string | null
+  popularity: number
+  track_count: number
+  album_count: number
+}
+
+export interface CatalogAlbumItem {
+  id: string
+  title: string
+  artist_name: string
+  cover_url: string | null
+  release_date: string | null
+  track_count: number
+  genres: string[]
+}
+
+export interface CatalogGenreItem {
+  id: string
+  name: string
+  slug: string
+  cover_url: string | null
+  track_count: number
+}
+
+export interface CatalogDiscoverySection {
+  genre: string
+  label: string
+  items: CatalogTrackItem[]
+}
+
+export interface CatalogDiscoveryResponse {
+  top_artists: CatalogArtistItem[]
+  trending_tracks: CatalogTrackItem[]
+  featured_albums: CatalogAlbumItem[]
+  popular_genres: CatalogGenreItem[]
+  brazilian_artists: CatalogArtistItem[]
+  international_artists: CatalogArtistItem[]
+  sections: CatalogDiscoverySection[]
+}
+
+export interface CatalogSearchResult {
+  id: string
+  type: 'track' | 'artist' | 'album'
+  title: string
+  artist_name: string | null
+  cover_url: string | null
+}
+
+export interface CatalogSearchResponse {
+  query: string
+  results: CatalogSearchResult[]
+  total: number
+  offset: number
+  limit: number
+}
+
+export interface CatalogArtistResponse {
+  artist: CatalogArtistItem
+  top_tracks: CatalogTrackItem[]
+  albums: CatalogAlbumItem[]
+  similar: CatalogArtistItem[]
+}
+
+export interface CatalogAlbumResponse {
+  album: CatalogAlbumItem
+  tracks: CatalogTrackItem[]
+  artist: CatalogArtistItem | null
+}
+
+export interface CatalogTrackResponse {
+  track: CatalogTrackItem
+  artist: CatalogArtistItem | null
+  album: CatalogAlbumItem | null
+}
+
+export interface CatalogListResponse<T> {
+  items: T[]
+  total: number
+  offset: number
+  limit: number
+}
+
+export interface CatalogAutocompleteItem {
+  id: string
+  type: 'track' | 'artist' | 'album'
+  name: string
+  artist_name?: string
+}
+
+export interface CatalogAutocompleteResponse {
+  query: string
+  results: CatalogAutocompleteItem[]
+}

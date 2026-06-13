@@ -21,6 +21,7 @@ from app.core.exceptions import AppError
 from app.infrastructure.database import _engine
 from app.infrastructure.models import Base
 from app.middleware.auth_middleware import JWTAuthMiddleware
+from app.middleware.metrics_middleware import MetricsMiddleware
 from app.presentation.router import api_router
 
 _settings = get_settings()
@@ -72,7 +73,27 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     except OSError as exc:
         logger.warning("Could not create media directories (%s).", exc)
 
-    # Shutdown
+    # Start catalog sync scheduler
+    sync_scheduler = None
+    try:
+        import app.services.catalog.sync_scheduler as _sched_mod
+        from app.services.catalog.sync_scheduler import CatalogSyncScheduler
+        sync_scheduler = CatalogSyncScheduler()
+        _sched_mod._global_scheduler = sync_scheduler
+        await sync_scheduler.start()
+        logger.info("CatalogSyncScheduler started.")
+    except Exception as exc:
+        logger.warning("CatalogSyncScheduler could not start (%s).", exc)
+
+    yield
+
+    # Shutdown — stop scheduler
+    if sync_scheduler is not None:
+        try:
+            await sync_scheduler.stop()
+        except Exception as exc:
+            logger.warning("Error stopping CatalogSyncScheduler: %s", exc)
+
     await _engine.dispose()
 
 
@@ -101,6 +122,9 @@ app.add_middleware(GZipMiddleware, minimum_size=256)
 
 # JWT extraction middleware
 app.add_middleware(JWTAuthMiddleware)
+
+# Metrics middleware — added last so it wraps all other middleware
+app.add_middleware(MetricsMiddleware)
 
 # Exception handlers
 

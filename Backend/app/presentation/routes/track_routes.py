@@ -2,6 +2,7 @@
 Track (audio file) management routes — upload, list, search, stream, delete.
 """
 
+import json
 from pathlib import Path
 from uuid import UUID
 
@@ -11,6 +12,7 @@ from fastapi.responses import FileResponse
 from app.application.services.track_service import TrackService
 from app.core.dependencies import CurrentUserId, SessionDep
 from app.core.exceptions import NotFoundError
+from app.core.redis import get_cache_redis
 from app.domain.entities import Track
 from app.infrastructure.repositories.track_repository import TrackRepository
 from app.presentation.schemas.track import (
@@ -89,7 +91,15 @@ async def list_tracks(
     album: str | None = None,
     genre: str | None = None,
 ) -> TrackListResponse:
-    """List the authenticated user's tracks with optional filters."""
+    """List the authenticated user's tracks with optional filters.  Results cached for 30s."""
+    # Only cache simple queries (no search/filters)
+    if not any([search, artist, album, genre]):
+        cache_key = f"clark:cache:tracks:{user_id}:{offset}:{limit}"
+        cache_redis = await get_cache_redis()
+        cached = await cache_redis.get(cache_key)
+        if cached:
+            return TrackListResponse(**json.loads(cached))
+
     service = TrackService(TrackRepository(session))
     tracks = await service.list_tracks(
         user_id,
@@ -102,12 +112,22 @@ async def list_tracks(
         is_favorite=None,
     )
     total = await service.count_tracks(user_id, search=search)
-    return TrackListResponse(
+    response = TrackListResponse(
         items=[_track_to_response(t) for t in tracks],
         total=total,
         offset=offset,
         limit=limit,
     )
+
+    if not any([search, artist, album, genre]):
+        cache_redis = await get_cache_redis()
+        await cache_redis.setex(
+            f"clark:cache:tracks:{user_id}:{offset}:{limit}",
+            30,
+            response.model_dump_json(),
+        )
+
+    return response
 
 
 @router.get("/favorites", response_model=TrackListResponse)

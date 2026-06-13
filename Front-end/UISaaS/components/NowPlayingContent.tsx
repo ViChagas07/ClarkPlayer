@@ -3,36 +3,22 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Music, ListMusic, TrendingUp, Headphones, Loader2, Globe, Mic2, Disc3, Zap, Radio, Heart } from 'lucide-react'
+import { Music, ListMusic, TrendingUp, Headphones, Globe, Mic2, Disc3, Radio, Zap, Heart } from 'lucide-react'
 import { usePlayerStore } from '@/store/playerStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useTranslation } from '@/hooks/useTranslation'
-import { api } from '@/lib/api'
-import { getSessionTracks, getBrazilianHighlights, getArtistsByGenre } from '@/lib/seedCatalog'
-import type { Track, UnifiedSearchResult } from '@/types'
+import { useDiscovery } from '@/hooks/useCatalog'
+import type { Track, CatalogTrackItem, CatalogArtistItem, CatalogDiscoverySection } from '@/types'
 
-// ── Shared fetcher — loads tracks for a list of queries, deduplicated ──
-async function fetchSectionTracks(
-  queries: string[],
-  onlyPreview: boolean,
-  seenTrackIds: Set<string> = new Set(),
-): Promise<UnifiedSearchResult[]> {
-  const results: UnifiedSearchResult[] = []
-  for (const q of queries) {
-    try {
-      const data = await api.musicSearch(q, 1)
-      const track = data.tracks[0]
-      if (track?.track?.title && (!onlyPreview || track.track.preview_url)) {
-        // Deduplicate by track mbid, or by title+artist composite key
-        const dedupKey = track.track.mbid ?? `${track.track.title}::${track.artist?.name ?? ''}`
-        if (!seenTrackIds.has(dedupKey)) {
-          seenTrackIds.add(dedupKey)
-          results.push(track)
-        }
-      }
-    } catch { /* skip */ }
-  }
-  return results
+// ── Section icon/color config ─────────────────────────────────────
+const GENRE_META: Record<string, { icon: typeof TrendingUp; color: string; label: string }> = {
+  pop: { icon: Mic2, color: 'text-clark-sky', label: 'Pop Hits' },
+  rock: { icon: Disc3, color: 'text-red-400', label: 'Rock' },
+  rap: { icon: Radio, color: 'text-amber-400', label: 'Rap / Hip-Hop' },
+  'hip-hop': { icon: Radio, color: 'text-amber-400', label: 'Rap / Hip-Hop' },
+  electronic: { icon: Zap, color: 'text-violet-400', label: 'Electronic' },
+  rnb: { icon: Heart, color: 'text-pink-400', label: 'R&B' },
+  brazilian: { icon: Globe, color: 'text-emerald-400', label: 'Brazilian Highlights' },
 }
 
 export function NowPlayingContent() {
@@ -42,31 +28,9 @@ export function NowPlayingContent() {
   const [recentTracks, setRecentTracks] = useState<Track[]>([])
   const setSleepTimer = useSettingsStore((s) => s.setSleepTimer)
 
-  // ── Seed queries — fresh random picks every visit ────
-  const [discoverQueries] = useState(() => getSessionTracks(8))
-  const [brazilianQueries] = useState(() => getBrazilianHighlights(6))
-  const [popQueries] = useState(() => getArtistsByGenre('pop', 8))
-  const [rockQueries] = useState(() => getArtistsByGenre('rock', 8))
-  const [rapQueries] = useState(() => getArtistsByGenre('rap', 8))
-  const [electronicQueries] = useState(() => getArtistsByGenre('electronic', 8))
-  const [rnbQueries] = useState(() => getArtistsByGenre('rnb', 6))
+  const { data: discovery, isLoading, isError } = useDiscovery()
 
-  // ── Discovery state ────────────────────────────────────
-  const [discoverTracks, setDiscoverTracks] = useState<UnifiedSearchResult[]>([])
-  const [discoverLoading, setDiscoverLoading] = useState(true)
-  const [brazilianTracks, setBrazilianTracks] = useState<UnifiedSearchResult[]>([])
-  const [brazilianLoading, setBrazilianLoading] = useState(true)
-  const [popTracks, setPopTracks] = useState<UnifiedSearchResult[]>([])
-  const [popLoading, setPopLoading] = useState(true)
-  const [rockTracks, setRockTracks] = useState<UnifiedSearchResult[]>([])
-  const [rockLoading, setRockLoading] = useState(true)
-  const [rapTracks, setRapTracks] = useState<UnifiedSearchResult[]>([])
-  const [rapLoading, setRapLoading] = useState(true)
-  const [electronicTracks, setElectronicTracks] = useState<UnifiedSearchResult[]>([])
-  const [electronicLoading, setElectronicLoading] = useState(true)
-  const [rnbTracks, setRnbTracks] = useState<UnifiedSearchResult[]>([])
-  const [rnbLoading, setRnbLoading] = useState(true)
-
+  // ── Track played event ─────────────────────────────────────
   useEffect(() => {
     if (!currentTrack || !isPlaying) return
     const timer = setTimeout(() => {
@@ -75,6 +39,7 @@ export function NowPlayingContent() {
     return () => clearTimeout(timer)
   }, [currentTrack?.id, isPlaying])
 
+  // ── Sleep timer restore ────────────────────────────────────
   useEffect(() => {
     async function restore() {
       try {
@@ -95,6 +60,7 @@ export function NowPlayingContent() {
     restore()
   }, [setSleepTimer])
 
+  // ── Recently played ────────────────────────────────────────
   useEffect(() => {
     async function fetchRecent() {
       try {
@@ -116,71 +82,39 @@ export function NowPlayingContent() {
     fetchRecent()
   }, [])
 
-  // ── Fetch all discovery sections ───────────────────────
-  useEffect(() => {
-    let cancelled = false
-    async function loadAll() {
-      // Shared dedup set — higher-priority sections keep the track,
-      // lower-priority sections skip duplicates.
-      const seenTrackIds = new Set<string>()
-
-      const [discover, brazilian, pop, rock, rap, electronic, rnb] = await Promise.all([
-        fetchSectionTracks(discoverQueries, true, seenTrackIds),
-        fetchSectionTracks(brazilianQueries, false, seenTrackIds),
-        fetchSectionTracks(popQueries, true, seenTrackIds),
-        fetchSectionTracks(rockQueries, true, seenTrackIds),
-        fetchSectionTracks(rapQueries, true, seenTrackIds),
-        fetchSectionTracks(electronicQueries, true, seenTrackIds),
-        fetchSectionTracks(rnbQueries, true, seenTrackIds),
-      ])
-      if (cancelled) return
-      setDiscoverTracks(discover); setDiscoverLoading(false)
-      setBrazilianTracks(brazilian); setBrazilianLoading(false)
-      setPopTracks(pop); setPopLoading(false)
-      setRockTracks(rock); setRockLoading(false)
-      setRapTracks(rap); setRapLoading(false)
-      setElectronicTracks(electronic); setElectronicLoading(false)
-      setRnbTracks(rnb); setRnbLoading(false)
-    }
-    loadAll()
-    return () => { cancelled = true }
-  }, [discoverQueries, brazilianQueries, popQueries, rockQueries, rapQueries, electronicQueries, rnbQueries])
-
-  function handlePreviewPlay(result: UnifiedSearchResult, idx: number) {
-    const track = result.track
-    if (!track?.preview_url) return
+  // ── Preview play ───────────────────────────────────────────
+  function handlePreviewPlay(item: CatalogTrackItem, idx: number) {
+    if (!item.preview_url) return
     const trackObj: Track = {
-      id: track.mbid ?? `preview-${idx}`,
-      title: track.title ?? 'Unknown',
-      artist: result.artist?.name ?? 'Unknown',
-      album: result.album?.title ?? '',
-      duration: track.duration ? Math.round(track.duration / 1000) : 30,
+      id: item.id ?? `preview-${idx}`,
+      title: item.title,
+      artist: item.artist_name,
+      album: item.album_name ?? '',
+      duration: item.duration ? Math.round(item.duration / 1000) : 30,
       format: 'MP3',
-      coverUrl: result.cover_url ?? result.album?.cover_url ?? undefined,
-      previewUrl: track.preview_url,
+      coverUrl: item.cover_url ?? undefined,
+      previewUrl: item.preview_url,
       isPreview: true,
     }
-    usePlayerStore.getState().playPreview(track.preview_url, trackObj)
+    usePlayerStore.getState().playPreview(item.preview_url, trackObj)
   }
 
-  function renderCardGrid(items: UnifiedSearchResult[], section: string) {
+  // ── Track card grid ────────────────────────────────────────
+  function renderTrackGrid(items: CatalogTrackItem[], sectionKey: string) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        {items.map((result, idx) => {
-          const track = result.track
-          if (!track) return null
-          const coverUrl = result.cover_url ?? result.album?.cover_url ?? null
-          const hasPreview = !!track.preview_url
+        {items.map((item, idx) => {
+          const hasPreview = !!item.preview_url
           return (
             <div
-              key={track.mbid ?? `${section}-${idx}`}
+              key={item.id ?? `${sectionKey}-${idx}`}
               className="group p-3 rounded-xl bg-clark-bg-secondary hover:bg-clark-bg-card transition-all duration-200 border border-transparent hover:border-clark-steel/20"
             >
               <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md">
-                {coverUrl ? (
+                {item.cover_url ? (
                   <Image
-                    src={coverUrl}
-                    alt={`${track.title} album art`}
+                    src={item.cover_url}
+                    alt={`${item.title} album art`}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
                     className="object-cover"
@@ -193,7 +127,7 @@ export function NowPlayingContent() {
                 )}
                 {hasPreview && (
                   <button
-                    onClick={() => handlePreviewPlay(result, idx)}
+                    onClick={() => handlePreviewPlay(item, idx)}
                     className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-clark-accent hover:bg-clark-accent-hover flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
                     aria-label={t('playPreview')}
                   >
@@ -201,8 +135,8 @@ export function NowPlayingContent() {
                   </button>
                 )}
               </div>
-              <p className="font-body font-semibold text-sm text-clark-text-primary mt-2 truncate">{track.title}</p>
-              <p className="font-body text-xs text-clark-text-muted truncate">{result.artist?.name ?? 'Unknown'}</p>
+              <p className="font-body font-semibold text-sm text-clark-text-primary mt-2 truncate">{item.title}</p>
+              <p className="font-body text-xs text-clark-text-muted truncate">{item.artist_name}</p>
               {hasPreview && (
                 <span className="inline-flex items-center gap-1 mt-1.5 px-1.5 py-0.5 rounded bg-clark-gold/10 text-clark-gold font-condensed text-[10px] uppercase tracking-wider">
                   <Headphones className="w-3 h-3" /> {t('previewLabel')}
@@ -215,6 +149,70 @@ export function NowPlayingContent() {
     )
   }
 
+  // ── Artist card grid ───────────────────────────────────────
+  function renderArtistGrid(items: CatalogArtistItem[]) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        {items.map((artist) => (
+          <Link
+            key={artist.id}
+            href={`/artists/${artist.id}`}
+            className="group p-3 rounded-xl bg-clark-bg-secondary hover:bg-clark-bg-card transition-all duration-200 border border-transparent hover:border-clark-steel/20 text-center"
+          >
+            <div className="relative w-full aspect-square rounded-full overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md mx-auto max-w-[120px]">
+              {artist.image_url ? (
+                <Image
+                  src={artist.image_url}
+                  alt={artist.name}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                  className="object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Music className="w-8 h-8 text-white/20" />
+                </div>
+              )}
+            </div>
+            <p className="font-body font-semibold text-sm text-clark-text-primary mt-2 truncate">{artist.name}</p>
+            <p className="font-body text-xs text-clark-text-muted truncate">
+              {artist.track_count > 0 ? `${artist.track_count} tracks` : `${artist.genres.slice(0, 2).join(', ')}`}
+            </p>
+          </Link>
+        ))}
+      </div>
+    )
+  }
+
+  // ── Render a section with header ───────────────────────────
+  function renderSection(
+    label: string,
+    Icon: typeof TrendingUp,
+    colorClass: string,
+    tracks: CatalogTrackItem[] | null,
+    artists: CatalogArtistItem[] | null,
+    sectionKey: string,
+  ) {
+    const hasData = (tracks && tracks.length > 0) || (artists && artists.length > 0)
+    if (!hasData) return null
+
+    return (
+      <section className="w-full max-w-6xl mt-10">
+        <div className="flex items-center gap-2 mb-4">
+          <Icon className={`w-5 h-5 ${colorClass}`} />
+          <h2 className={`font-condensed text-xs tracking-widest uppercase ${colorClass}`}>{label}</h2>
+        </div>
+        {tracks && tracks.length > 0
+          ? renderTrackGrid(tracks, sectionKey)
+          : artists && artists.length > 0
+            ? renderArtistGrid(artists)
+            : null}
+      </section>
+    )
+  }
+
+  // ── Skeleton loader ────────────────────────────────────────
   function renderSkeleton(count: number) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -227,6 +225,15 @@ export function NowPlayingContent() {
         ))}
       </div>
     )
+  }
+
+  // ── Render genre sections from discovery ───────────────────
+  function renderGenreSections(sections: CatalogDiscoverySection[]) {
+    return sections.map((section) => {
+      const meta = GENRE_META[section.genre]
+      if (!meta) return null
+      return renderSection(meta.label, meta.icon, meta.color, section.items, null, section.genre)
+    })
   }
 
   return (
@@ -270,68 +277,63 @@ export function NowPlayingContent() {
         </div>
       </div>
 
-      {/* ── Trending Now ───────────────────────────────────── */}
-      <section className="w-full max-w-6xl mt-14">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-clark-gold" />
-          <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase">{t('discoverNewMusic')}</h2>
-        </div>
-        {discoverLoading ? renderSkeleton(6) : renderCardGrid(discoverTracks, 'discover')}
-      </section>
+      {/* ── Loading / Error states ────────────────────────── */}
+      {isLoading && (
+        <>
+          <section className="w-full max-w-6xl mt-14">
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="w-5 h-5 text-clark-gold" />
+              <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase">{t('discoverNewMusic')}</h2>
+            </div>
+            {renderSkeleton(6)}
+          </section>
+          {['Pop Hits', 'Rock', 'Rap / Hip-Hop', 'Electronic', 'R&B'].map((label) => (
+            <section key={label} className="w-full max-w-6xl mt-10">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-5 h-5 rounded bg-clark-bg-secondary animate-pulse" />
+                <div className="h-3 w-20 bg-clark-bg-secondary rounded animate-pulse" />
+              </div>
+              {renderSkeleton(6)}
+            </section>
+          ))}
+        </>
+      )}
 
-      {/* ── Brazilian Highlights ───────────────────────────── */}
-      <section className="w-full max-w-6xl mt-10">
-        <div className="flex items-center gap-2 mb-4">
-          <Globe className="w-5 h-5 text-emerald-400" />
-          <h2 className="font-condensed text-xs tracking-widest text-emerald-400 uppercase">Brazilian Highlights</h2>
-        </div>
-        {brazilianLoading ? renderSkeleton(6) : renderCardGrid(brazilianTracks, 'brazil')}
-      </section>
+      {isError && (
+        <section className="w-full max-w-6xl mt-14 text-center py-12">
+          <p className="font-body text-clark-text-muted">
+            Could not load discovery data. The catalog may still be populating.
+          </p>
+        </section>
+      )}
 
-      {/* ── Pop Hits ───────────────────────────────────────── */}
-      <section className="w-full max-w-6xl mt-10">
-        <div className="flex items-center gap-2 mb-4">
-          <Mic2 className="w-5 h-5 text-clark-sky" />
-          <h2 className="font-condensed text-xs tracking-widest text-clark-sky uppercase">Pop Hits</h2>
-        </div>
-        {popLoading ? renderSkeleton(6) : renderCardGrid(popTracks, 'pop')}
-      </section>
+      {/* ── Discovery sections ────────────────────────────── */}
+      {discovery && (
+        <>
+          {/* Trending Now */}
+          {renderSection(
+            t('discoverNewMusic'),
+            TrendingUp,
+            'text-clark-gold',
+            discovery.trending_tracks,
+            null,
+            'trending',
+          )}
 
-      {/* ── Rock ──────────────────────────────────────────── */}
-      <section className="w-full max-w-6xl mt-10">
-        <div className="flex items-center gap-2 mb-4">
-          <Disc3 className="w-5 h-5 text-red-400" />
-          <h2 className="font-condensed text-xs tracking-widest text-red-400 uppercase">Rock</h2>
-        </div>
-        {rockLoading ? renderSkeleton(6) : renderCardGrid(rockTracks, 'rock')}
-      </section>
+          {/* Genre sections */}
+          {renderGenreSections(discovery.sections)}
 
-      {/* ── Rap/Hip-Hop ───────────────────────────────────── */}
-      <section className="w-full max-w-6xl mt-10">
-        <div className="flex items-center gap-2 mb-4">
-          <Radio className="w-5 h-5 text-amber-400" />
-          <h2 className="font-condensed text-xs tracking-widest text-amber-400 uppercase">Rap / Hip-Hop</h2>
-        </div>
-        {rapLoading ? renderSkeleton(6) : renderCardGrid(rapTracks, 'rap')}
-      </section>
-
-      {/* ── Electronic ────────────────────────────────────── */}
-      <section className="w-full max-w-6xl mt-10">
-        <div className="flex items-center gap-2 mb-4">
-          <Zap className="w-5 h-5 text-violet-400" />
-          <h2 className="font-condensed text-xs tracking-widest text-violet-400 uppercase">Electronic</h2>
-        </div>
-        {electronicLoading ? renderSkeleton(6) : renderCardGrid(electronicTracks, 'electronic')}
-      </section>
-
-      {/* ── R&B ───────────────────────────────────────────── */}
-      <section className="w-full max-w-6xl mt-10">
-        <div className="flex items-center gap-2 mb-4">
-          <Heart className="w-5 h-5 text-pink-400" />
-          <h2 className="font-condensed text-xs tracking-widest text-pink-400 uppercase">R&B</h2>
-        </div>
-        {rnbLoading ? renderSkeleton(6) : renderCardGrid(rnbTracks, 'rnb')}
-      </section>
+          {/* Brazilian Highlights */}
+          {renderSection(
+            'Brazilian Highlights',
+            Globe,
+            'text-emerald-400',
+            null,
+            discovery.brazilian_artists,
+            'brazil',
+          )}
+        </>
+      )}
 
       {/* ── Recently Played ────────────────────────────────── */}
       {recentTracks.length > 0 && (

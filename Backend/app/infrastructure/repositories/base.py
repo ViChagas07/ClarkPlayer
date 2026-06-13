@@ -7,8 +7,27 @@ keeping the two layers decoupled.
 
 from __future__ import annotations
 
-from app.domain.entities import Playlist, PlaylistTrack, Track, User
+from app.domain.entities import (
+    CatalogAlbum,
+    CatalogArtist,
+    CatalogArtistGenre,
+    CatalogGenre,
+    CatalogTrack,
+    Playlist,
+    PlaylistTrack,
+    Track,
+    TrackPreview,
+    User,
+)
 from app.domain.enums import AudioFormat, PlaylistVisibility
+from app.infrastructure.models.catalog import (
+    CatalogAlbumModel,
+    CatalogArtistGenreModel,
+    CatalogArtistModel,
+    CatalogGenreModel,
+    CatalogTrackModel,
+    TrackPreviewModel,
+)
 from app.infrastructure.models.playlist import PlaylistModel, PlaylistTrackModel
 from app.infrastructure.models.track import TrackModel
 from app.infrastructure.models.user import UserModel
@@ -129,4 +148,169 @@ def playlist_track_to_entity(model: PlaylistTrackModel) -> PlaylistTrack:
         track_id=model.track_id,  # type: ignore[arg-type]
         position=model.position,
         added_at=model.track.created_at,  # closest proxy — no dedicated column
+    )
+
+
+# ── CatalogArtist ──────────────────────────────────────────────────────────
+
+
+def catalog_artist_to_entity(model: CatalogArtistModel) -> CatalogArtist:
+    return CatalogArtist(
+        id=model.id,
+        name=model.name,
+        bio=model.bio,
+        image_url=model.image_url,
+        external_mb_id=model.external_mb_id,
+        external_spotify_id=model.external_spotify_id,
+        external_itunes_id=model.external_itunes_id,
+        external_lastfm_url=model.external_lastfm_url,
+        popularity=model.popularity,
+        country=model.country,
+        is_brazilian=model.is_brazilian,
+    )
+
+
+def catalog_artist_to_model(entity: CatalogArtist) -> CatalogArtistModel:
+    return CatalogArtistModel(
+        id=entity.id,
+        name=entity.name,
+        bio=entity.bio,
+        image_url=entity.image_url,
+        external_mb_id=entity.external_mb_id,
+        external_spotify_id=entity.external_spotify_id,
+        external_itunes_id=entity.external_itunes_id,
+        external_lastfm_url=entity.external_lastfm_url,
+        popularity=entity.popularity,
+        country=entity.country,
+        is_brazilian=entity.is_brazilian,
+    )
+
+
+# ── CatalogAlbum ───────────────────────────────────────────────────────────
+
+
+def catalog_album_to_entity(model: CatalogAlbumModel) -> CatalogAlbum:
+    return CatalogAlbum(
+        id=model.id,
+        title=model.title,
+        artist_id=model.artist_id,  # type: ignore[arg-type]
+        cover_url=model.cover_url,
+        release_date=model.release_date,
+        country=model.country,
+        track_count=model.track_count,
+        external_mb_id=model.external_mb_id,
+        external_spotify_id=model.external_spotify_id,
+        external_itunes_id=model.external_itunes_id,
+    )
+
+
+def catalog_album_to_model(entity: CatalogAlbum) -> CatalogAlbumModel:
+    return CatalogAlbumModel(
+        id=entity.id,
+        title=entity.title,
+        artist_id=entity.artist_id,
+        cover_url=entity.cover_url,
+        release_date=entity.release_date,
+        country=entity.country,
+        track_count=entity.track_count,
+        external_mb_id=entity.external_mb_id,
+        external_spotify_id=entity.external_spotify_id,
+        external_itunes_id=entity.external_itunes_id,
+    )
+
+
+# ── CatalogTrack ───────────────────────────────────────────────────────────
+
+
+def catalog_track_to_entity(model: CatalogTrackModel) -> CatalogTrack:
+    return CatalogTrack(
+        id=model.id,
+        title=model.title,
+        artist_id=model.artist_id,  # type: ignore[arg-type]
+        album_id=model.album_id,  # type: ignore[arg-type]
+        duration_ms=model.duration_ms,
+        track_number=model.track_number,
+        disc_number=model.disc_number,
+        preview_url=model.preview_url,
+        isrc=model.isrc,
+        external_mb_id=model.external_mb_id,
+        external_spotify_id=model.external_spotify_id,
+        external_itunes_id=model.external_itunes_id,
+        explicit=model.explicit,
+        popularity=model.popularity,
+    )
+
+
+def catalog_track_to_model(entity: CatalogTrack) -> CatalogTrackModel:
+    return CatalogTrackModel(
+        id=entity.id,
+        title=entity.title,
+        artist_id=entity.artist_id,
+        album_id=entity.album_id,
+        duration_ms=entity.duration_ms,
+        track_number=entity.track_number,
+        disc_number=entity.disc_number,
+        preview_url=entity.preview_url,
+        isrc=entity.isrc,
+        external_mb_id=entity.external_mb_id,
+        external_spotify_id=entity.external_spotify_id,
+        external_itunes_id=entity.external_itunes_id,
+        explicit=entity.explicit,
+        popularity=entity.popularity,
+    )
+
+
+# ── CatalogGenre ───────────────────────────────────────────────────────────
+
+
+def catalog_genre_to_entity(model: CatalogGenreModel) -> CatalogGenre:
+    return CatalogGenre(
+        id=model.id,
+        name=model.name,
+        slug=model.slug,
+        gradient_from=model.gradient_from,
+        gradient_to=model.gradient_to,
+    )
+
+
+def catalog_genre_to_model(entity: CatalogGenre) -> CatalogGenreModel:
+    return CatalogGenreModel(
+        id=entity.id,
+        name=entity.name,
+        slug=entity.slug,
+        gradient_from=entity.gradient_from,
+        gradient_to=entity.gradient_to,
+    )
+
+
+# ── CatalogArtistGenre ─────────────────────────────────────────────────────
+
+
+def catalog_artist_genre_to_entity(model: CatalogArtistGenreModel) -> CatalogArtistGenre:
+    return CatalogArtistGenre(
+        artist_id=model.artist_id,  # type: ignore[arg-type]
+        genre_id=model.genre_id,  # type: ignore[arg-type]
+    )
+
+
+# ── TrackPreview ───────────────────────────────────────────────────────────
+
+
+def track_preview_to_entity(model: TrackPreviewModel) -> TrackPreview:
+    return TrackPreview(
+        id=model.id,
+        track_id=model.track_id,  # type: ignore[arg-type]
+        url=model.url,
+        expires_at=model.expires_at,
+        fetched_at=model.fetched_at,
+    )
+
+
+def track_preview_to_model(entity: TrackPreview) -> TrackPreviewModel:
+    return TrackPreviewModel(
+        id=entity.id,
+        track_id=entity.track_id,
+        url=entity.url,
+        expires_at=entity.expires_at,
+        fetched_at=entity.fetched_at,
     )
