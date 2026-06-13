@@ -597,7 +597,7 @@ class CatalogIngestionWorker:
             country=None,
         )
         stmt = stmt.on_conflict_do_update(
-            constraint="catalog_artists_name_key",
+            index_elements=["name"],
             set_={
                 "bio": stmt.excluded.bio,
                 "image_url": stmt.excluded.image_url,
@@ -640,7 +640,7 @@ class CatalogIngestionWorker:
             country=None,
         )
         stmt = stmt.on_conflict_do_update(
-            constraint="uq_catalog_albums_title_artist_id",
+            index_elements=["title", "artist_id"],
             set_={
                 "cover_url": stmt.excluded.cover_url,
                 "updated_at": datetime.now(timezone.utc),
@@ -685,9 +685,8 @@ class CatalogIngestionWorker:
             external_itunes_id=itunes_id,
         )
         stmt = stmt.on_conflict_do_update(
-            constraint="uq_catalog_tracks_title_artist_id",
+            index_elements=["title", "artist_id"],
             set_={
-                "preview_url": stmt.excluded.preview_url,
                 "duration_ms": stmt.excluded.duration_ms,
                 "popularity": stmt.excluded.popularity,
                 "album_id": stmt.excluded.album_id,
@@ -769,7 +768,7 @@ class CatalogIngestionWorker:
                 gradient_to=_GENRE_COLORS.get(gname, ("#1a1a2e", "#16213e"))[1],
             )
             stmt = stmt.on_conflict_do_update(
-                constraint="catalog_genres_name_key",
+                index_elements=["name"],
                 set_={"name": stmt.excluded.name},
             )
             await session.execute(stmt)

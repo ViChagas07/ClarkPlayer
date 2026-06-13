@@ -35,13 +35,17 @@ class SpotifyClient:
         self._settings = get_settings()
 
     async def _get_token(self) -> str | None:
-        """Get a cached Spotify access token or fetch a new one."""
-        redis = await get_cache_redis()
+        """Get a cached Spotify access token or fetch a new one (Redis optional)."""
         cache_key = "api:spotify:token"
 
-        cached = await redis.get(cache_key)
-        if cached:
-            return cached  # type: ignore[no-any-return]
+        # Try Redis cache (non-critical)
+        try:
+            redis = await get_cache_redis()
+            cached = await redis.get(cache_key)
+            if cached:
+                return cached  # type: ignore[no-any-return]
+        except Exception:
+            pass
 
         try:
             response = await self.client.post(
@@ -58,7 +62,11 @@ class SpotifyClient:
             token_data = response.json()
             access_token = token_data.get("access_token")
             if access_token:
-                await redis.setex(cache_key, TOKEN_TTL, access_token)
+                try:
+                    redis = await get_cache_redis()
+                    await redis.setex(cache_key, TOKEN_TTL, access_token)
+                except Exception:
+                    pass
                 return access_token  # type: ignore[no-any-return]
         except Exception as exc:
             logger.warning("Spotify token request failed: %s", exc)
@@ -78,11 +86,15 @@ class SpotifyClient:
         ttl: int = ARTIST_TTL,
         params: dict[str, Any] | None = None,
     ) -> dict[str, Any] | None:
-        """Fetch with Redis caching."""
-        redis = await get_cache_redis()
-        cached = await redis.get(cache_key)
-        if cached:
-            return json.loads(cached)  # type: ignore[no-any-return]
+        """Fetch with Redis caching (Redis optional — falls back to direct API call)."""
+        # Try Redis cache (non-critical)
+        try:
+            redis = await get_cache_redis()
+            cached = await redis.get(cache_key)
+            if cached:
+                return json.loads(cached)  # type: ignore[no-any-return]
+        except Exception:
+            pass
 
         try:
             headers = await self._auth_headers()
@@ -101,7 +113,12 @@ class SpotifyClient:
                 )
             response.raise_for_status()
             data = response.json()
-            await redis.setex(cache_key, ttl, json.dumps(data))
+            # Try to cache (non-critical)
+            try:
+                redis = await get_cache_redis()
+                await redis.setex(cache_key, ttl, json.dumps(data))
+            except Exception:
+                pass
             return data  # type: ignore[no-any-return]
         except Exception as exc:
             logger.warning("Spotify request failed: %s %s", url, exc)
@@ -186,10 +203,14 @@ class SpotifyClient:
             return []
         ids_str = ",".join(track_ids)
         cache_key = f"api:spotify:audio_features_batch:{ids_str}"
-        redis = await get_cache_redis()
-        cached = await redis.get(cache_key)
-        if cached:
-            return json.loads(cached)  # type: ignore[no-any-return]
+        # Try Redis cache (non-critical)
+        try:
+            redis = await get_cache_redis()
+            cached = await redis.get(cache_key)
+            if cached:
+                return json.loads(cached)  # type: ignore[no-any-return]
+        except Exception:
+            pass
 
         try:
             headers = await self._auth_headers()
@@ -202,7 +223,12 @@ class SpotifyClient:
             response.raise_for_status()
             data = response.json()
             features = data.get("audio_features", [])
-            await redis.setex(cache_key, AUDIO_FEATURES_TTL, json.dumps(features))
+            # Try to cache (non-critical)
+            try:
+                redis = await get_cache_redis()
+                await redis.setex(cache_key, AUDIO_FEATURES_TTL, json.dumps(features))
+            except Exception:
+                pass
             return features  # type: ignore[no-any-return]
         except Exception as exc:
             logger.warning("Spotify audio features batch failed: %s", exc)

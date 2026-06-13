@@ -18,6 +18,7 @@ Sections:
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.infrastructure.models.catalog import (
     CatalogAlbumModel,
@@ -155,6 +156,7 @@ class DiscoveryPrecomputation:
 
         stmt = (
             select(CatalogTrackModel)
+            .options(selectinload(CatalogTrackModel.artist), selectinload(CatalogTrackModel.album))
             .where(CatalogTrackModel.preview_url.is_not(None))
             .order_by(CatalogTrackModel.popularity.desc())
             .limit(limit)
@@ -174,6 +176,7 @@ class DiscoveryPrecomputation:
 
         stmt = (
             select(CatalogAlbumModel)
+            .options(selectinload(CatalogAlbumModel.artist))
             .where(CatalogAlbumModel.cover_url.is_not(None))
             .order_by(CatalogAlbumModel.track_count.desc())
             .limit(limit)
@@ -221,6 +224,7 @@ class DiscoveryPrecomputation:
 
         stmt = (
             select(CatalogTrackModel)
+            .options(selectinload(CatalogTrackModel.artist), selectinload(CatalogTrackModel.album))
             .order_by(CatalogTrackModel.created_at.desc())
             .limit(limit)
         )
@@ -278,6 +282,7 @@ class DiscoveryPrecomputation:
 
         stmt = (
             select(CatalogTrackModel)
+            .options(selectinload(CatalogTrackModel.artist), selectinload(CatalogTrackModel.album))
             .join(
                 CatalogArtistGenreModel,
                 CatalogTrackModel.artist_id == CatalogArtistGenreModel.artist_id,

@@ -159,11 +159,15 @@ async def _retry(func, *args, **kwargs):
 
 
 async def _redis_seen(key: str) -> bool:
-    redis = await get_cache_redis()
-    exists = await redis.exists(key)
-    if not exists:
-        await redis.setex(key, 86400 * 7, "1")
-    return bool(exists)
+    """Return True if *key* was already seen (Redis-backed dedup, optional)."""
+    try:
+        redis = await get_cache_redis()
+        exists = await redis.exists(key)
+        if not exists:
+            await redis.setex(key, 86400 * 7, "1")
+        return bool(exists)
+    except Exception:
+        return False  # Redis unavailable — skip dedup, rely on DB constraints
 
 
 class SmallCatalogSeeder:
@@ -209,14 +213,15 @@ class SmallCatalogSeeder:
         self._print_summary()
 
     async def _process_batch(self, artist_names: list[str]) -> None:
-        async with self._session_factory() as session:
-            for name in artist_names:
-                try:
+        for name in artist_names:
+            try:
+                async with self._session_factory() as session:
                     await self._process_artist(session, name)
+                    await session.commit()
                     self.stats["artists_processed"] += 1
-                except Exception:
-                    logger.exception("Failed to process %r", name)
-                    self.stats["errors"] += 1
+            except Exception:
+                logger.exception("Failed to process %r", name)
+                self.stats["errors"] += 1
 
                 if self.stats["artists_processed"] % 5 == 0:
                     logger.info(
@@ -330,7 +335,7 @@ class SmallCatalogSeeder:
             is_brazilian=is_brazilian, country=None,
         )
         stmt = stmt.on_conflict_do_update(
-            constraint="catalog_artists_name_key",
+            index_elements=["name"],
             set_={
                 "image_url": stmt.excluded.image_url,
                 "popularity": stmt.excluded.popularity,
@@ -353,7 +358,7 @@ class SmallCatalogSeeder:
             release_date=release_date, track_count=track_count, country=None,
         )
         stmt = stmt.on_conflict_do_update(
-            constraint="uq_catalog_albums_title_artist_id",
+            index_elements=["title", "artist_id"],
             set_={"cover_url": stmt.excluded.cover_url, "updated_at": datetime.now(timezone.utc)},
         )
         await session.execute(stmt)
@@ -375,9 +380,8 @@ class SmallCatalogSeeder:
             duration_ms=duration_ms, preview_url=preview_url, popularity=popularity,
         )
         stmt = stmt.on_conflict_do_update(
-            constraint="uq_catalog_tracks_title_artist_id",
+            index_elements=["title", "artist_id"],
             set_={
-                "preview_url": stmt.excluded.preview_url,
                 "duration_ms": stmt.excluded.duration_ms,
                 "popularity": stmt.excluded.popularity,
                 "updated_at": datetime.now(timezone.utc),
@@ -401,7 +405,7 @@ class SmallCatalogSeeder:
                 gradient_to=_GENRE_COLORS.get(gname, ("#1a1a2e", "#16213e"))[1],
             )
             stmt = stmt.on_conflict_do_update(
-                constraint="catalog_genres_name_key",
+                index_elements=["name"],
                 set_={"name": stmt.excluded.name},
             )
             await session.execute(stmt)

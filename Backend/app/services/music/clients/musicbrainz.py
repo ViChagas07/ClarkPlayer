@@ -28,11 +28,15 @@ class MusicBrainzClient:
         self.client = client
 
     async def _cached_get(self, cache_key: str, url: str, params: dict[str, Any] | None = None) -> dict[str, Any] | None:
-        """Fetch with Redis caching and rate limiting."""
-        redis = await get_cache_redis()
-        cached = await redis.get(cache_key)
-        if cached:
-            return json.loads(cached)  # type: ignore[no-any-return]
+        """Fetch with Redis caching and rate limiting (Redis optional)."""
+        # Try Redis cache (non-critical)
+        try:
+            redis = await get_cache_redis()
+            cached = await redis.get(cache_key)
+            if cached:
+                return json.loads(cached)  # type: ignore[no-any-return]
+        except Exception:
+            pass
 
         await rate_limited("musicbrainz")
         try:
@@ -44,7 +48,12 @@ class MusicBrainzClient:
             )
             response.raise_for_status()
             data = response.json()
-            await redis.setex(cache_key, CACHE_TTL, json.dumps(data))
+            # Try to cache (non-critical)
+            try:
+                redis = await get_cache_redis()
+                await redis.setex(cache_key, CACHE_TTL, json.dumps(data))
+            except Exception:
+                pass
             return data  # type: ignore[no-any-return]
         except Exception as exc:
             logger.warning("MusicBrainz request failed: %s %s", url, exc)

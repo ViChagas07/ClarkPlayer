@@ -36,11 +36,15 @@ class LastFmClient:
         params: dict[str, Any],
         ttl: int = ARTIST_INFO_TTL,
     ) -> dict[str, Any] | None:
-        """Fetch with Redis caching and rate limiting."""
-        redis = await get_cache_redis()
-        cached = await redis.get(cache_key)
-        if cached:
-            return json.loads(cached)  # type: ignore[no-any-return]
+        """Fetch with Redis caching and rate limiting (Redis optional)."""
+        # Try Redis cache (non-critical)
+        try:
+            redis = await get_cache_redis()
+            cached = await redis.get(cache_key)
+            if cached:
+                return json.loads(cached)  # type: ignore[no-any-return]
+        except Exception:
+            pass
 
         await rate_limited("lastfm")
         try:
@@ -51,7 +55,12 @@ class LastFmClient:
             )
             response.raise_for_status()
             data = response.json()
-            await redis.setex(cache_key, ttl, json.dumps(data))
+            # Try to cache (non-critical)
+            try:
+                redis = await get_cache_redis()
+                await redis.setex(cache_key, ttl, json.dumps(data))
+            except Exception:
+                pass
             return data  # type: ignore[no-any-return]
         except Exception as exc:
             logger.warning("Last.fm request failed: %s %s", params, exc)

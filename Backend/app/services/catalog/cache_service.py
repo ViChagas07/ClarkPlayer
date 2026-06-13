@@ -1,22 +1,24 @@
 """
-Redis caching layer for catalog entities.
+Redis caching layer for catalog entities (Redis optional — returns None on failure).
 
 Key naming convention (consistent with :mod:`app.core.redis`):
     clark:catalog:{type}:{identifier}
 
-TTL strategy (aligned with :mod:`app.core.cache`):
-  - Artists:      21600s (6h)   -- low mutation rate
-  - Albums:       21600s (6h)   -- moderate mutation
-  - Tracks:       21600s (6h)   -- consistent but preview URLs may refresh
-  - Genres:       43200s (12h)  -- almost never change
-  - Precomputed:  21600s (6h)   -- refreshed by background jobs
-  - Search:       21600s (6h)   -- near-instant local DB, cache for hot queries
+TTL strategy (6h+ for all entities):
+  - Artists:      21600s (6h)  -- low mutation rate
+  - Albums:       21600s (6h)  -- moderate mutation
+  - Tracks:       21600s (6h)  -- consistent but preview URLs may refresh
+  - Genres:       43200s (12h) -- almost never change
+  - Precomputed:  21600s (6h)  -- refreshed by background jobs
+  - Search:       21600s (6h)  -- near-instant local DB, cache for hot queries
 """
 
 import json
-from typing import Any
+import logging
 
 from app.core.redis import get_cache_redis
+
+logger = logging.getLogger("catalog.cache")
 
 _KEY_PREFIX = "clark:catalog"
 _STATS_PREFIX = "clark:catalog:stats"
@@ -37,153 +39,152 @@ def _cache_key(entity_type: str, *identifiers: str) -> str:
     return ":".join(parts)
 
 
+async def _redis_get(key: str) -> str | None:
+    """Get a key from Redis, returning None if Redis is unavailable."""
+    try:
+        redis = await get_cache_redis()
+        return await redis.get(key)
+    except Exception:
+        return None
+
+
+async def _redis_set(key: str, value: str, ttl: int) -> None:
+    """Set a key in Redis, silently skipping if Redis is unavailable."""
+    try:
+        redis = await get_cache_redis()
+        await redis.setex(key, ttl, value)
+    except Exception:
+        pass
+
+
+async def _redis_delete(key: str) -> None:
+    """Delete a key from Redis, silently skipping if Redis is unavailable."""
+    try:
+        redis = await get_cache_redis()
+        await redis.delete(key)
+    except Exception:
+        pass
+
+
+async def _redis_incr(key: str) -> None:
+    """Increment a counter, silently skipping if Redis is unavailable."""
+    try:
+        redis = await get_cache_redis()
+        await redis.incr(key)
+    except Exception:
+        pass
+
+
 class CatalogCacheService:
     """
     Redis caching layer for catalog entities.
 
-    Tracks hit / miss counts via Redis ``INCR`` on ``clark:catalog:stats:hits``
-    and ``clark:catalog:stats:misses``, providing visibility into cache
-    effectiveness without an external monitoring system.
+    **All Redis operations are optional** — if Redis is unavailable, getters
+    return ``None`` (cache miss) and setters silently skip.  The database
+    remains the source of truth.
     """
 
     # ── Artists ────────────────────────────────────────────────────────────
 
     async def get_cached_artist(self, artist_id: str) -> dict | None:
-        """Retrieve a cached artist by ID, or ``None`` on miss."""
-        redis = await get_cache_redis()
-        key = _cache_key("artist", artist_id)
-        raw = await redis.get(key)
+        raw = await _redis_get(_cache_key("artist", artist_id))
         if raw:
-            await redis.incr(f"{_STATS_PREFIX}:hits")
+            await _redis_incr(f"{_STATS_PREFIX}:hits")
             return json.loads(raw)  # type: ignore[no-any-return]
-        await redis.incr(f"{_STATS_PREFIX}:misses")
+        await _redis_incr(f"{_STATS_PREFIX}:misses")
         return None
 
     async def set_cached_artist(self, artist_id: str, data: dict, ttl: int = 21600) -> None:
-        """Store an artist dict in cache with the given TTL."""
-        redis = await get_cache_redis()
         key = _cache_key("artist", artist_id)
-        await redis.setex(key, ttl, json.dumps(data))
+        await _redis_set(key, json.dumps(data), ttl)
 
     async def invalidate_artist(self, artist_id: str) -> None:
-        """Remove an artist entry from cache."""
-        redis = await get_cache_redis()
-        await redis.delete(_cache_key("artist", artist_id))
+        await _redis_delete(_cache_key("artist", artist_id))
 
     # ── Albums ─────────────────────────────────────────────────────────────
 
     async def get_cached_album(self, album_id: str) -> dict | None:
-        """Retrieve a cached album by ID, or ``None`` on miss."""
-        redis = await get_cache_redis()
-        key = _cache_key("album", album_id)
-        raw = await redis.get(key)
+        raw = await _redis_get(_cache_key("album", album_id))
         if raw:
-            await redis.incr(f"{_STATS_PREFIX}:hits")
+            await _redis_incr(f"{_STATS_PREFIX}:hits")
             return json.loads(raw)  # type: ignore[no-any-return]
-        await redis.incr(f"{_STATS_PREFIX}:misses")
+        await _redis_incr(f"{_STATS_PREFIX}:misses")
         return None
 
     async def set_cached_album(self, album_id: str, data: dict, ttl: int = 21600) -> None:
-        """Store an album dict in cache with the given TTL."""
-        redis = await get_cache_redis()
         key = _cache_key("album", album_id)
-        await redis.setex(key, ttl, json.dumps(data))
+        await _redis_set(key, json.dumps(data), ttl)
 
     async def invalidate_album(self, album_id: str) -> None:
-        """Remove an album entry from cache."""
-        redis = await get_cache_redis()
-        await redis.delete(_cache_key("album", album_id))
+        await _redis_delete(_cache_key("album", album_id))
 
     # ── Tracks ─────────────────────────────────────────────────────────────
 
     async def get_cached_track(self, track_id: str) -> dict | None:
-        """Retrieve a cached track by ID, or ``None`` on miss."""
-        redis = await get_cache_redis()
-        key = _cache_key("track", track_id)
-        raw = await redis.get(key)
+        raw = await _redis_get(_cache_key("track", track_id))
         if raw:
-            await redis.incr(f"{_STATS_PREFIX}:hits")
+            await _redis_incr(f"{_STATS_PREFIX}:hits")
             return json.loads(raw)  # type: ignore[no-any-return]
-        await redis.incr(f"{_STATS_PREFIX}:misses")
+        await _redis_incr(f"{_STATS_PREFIX}:misses")
         return None
 
     async def set_cached_track(self, track_id: str, data: dict, ttl: int = 21600) -> None:
-        """Store a track dict in cache with the given TTL."""
-        redis = await get_cache_redis()
         key = _cache_key("track", track_id)
-        await redis.setex(key, ttl, json.dumps(data))
+        await _redis_set(key, json.dumps(data), ttl)
 
     async def invalidate_track(self, track_id: str) -> None:
-        """Remove a track entry from cache."""
-        redis = await get_cache_redis()
-        await redis.delete(_cache_key("track", track_id))
+        await _redis_delete(_cache_key("track", track_id))
 
     # ── Genres ─────────────────────────────────────────────────────────────
 
     async def get_cached_genres(self) -> list[dict] | None:
-        """Retrieve the cached genre list, or ``None`` on miss."""
-        redis = await get_cache_redis()
-        key = _cache_key("genres")
-        raw = await redis.get(key)
+        raw = await _redis_get(_cache_key("genres"))
         if raw:
-            await redis.incr(f"{_STATS_PREFIX}:hits")
+            await _redis_incr(f"{_STATS_PREFIX}:hits")
             return json.loads(raw)  # type: ignore[no-any-return]
-        await redis.incr(f"{_STATS_PREFIX}:misses")
+        await _redis_incr(f"{_STATS_PREFIX}:misses")
         return None
 
     async def set_cached_genres(self, data: list[dict]) -> None:
-        """Store the full genre list in cache."""
-        redis = await get_cache_redis()
         key = _cache_key("genres")
-        await redis.setex(key, _CACHE_TTL["genres"], json.dumps(data))
+        await _redis_set(key, json.dumps(data), _CACHE_TTL["genres"])
 
     # ── Search ─────────────────────────────────────────────────────────────
 
     async def get_cached_search(self, query: str, limit: int, offset: int) -> dict | None:
-        """Retrieve cached search results, or ``None`` on miss."""
-        redis = await get_cache_redis()
-        key = _cache_key("search", query, str(limit), str(offset))
-        raw = await redis.get(key)
+        raw = await _redis_get(_cache_key("search", query, str(limit), str(offset)))
         if raw:
-            await redis.incr(f"{_STATS_PREFIX}:hits")
+            await _redis_incr(f"{_STATS_PREFIX}:hits")
             return json.loads(raw)  # type: ignore[no-any-return]
-        await redis.incr(f"{_STATS_PREFIX}:misses")
+        await _redis_incr(f"{_STATS_PREFIX}:misses")
         return None
 
     async def set_cached_search(
         self, query: str, limit: int, offset: int, data: dict, ttl: int = 21600
     ) -> None:
-        """Store search results in cache with the given TTL."""
-        redis = await get_cache_redis()
         key = _cache_key("search", query, str(limit), str(offset))
-        await redis.setex(key, ttl, json.dumps(data))
+        await _redis_set(key, json.dumps(data), ttl)
 
     # ── Discovery ──────────────────────────────────────────────────────────
 
     async def get_cached_discovery(self, section: str) -> list[dict] | None:
-        """Retrieve a cached discovery section, or ``None`` on miss."""
-        redis = await get_cache_redis()
-        key = _cache_key("discovery", section)
-        raw = await redis.get(key)
+        raw = await _redis_get(_cache_key("discovery", section))
         if raw:
-            await redis.incr(f"{_STATS_PREFIX}:hits")
+            await _redis_incr(f"{_STATS_PREFIX}:hits")
             return json.loads(raw)  # type: ignore[no-any-return]
-        await redis.incr(f"{_STATS_PREFIX}:misses")
+        await _redis_incr(f"{_STATS_PREFIX}:misses")
         return None
 
     async def set_cached_discovery(self, section: str, data: list[dict], ttl: int = 21600) -> None:
-        """Store a discovery section in cache with the given TTL."""
-        redis = await get_cache_redis()
         key = _cache_key("discovery", section)
-        await redis.setex(key, ttl, json.dumps(data))
+        await _redis_set(key, json.dumps(data), ttl)
 
     # ── Stats ──────────────────────────────────────────────────────────────
 
     async def get_cache_stats(self) -> dict[str, int]:
-        """Return current hit / miss counts from Redis."""
-        redis = await get_cache_redis()
-        hits_raw = await redis.get(f"{_STATS_PREFIX}:hits") or "0"
-        misses_raw = await redis.get(f"{_STATS_PREFIX}:misses") or "0"
+        """Return current hit / miss counts from Redis (zeros if Redis unavailable)."""
+        hits_raw = await _redis_get(f"{_STATS_PREFIX}:hits") or "0"
+        misses_raw = await _redis_get(f"{_STATS_PREFIX}:misses") or "0"
         return {
             "hits": int(hits_raw),
             "misses": int(misses_raw),

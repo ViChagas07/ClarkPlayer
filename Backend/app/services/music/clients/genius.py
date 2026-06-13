@@ -40,11 +40,15 @@ class GeniusClient:
         ttl: int = METADATA_CACHE_TTL,
         params: dict[str, Any] | None = None,
     ) -> dict[str, Any] | None:
-        """Fetch with Redis caching."""
-        redis = await get_cache_redis()
-        cached = await redis.get(cache_key)
-        if cached:
-            return json.loads(cached)  # type: ignore[no-any-return]
+        """Fetch with Redis caching (Redis optional — falls back to direct API call)."""
+        # Try Redis cache lookup (non-critical — skip on failure)
+        try:
+            redis = await get_cache_redis()
+            cached = await redis.get(cache_key)
+            if cached:
+                return json.loads(cached)  # type: ignore[no-any-return]
+        except Exception:
+            pass
 
         try:
             response = await self.client.get(
@@ -55,7 +59,12 @@ class GeniusClient:
             )
             response.raise_for_status()
             data = response.json()
-            await redis.setex(cache_key, ttl, json.dumps(data))
+            # Try to cache (non-critical — skip on failure)
+            try:
+                redis = await get_cache_redis()
+                await redis.setex(cache_key, ttl, json.dumps(data))
+            except Exception:
+                pass
             return data  # type: ignore[no-any-return]
         except Exception as exc:
             logger.warning("Genius request failed: %s %s", url, exc)
@@ -106,10 +115,14 @@ class GeniusClient:
         Genius API does not return full lyrics directly, so we scrape.
         """
         cache_key = f"api:genius:lyrics:{query.lower()}"
-        redis = await get_cache_redis()
-        cached = await redis.get(cache_key)
-        if cached:
-            return cached  # type: ignore[no-any-return]
+        # Try Redis cache (non-critical)
+        try:
+            redis = await get_cache_redis()
+            cached = await redis.get(cache_key)
+            if cached:
+                return cached  # type: ignore[no-any-return]
+        except Exception:
+            pass
 
         # 1. Search for the song to get the page URL
         results = await self.search(query, limit=1)
@@ -137,7 +150,11 @@ class GeniusClient:
         # 3. Parse with BeautifulSoup
         lyrics = self._extract_lyrics(response.text)
         if lyrics:
-            await redis.setex(cache_key, LYRICS_CACHE_TTL, lyrics)
+            try:
+                redis = await get_cache_redis()
+                await redis.setex(cache_key, LYRICS_CACHE_TTL, lyrics)
+            except Exception:
+                pass
             return lyrics
 
         return None
