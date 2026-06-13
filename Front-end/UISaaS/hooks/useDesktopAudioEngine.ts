@@ -188,7 +188,7 @@ export function useDesktopAudioEngine() {
     if (Math.abs(audioElementRef.current.currentTime - progress) > 1) {
       audioElementRef.current.currentTime = progress
     }
-  }, [isTauri()])
+  }, [isTauri(), progress])
 
   return {
     initAudio,

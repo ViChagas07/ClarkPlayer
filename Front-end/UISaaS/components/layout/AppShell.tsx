@@ -124,7 +124,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { sleepTimer, accentColor } = useSettingsStore()
 
   // Wire audio engines — library + preview
-  useDesktopAudioEngine()
+  const { seek } = useDesktopAudioEngine()
   const { previewActive } = usePreviewPlayer()
   const { user, isAuthenticated, refreshToken, accessToken } = useAuthStore()
   const clearSession = useAuthStore((s) => s.clearSession)
@@ -427,7 +427,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="relative mx-auto mb-4 w-48 h-48">
               <div className="absolute inset-0 rounded-xl bg-clark-gold/15 blur-2xl" />
               <div className="relative w-full h-full rounded-xl bg-gradient-to-br from-clark-steel to-clark-accent flex items-center justify-center ring-1 ring-clark-gold/30 overflow-hidden">
-                <Disc3 className="w-20 h-20 text-white/40" />
+                {displayTrack?.coverUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={displayTrack.coverUrl}
+                    alt={displayTrack.title ?? 'Cover'}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <Disc3 className="w-20 h-20 text-white/40" />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
               </div>
             </div>
@@ -441,7 +451,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           {/* Queue */}
           <div className="flex-1 overflow-y-auto px-3 py-4">
-            <div className="flex items-center gap-2 mb-3 px-2">
+            <div className="flex items-center gap-2 mb-3 pl-8">
               <ListOrdered className="w-4 h-4 text-clark-gold" />
               <h3 className="font-condensed text-xs tracking-widest text-clark-text-muted uppercase">{t('queue')}</h3>
               <span className="font-condensed text-xs text-clark-text-muted/50">({queue.length} {t('tracks')})</span>
@@ -465,13 +475,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           : 'text-clark-text-muted hover:text-clark-text-primary hover:bg-clark-steel/10',
                       )}
                     >
-                    <div className="relative flex-shrink-0 w-8 h-8 rounded bg-clark-steel/30 flex items-center justify-center">
+                    <div className="relative flex-shrink-0 w-8 h-8 rounded bg-clark-steel/30 flex items-center justify-center overflow-hidden">
                       {idx === queueIndex && isPlaying ? (
                         <div className="flex items-end gap-0.5 h-3">
                           <span className="w-0.5 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '0ms' }} />
                           <span className="w-0.5 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '150ms' }} />
                           <span className="w-0.5 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '300ms' }} />
                         </div>
+                      ) : track.coverUrl ? (
+                        <img src={track.coverUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
                       ) : (
                         <Music className="w-4 h-4" />
                       )}
@@ -552,8 +564,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <>
               <div className="relative flex-shrink-0 hidden sm:block">
                 <div className="absolute inset-0 rounded-md blur-md animate-gold-pulse" style={{ backgroundColor: accentColor + '30' }} />
-                <div className="relative w-12 h-12 rounded-md bg-gradient-to-br from-clark-steel to-clark-accent flex items-center justify-center" style={{ boxShadow: `0 0 12px ${accentColor}40` }}>
-                  <Music className="w-5 h-5 text-white/70" />
+                <div className="relative w-12 h-12 rounded-md bg-gradient-to-br from-clark-steel to-clark-accent flex items-center justify-center overflow-hidden" style={{ boxShadow: `0 0 12px ${accentColor}40` }}>
+                  {displayTrack.coverUrl ? (
+                    <img src={displayTrack.coverUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <Music className="w-5 h-5 text-white/70" />
+                  )}
                 </div>
               </div>
               <div className="min-w-0">
@@ -652,7 +668,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect()
                 const pct = (e.clientX - rect.left) / rect.width
-                setProgress(pct * trackDuration)
+                seek(pct * trackDuration)
               }}
             >
               <div className="h-1.5 bg-clark-bg-secondary rounded-full relative">
