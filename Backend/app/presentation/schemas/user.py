@@ -20,3 +20,7 @@ class ChangePasswordRequest(BaseModel):
 
 class DeleteAccountRequest(BaseModel):
     password: str  # Confirm identity with current password
+
+
+class AvatarUploadResponse(BaseModel):
+    avatar_url: str

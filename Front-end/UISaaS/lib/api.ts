@@ -1,4 +1,5 @@
 import type {
+  AvatarUploadResponse,
   GoogleCallbackRequest,
   GoogleCallbackResponse,
   HealthResponse,
@@ -10,6 +11,7 @@ import type {
   TokenResponse,
   TrackListResponse,
   TrackResponse,
+  UpdateProfileRequest,
   UserResponse,
   VerifyEmailRequest,
   VerifyEmailResponse,
@@ -407,6 +409,31 @@ export const api = {
       headers,
       body: JSON.stringify(body),
     })
+  },
+
+  // ── User profile ───────────────────────────────────────────────────────
+
+  updateProfile(body: UpdateProfileRequest, token: string): Promise<UserResponse> {
+    return _fetch<UserResponse>('/api/v1/users/me', {
+      method: 'PATCH',
+      headers: authHeader(token),
+      body: JSON.stringify(body),
+    })
+  },
+
+  async uploadAvatar(file: File, token: string): Promise<AvatarUploadResponse> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await fetch('/api/v1/users/me/avatar', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    })
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}))
+      throw new ApiError(body.message || body.detail || 'Upload failed', response.status, body)
+    }
+    return response.json() as Promise<AvatarUploadResponse>
   },
 
   // ── Email verification ──────────────────────────────────────────────────

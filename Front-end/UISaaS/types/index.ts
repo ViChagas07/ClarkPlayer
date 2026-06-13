@@ -48,6 +48,15 @@ export interface LogoutResponse {
   message: string
 }
 
+export interface UpdateProfileRequest {
+  display_name?: string | null
+  avatar_url?: string | null
+}
+
+export interface AvatarUploadResponse {
+  avatar_url: string
+}
+
 export interface GoogleCallbackRequest {
   code: string
   redirect_uri?: string

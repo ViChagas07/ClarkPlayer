@@ -1,23 +1,31 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/hooks/useTranslation'
 import { Camera, Trash2, X, Loader2, Check } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { api } from '@/lib/api'
 import ClarkLogo from '@/public/ClarkPlayer_White.png'
 
 export default function AccountPage() {
   const { t } = useTranslation()
   const { user } = useAuthStore()
+  const updateUser = useAuthStore((s) => s.updateUser)
   const clearSession = useAuthStore((s) => s.clearSession)
+  const accessToken = useAuthStore((s) => s.accessToken)
   const [displayName, setDisplayName] = useState(user?.display_name ?? user?.username ?? '')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(user?.avatar_url ?? null)
   const [bio, setBio] = useState('Music enthusiast and collector.')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const charCount = bio.length
   const maxChars = 160
@@ -31,6 +39,47 @@ export default function AccountPage() {
       clearSession()
       window.location.href = '/login'
     }, 2000)
+  }
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !accessToken) return
+    setIsUploading(true)
+    try {
+      const result = await api.uploadAvatar(file, accessToken)
+      setAvatarUrl(result.avatar_url)
+      // Update the auth store so header reflects immediately
+      if (user) {
+        updateUser({ ...user, avatar_url: result.avatar_url })
+      }
+    } catch (err) {
+      console.error('[ClarkPlayer] Avatar upload failed:', err)
+    } finally {
+      setIsUploading(false)
+      // Reset input so the same file can be re-selected
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  async function handleSaveProfile() {
+    if (!accessToken) return
+    setIsSaving(true)
+    setSaved(false)
+    try {
+      const updated = await api.updateProfile(
+        { display_name: displayName },
+        accessToken,
+      )
+      if (user) {
+        updateUser(updated)
+      }
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (err) {
+      console.error('[ClarkPlayer] Profile save failed:', err)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -47,11 +96,11 @@ export default function AccountPage() {
         <div className="bg-clark-bg-secondary rounded-xl border border-clark-steel/20 p-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <div className="relative group">
-              {user?.avatar_url ? (
+              {avatarUrl || user?.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={user.avatar_url}
-                  alt={user.display_name ?? 'Profile'}
+                  src={avatarUrl ?? user?.avatar_url ?? ''}
+                  alt={user?.display_name ?? 'Profile'}
                   className="w-24 h-24 rounded-full object-cover"
                 />
               ) : (
@@ -60,11 +109,25 @@ export default function AccountPage() {
                 </div>
               )}
               <button
-                className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-100"
                 aria-label={t('editPhoto')}
               >
-                <Camera className="w-6 h-6 text-white" />
+                {isUploading ? (
+                  <Loader2 className="w-6 h-6 text-white animate-spin" />
+                ) : (
+                  <Camera className="w-6 h-6 text-white" />
+                )}
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleAvatarUpload}
+                className="hidden"
+                aria-hidden="true"
+              />
             </div>
             <div className="text-center sm:text-left flex-1">
               <h2 className="font-display tracking-wider text-xl text-clark-text-primary">{displayName}</h2>
@@ -114,8 +177,29 @@ export default function AccountPage() {
                 {charCount}/{maxChars}
               </p>
             </div>
-            <button className="px-6 py-2.5 bg-clark-accent hover:bg-clark-accent-hover font-body font-semibold text-white rounded-lg transition-colors">
-              {t('saveChanges')}
+            <button
+              onClick={handleSaveProfile}
+              disabled={isSaving}
+              className={cn(
+                'px-6 py-2.5 font-body font-semibold text-white rounded-lg transition-colors flex items-center gap-2',
+                saved
+                  ? 'bg-emerald-600 hover:bg-emerald-700'
+                  : 'bg-clark-accent hover:bg-clark-accent-hover',
+              )}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : saved ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  Salvo!
+                </>
+              ) : (
+                t('saveChanges')
+              )}
             </button>
           </div>
         </div>

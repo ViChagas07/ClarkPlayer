@@ -13,6 +13,7 @@ from typing import Any, cast, Awaitable
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import get_settings
 from app.core.exceptions import AppError
@@ -63,13 +64,12 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     except Exception as exc:
         logger.warning("Alembic migration skipped (%s). If columns are missing, run manually.", exc)
 
-    # Ensure media root exists
+    # Ensure media directories exist
     try:
         _settings.MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+        (_settings.MEDIA_ROOT / "avatars").mkdir(parents=True, exist_ok=True)
     except OSError as exc:
-        logger.warning("Could not create media root (%s).", exc)
-
-    yield  # Application runs here
+        logger.warning("Could not create media directories (%s).", exc)
 
     # Shutdown
     await _engine.dispose()
@@ -135,6 +135,10 @@ async def generic_exception_handler(_request: Request, exc: Exception) -> JSONRe
 
 
 # Routers 
+
+# Mount static files for serving uploaded media (avatars, etc.)
+_media_dir = str(_settings.MEDIA_ROOT)
+app.mount("/media", StaticFiles(directory=_media_dir), name="media")
 
 app.include_router(api_router)
 

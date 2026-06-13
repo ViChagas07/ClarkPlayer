@@ -2,13 +2,18 @@
 User-profile management routes.
 """
 
-from fastapi import APIRouter, status
+from pathlib import Path
+from uuid import uuid4
+
+from fastapi import APIRouter, UploadFile, File, Depends, status
 
 from app.application.services.user_service import UserService
+from app.core.config import get_settings
 from app.core.dependencies import CurrentUserId, SessionDep
 from app.infrastructure.repositories.user_repository import UserRepository
 from app.presentation.schemas.auth import UserResponse
 from app.presentation.schemas.user import (
+    AvatarUploadResponse,
     ChangePasswordRequest,
     UpdateProfileRequest,
 )
@@ -70,6 +75,47 @@ async def change_password(
     """Change the authenticated user's password."""
     service = UserService(UserRepository(session))
     await service.change_password(user_id, body.current_password, body.new_password)
+
+
+@router.post("/me/avatar", response_model=AvatarUploadResponse)
+async def upload_avatar(
+    file: UploadFile = File(...),
+    user_id: CurrentUserId = Depends(),
+    session: SessionDep = Depends(),
+) -> AvatarUploadResponse:
+    """Upload a new avatar image for the authenticated user."""
+    settings = get_settings()
+
+    # Validate extension
+    if file.filename is None:
+        raise ValueError("No filename provided.")
+    ext = Path(file.filename).suffix.lower()
+    if ext not in settings.ALLOWED_IMAGE_EXTENSIONS:
+        raise ValueError(
+            f"Unsupported image format. Allowed: {', '.join(sorted(settings.ALLOWED_IMAGE_EXTENSIONS))}"
+        )
+
+    # Validate size (read into memory, limit by configured max)
+    contents = await file.read()
+    max_bytes = settings.MAX_AVATAR_SIZE_MB * 1024 * 1024
+    if len(contents) > max_bytes:
+        raise ValueError(f"Avatar must be under {settings.MAX_AVATAR_SIZE_MB} MB.")
+
+    # Save to media/avatars/<user_id><ext>
+    avatars_dir = settings.MEDIA_ROOT / "avatars"
+    avatars_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"{user_id}{ext}"
+    filepath = avatars_dir / filename
+    filepath.write_bytes(contents)
+
+    # Build URL path
+    avatar_url = f"/media/avatars/{filename}"
+
+    # Update user's avatar_url in the database
+    service = UserService(UserRepository(session))
+    await service.update_profile(user_id, avatar_url=avatar_url)
+
+    return AvatarUploadResponse(avatar_url=avatar_url)
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)

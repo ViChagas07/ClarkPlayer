@@ -76,6 +76,7 @@ class Settings:
         os.getenv("MEDIA_ROOT", str(Path(__file__).resolve().parents[3] / "media"))
     )
     MAX_UPLOAD_SIZE_MB: int = int(os.getenv("MAX_UPLOAD_SIZE_MB", "500"))
+    MAX_AVATAR_SIZE_MB: int = int(os.getenv("MAX_AVATAR_SIZE_MB", "5"))
     ALLOWED_AUDIO_EXTENSIONS: set[str] = {
         ".mp3",
         ".flac",
@@ -85,6 +86,13 @@ class Settings:
         ".wma",
         ".m4a",
         ".opus",
+    }
+    ALLOWED_IMAGE_EXTENSIONS: set[str] = {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+        ".gif",
     }
 
     # ── Backup ───────────────────────────────────────────────────────────
