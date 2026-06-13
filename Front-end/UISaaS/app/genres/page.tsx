@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/store/authStore'
@@ -91,18 +91,19 @@ export default function GenresPage() {
 
   const [genres, setGenres] = useState<GenreEntry[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const abortRef = useRef(false)
 
-  function loadGenres() {
+  const loadGenres = useCallback(() => {
     if (!accessToken) return
-    let cancelled = false
+    abortRef.current = false
     setLoading(true)
-    setError(false)
+    setError(null)
 
     async function fetchGenres() {
       try {
         const res = await api.listTracks(accessToken!, new URLSearchParams('limit=200'))
-        if (cancelled) return
+        if (abortRef.current) return
         const uniqueGenres = [...new Set(res.items.map((t) => t.genre).filter(Boolean) as string[])]
         const entries: GenreEntry[] = uniqueGenres.map((name) => ({
           name,
@@ -111,28 +112,30 @@ export default function GenresPage() {
         }))
         entries.sort((a, b) => b.trackCount - a.trackCount)
         setGenres(entries)
-      } catch {
-        if (!cancelled) setError(true)
+      } catch (err) {
+        if (abortRef.current) return
+        const msg = err instanceof Error ? err.message : String(err)
+        console.error('[ClarkPlayer] Failed to load genres:', msg)
+        setError(msg)
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!abortRef.current) setLoading(false)
       }
     }
 
     fetchGenres()
-    return () => { cancelled = true }
-  }
+  }, [accessToken])
 
   useEffect(() => {
     if (!isAuthenticated) {
       setGenres([])
       setLoading(false)
-      setError(false)
+      setError(null)
       return
     }
-    const cleanup = loadGenres()
-    return cleanup
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, accessToken])
+    abortRef.current = false
+    loadGenres()
+    return () => { abortRef.current = true }
+  }, [isAuthenticated, loadGenres])
 
   return (
     <AppShell>
@@ -177,7 +180,8 @@ export default function GenresPage() {
             <div className="w-12 h-12 rounded-full bg-clark-danger/10 flex items-center justify-center mb-4">
               <RefreshCw className="w-6 h-6 text-clark-danger" />
             </div>
-            <p className="font-body text-sm text-clark-text-muted mb-4">Failed to load genres</p>
+            <p className="font-body text-sm text-clark-text-muted mb-1">Failed to load genres</p>
+            <p className="font-body text-xs text-clark-text-muted/50 mb-4 max-w-md break-all">{error}</p>
             <button
               onClick={loadGenres}
               className="flex items-center gap-2 px-4 py-2 bg-clark-bg-card hover:bg-clark-steel/20 font-body text-sm text-clark-text-primary rounded-lg transition-colors border border-clark-steel/30"
