@@ -62,12 +62,20 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
     async function load() {
       setIsLoading(true)
       const results: UnifiedSearchResult[] = []
+      const seenTrackIds = new Set<string>()
       for (const q of queries) {
         if (cancelled) return
         try {
           const data = await api.musicSearch(q, 1)
           const track = data.tracks[0]
-          if (track && track.track && track.track.title) results.push(track)
+          if (track && track.track && track.track.title) {
+            // Deduplicate by track mbid, or by title+artist composite key
+            const dedupKey = track.track.mbid ?? `${track.track.title}::${track.artist?.name ?? ''}`
+            if (!seenTrackIds.has(dedupKey)) {
+              seenTrackIds.add(dedupKey)
+              results.push(track)
+            }
+          }
         } catch { /* skip */ }
       }
       if (!cancelled) setTracks(results)

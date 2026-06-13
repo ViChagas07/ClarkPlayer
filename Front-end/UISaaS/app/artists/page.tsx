@@ -54,6 +54,7 @@ export default function ArtistsPage() {
     try {
       const seeds = pickRandom(tab.pool, tab.count)
       const results: UnifiedSearchResult[] = []
+      const seenArtistIds = new Set<string>()
 
       // Process in parallel batches of 8 for speed
       for (let i = 0; i < seeds.length; i += 8) {
@@ -66,7 +67,15 @@ export default function ArtistsPage() {
           })
         )
         for (const r of batchResults) {
-          if (r.status === 'fulfilled' && r.value) results.push(r.value)
+          if (r.status === 'fulfilled' && r.value) {
+            const artist = r.value
+            // Deduplicate by artist mbid, or by name as fallback
+            const dedupKey = artist.artist?.mbid ?? artist.artist?.spotify_id ?? artist.artist?.name ?? ''
+            if (!seenArtistIds.has(dedupKey)) {
+              seenArtistIds.add(dedupKey)
+              results.push(artist)
+            }
+          }
         }
       }
 

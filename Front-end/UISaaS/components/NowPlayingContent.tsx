@@ -11,15 +11,24 @@ import { api } from '@/lib/api'
 import { getSessionTracks, getBrazilianHighlights, getArtistsByGenre } from '@/lib/seedCatalog'
 import type { Track, UnifiedSearchResult } from '@/types'
 
-// ── Shared fetcher — loads tracks for a list of queries ─────────
-async function fetchSectionTracks(queries: string[], onlyPreview: boolean): Promise<UnifiedSearchResult[]> {
+// ── Shared fetcher — loads tracks for a list of queries, deduplicated ──
+async function fetchSectionTracks(
+  queries: string[],
+  onlyPreview: boolean,
+  seenTrackIds: Set<string> = new Set(),
+): Promise<UnifiedSearchResult[]> {
   const results: UnifiedSearchResult[] = []
   for (const q of queries) {
     try {
       const data = await api.musicSearch(q, 1)
       const track = data.tracks[0]
       if (track?.track?.title && (!onlyPreview || track.track.preview_url)) {
-        results.push(track)
+        // Deduplicate by track mbid, or by title+artist composite key
+        const dedupKey = track.track.mbid ?? `${track.track.title}::${track.artist?.name ?? ''}`
+        if (!seenTrackIds.has(dedupKey)) {
+          seenTrackIds.add(dedupKey)
+          results.push(track)
+        }
       }
     } catch { /* skip */ }
   }
@@ -111,14 +120,18 @@ export function NowPlayingContent() {
   useEffect(() => {
     let cancelled = false
     async function loadAll() {
+      // Shared dedup set — higher-priority sections keep the track,
+      // lower-priority sections skip duplicates.
+      const seenTrackIds = new Set<string>()
+
       const [discover, brazilian, pop, rock, rap, electronic, rnb] = await Promise.all([
-        fetchSectionTracks(discoverQueries, true),
-        fetchSectionTracks(brazilianQueries, false),
-        fetchSectionTracks(popQueries, true),
-        fetchSectionTracks(rockQueries, true),
-        fetchSectionTracks(rapQueries, true),
-        fetchSectionTracks(electronicQueries, true),
-        fetchSectionTracks(rnbQueries, true),
+        fetchSectionTracks(discoverQueries, true, seenTrackIds),
+        fetchSectionTracks(brazilianQueries, false, seenTrackIds),
+        fetchSectionTracks(popQueries, true, seenTrackIds),
+        fetchSectionTracks(rockQueries, true, seenTrackIds),
+        fetchSectionTracks(rapQueries, true, seenTrackIds),
+        fetchSectionTracks(electronicQueries, true, seenTrackIds),
+        fetchSectionTracks(rnbQueries, true, seenTrackIds),
       ])
       if (cancelled) return
       setDiscoverTracks(discover); setDiscoverLoading(false)

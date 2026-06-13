@@ -14,16 +14,23 @@ function cryptoRandom(): number {
   return arr[0] / 0xFFFFFFFF
 }
 
-/** Partial Fisher-Yates — shuffles only first `count` elements, O(k) instead of O(n) */
+/** Fisher-Yates shuffle + unique pick — guarantees no duplicates, O(n) */
 export function pickRandom<T>(arr: readonly T[], count: number): T[] {
   if (count <= 0 || arr.length === 0) return []
-  const n = Math.min(count, arr.length)
-  const copy = arr.slice(0, n) // take first N as seed
-  for (let i = 0; i < n; i++) {
-    const j = i + Math.floor(cryptoRandom() * (arr.length - i))
-    copy[i] = arr[j] ?? arr[i]!
+
+  // Remove duplicates from the source array first
+  const unique = [...new Set(arr)]
+  const n = Math.min(count, unique.length)
+
+  // Full Fisher-Yates shuffle
+  const shuffled = [...unique]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(cryptoRandom() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!]
   }
-  return copy
+
+  // Take first N unique items
+  return shuffled.slice(0, n)
 }
 
 // ═══════════════════════════════════════════════════════════════════
