@@ -26,8 +26,8 @@ Endpoints:
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, or_, select
+from fastapi import APIRouter, HTTPException, Query, status
+from sqlalchemy import func, select
 
 from app.core.dependencies import SessionDep
 from app.infrastructure.models.catalog import (

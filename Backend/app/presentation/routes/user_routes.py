@@ -3,9 +3,8 @@ User-profile management routes.
 """
 
 from pathlib import Path
-from uuid import uuid4
 
-from fastapi import APIRouter, UploadFile, File, Depends, status
+from fastapi import APIRouter, UploadFile, status
 
 from app.application.services.user_service import UserService
 from app.core.config import get_settings
@@ -79,9 +78,9 @@ async def change_password(
 
 @router.post("/me/avatar", response_model=AvatarUploadResponse)
 async def upload_avatar(
-    file: UploadFile = File(...),
-    user_id: CurrentUserId = Depends(),
-    session: SessionDep = Depends(),
+    file: UploadFile,
+    user_id: CurrentUserId,
+    session: SessionDep,
 ) -> AvatarUploadResponse:
     """Upload a new avatar image for the authenticated user."""
     settings = get_settings()
