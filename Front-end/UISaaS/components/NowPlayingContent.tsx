@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Music, ListMusic, TrendingUp, Headphones, Loader2, Globe, Mic2, Disc3, Zap, Radio, Heart } from 'lucide-react'
 import { usePlayerStore } from '@/store/playerStore'
@@ -32,14 +32,14 @@ export function NowPlayingContent() {
   const [recentTracks, setRecentTracks] = useState<Track[]>([])
   const setSleepTimer = useSettingsStore((s) => s.setSleepTimer)
 
-  // ── Seed queries — rotated per session ─────────────────
-  const discoverQueries = useMemo(() => getSessionTracks(8), [])
-  const brazilianQueries = useMemo(() => getBrazilianHighlights(6), [])
-  const popQueries = useMemo(() => getArtistsByGenre('pop', 8), [])
-  const rockQueries = useMemo(() => getArtistsByGenre('rock', 8), [])
-  const rapQueries = useMemo(() => getArtistsByGenre('rap', 8), [])
-  const electronicQueries = useMemo(() => getArtistsByGenre('electronic', 8), [])
-  const rnbQueries = useMemo(() => getArtistsByGenre('rnb', 6), [])
+  // ── Seed queries — fresh random picks every visit ────
+  const [discoverQueries] = useState(() => getSessionTracks(8))
+  const [brazilianQueries] = useState(() => getBrazilianHighlights(6))
+  const [popQueries] = useState(() => getArtistsByGenre('pop', 8))
+  const [rockQueries] = useState(() => getArtistsByGenre('rock', 8))
+  const [rapQueries] = useState(() => getArtistsByGenre('rap', 8))
+  const [electronicQueries] = useState(() => getArtistsByGenre('electronic', 8))
+  const [rnbQueries] = useState(() => getArtistsByGenre('rnb', 6))
 
   // ── Discovery state ────────────────────────────────────
   const [discoverTracks, setDiscoverTracks] = useState<UnifiedSearchResult[]>([])
