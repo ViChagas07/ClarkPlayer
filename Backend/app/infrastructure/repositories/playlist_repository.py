@@ -100,12 +100,21 @@ class PlaylistRepository(IPlaylistRepository):
     async def reorder_tracks(
         self, playlist_id: UUID, track_order: Sequence[UUID]
     ) -> None:
-        for idx, track_id in enumerate(track_order):
-            assoc = await self._session.get(
-                PlaylistTrackModel, (playlist_id, track_id)
+        # Batch load all associations in one query
+        result = await self._session.execute(
+            select(PlaylistTrackModel).where(
+                PlaylistTrackModel.playlist_id == playlist_id,
+                PlaylistTrackModel.track_id.in_(track_order),
             )
+        )
+        assocs = {a.track_id: a for a in result.scalars().all()}
+
+        # Update positions in-memory, flush once
+        for idx, track_id in enumerate(track_order):
+            assoc = assocs.get(track_id)
             if assoc is not None:
                 assoc.position = idx
+
         await self._session.flush()
 
     async def list_tracks(self, playlist_id: UUID) -> Sequence[Track]:

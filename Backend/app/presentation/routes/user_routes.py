@@ -101,12 +101,14 @@ async def upload_avatar(
     if len(contents) > max_bytes:
         raise ValueError(f"Avatar must be under {settings.MAX_AVATAR_SIZE_MB} MB.")
 
-    # Save to media/avatars/<user_id><ext>
+    # Save to media/avatars/<user_id><ext> (async I/O via aiofiles)
+    import aiofiles
     avatars_dir = settings.MEDIA_ROOT / "avatars"
     avatars_dir.mkdir(parents=True, exist_ok=True)
     filename = f"{user_id}{ext}"
     filepath = avatars_dir / filename
-    filepath.write_bytes(contents)
+    async with aiofiles.open(filepath, "wb") as f:
+        await f.write(contents)
 
     # Build URL path
     avatar_url = f"/media/avatars/{filename}"

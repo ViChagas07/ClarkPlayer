@@ -94,7 +94,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
+    let ticking = false
+    const check = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setIsMobile(window.innerWidth < 768)
+          ticking = false
+        })
+        ticking = true
+      }
+    }
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
@@ -320,6 +329,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      prefetch={item.href === '/' || item.href === '/audios' ? undefined : false}
                       className={cn(
                         'group flex items-center gap-3 px-3 py-2.5 rounded-lg font-body font-medium text-sm transition-all duration-200',
                         isActive

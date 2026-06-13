@@ -12,6 +12,7 @@ from typing import Any, cast, Awaitable
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -94,6 +95,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# GZip compression — reduces JSON response size by 80-95%
+app.add_middleware(GZipMiddleware, minimum_size=256)
 
 # JWT extraction middleware
 app.add_middleware(JWTAuthMiddleware)

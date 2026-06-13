@@ -135,22 +135,27 @@ async def get_recently_played_tracks(
     if not track_ids:
         return RecentlyPlayedResponse(track_ids=[], tracks=[])
 
-    # Resolve full track objects from DB
+    # Batch-resolve full track objects — single IN query instead of N queries
+    from sqlalchemy import select as _select
+    from app.infrastructure.models.track import TrackModel
+
     track_repo = TrackRepository(session)
+    result = await session.execute(
+        _select(TrackModel).where(TrackModel.id.in_([UUID(t) for t in track_ids]))
+    )
+    models_by_id = {m.id: m for m in result.scalars().all()}
+
     tracks = []
     for track_id in track_ids:
-        try:
-            track = await track_repo.get_by_id(UUID(track_id))
-            if track:
-                tracks.append(TrackResponse(
-                    id=str(track.id),
-                    title=track.title,
-                    artist=track.artist,
-                    album=track.album,
-                    duration=track.duration,
-                ))
-        except Exception:
-            pass
+        model = models_by_id.get(UUID(track_id))
+        if model:
+            tracks.append(TrackResponse(
+                id=str(model.id),
+                title=model.title,
+                artist=model.artist,
+                album=model.album,
+                duration=model.duration,
+            ))
 
     return RecentlyPlayedResponse(track_ids=track_ids, tracks=tracks)
 

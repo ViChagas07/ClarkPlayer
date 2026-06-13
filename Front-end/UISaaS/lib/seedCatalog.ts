@@ -14,17 +14,16 @@ function cryptoRandom(): number {
   return arr[0] / 0xFFFFFFFF
 }
 
-function shuffleArray<T>(arr: readonly T[]): T[] {
-  const copy = [...arr]
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(cryptoRandom() * (i + 1))
-    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+/** Partial Fisher-Yates — shuffles only first `count` elements, O(k) instead of O(n) */
+export function pickRandom<T>(arr: readonly T[], count: number): T[] {
+  if (count <= 0 || arr.length === 0) return []
+  const n = Math.min(count, arr.length)
+  const copy = arr.slice(0, n) // take first N as seed
+  for (let i = 0; i < n; i++) {
+    const j = i + Math.floor(cryptoRandom() * (arr.length - i))
+    copy[i] = arr[j] ?? arr[i]!
   }
   return copy
-}
-
-export function pickRandom<T>(arr: readonly T[], count: number): T[] {
-  return shuffleArray(arr).slice(0, count)
 }
 
 // ═══════════════════════════════════════════════════════════════════
