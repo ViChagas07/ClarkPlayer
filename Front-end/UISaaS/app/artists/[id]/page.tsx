@@ -1,84 +1,70 @@
 'use client'
 
-import React, { useState, useEffect, Suspense } from 'react'
+import React, { Suspense } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { useTranslation } from '@/hooks/useTranslation'
 import { usePlayerStore } from '@/store/playerStore'
-import { api } from '@/lib/api'
+import { useArtist, useArtistTracks, useArtistAlbums } from '@/hooks/useCatalog'
 import { cn } from '@/lib/utils'
-import type { UnifiedArtistResponse, Track } from '@/types'
+import type { CatalogTrackItem, CatalogArtistItem, Track } from '@/types'
 import {
   Play,
   Check,
   Music,
-  Loader2,
-  AlertCircle,
-  Activity,
-  Users,
   Disc3,
   Headphones,
+  Activity,
+  Users,
 } from 'lucide-react'
+
+// ── Track to player Track mapper ────────────────────────────
+function toPlayerTrack(item: CatalogTrackItem, idx: number, artistName: string): Track {
+  return {
+    id: item.id ?? `artist-track-${idx}`,
+    title: item.title,
+    artist: item.artist_name || artistName,
+    album: item.album_name ?? '',
+    duration: item.duration ? Math.round(item.duration / 1000) : 200,
+    format: 'MP3',
+    coverUrl: item.cover_url ?? undefined,
+    previewUrl: item.preview_url ?? null,
+  }
+}
+
+function formatDuration(ms: number | null): string {
+  if (!ms) return ''
+  const m = Math.floor(ms / 60000)
+  const s = Math.floor((ms % 60000) / 1000)
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
 
 function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
   const { t } = useTranslation()
   const resolvedParams = React.use(params)
   const searchParams = useSearchParams()
-  const { setQueue, currentTrack, isPlaying } = usePlayerStore()
-  const [artist, setArtist] = useState<UnifiedArtistResponse | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { setQueue } = usePlayerStore()
 
-  const mbid = resolvedParams.id
+  const artistId = resolvedParams.id
   const artistNameFromQuery = searchParams.get('name') ?? undefined
 
-  useEffect(() => {
-    async function load() {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const data = await api.musicArtist(mbid, artistNameFromQuery)
-        setArtist(data)
-      } catch {
-        setError('Failed to load artist profile.')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    load()
-  }, [mbid, artistNameFromQuery])
+  const {
+    data: artistData,
+    isLoading,
+    isError,
+  } = useArtist(artistId)
 
-  function toTrack(t: Record<string, unknown>, idx: number): Track {
-    const name = (t as { name?: string }).name ?? 'Unknown'
-    const artists = (t as { artists?: Array<{ name: string }> }).artists
-    const duration = (t as { duration_ms?: number }).duration_ms
-    return {
-      id: ((t as { id?: string }).id) ?? `top-${idx}`,
-      title: name,
-      artist: artists?.[0]?.name ?? artist?.name ?? '',
-      album: ((t as { album?: { name: string; images?: Array<{ url: string }> } }).album)?.name ?? '',
-      duration: duration ? Math.round(duration / 1000) : 200,
-      format: 'MP3',
-      coverUrl: ((t as { album?: { images?: Array<{ url: string }> } }).album)?.images?.[0]?.url ?? artist?.image_url ?? undefined,
-      previewUrl: ((t as { preview_url?: string }).preview_url) ?? null,
-    }
-  }
+  const { data: tracksData } = useArtistTracks(artistId, 30, 0)
+  const { data: albumsData } = useArtistAlbums(artistId)
 
-  function handlePlayAll() {
-    const topTracks = artist?.top_tracks ?? []
-    if (topTracks.length > 0) {
-      setQueue(topTracks.map((t, i) => toTrack(t as unknown as Record<string, unknown>, i)))
-    }
-  }
+  const artist = artistData?.artist
+  const topTracks = tracksData?.items ?? artistData?.top_tracks ?? []
+  const albums = albumsData ?? artistData?.albums ?? []
+  const similar = artistData?.similar ?? []
 
-  function handlePlayTrack(t: Record<string, unknown>, idx: number) {
-    const all = artist?.top_tracks ?? []
-    setQueue(all.map((tr, i) => toTrack(tr as unknown as Record<string, unknown>, i)), idx)
-  }
-
-  // Loading state
+  // ── Loading ────────────────────────────────────────────────
   if (isLoading) {
     return (
       <AppShell>
@@ -95,15 +81,18 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
     )
   }
 
-  // Error state
-  if (error || !artist) {
+  // ── Error / not found ──────────────────────────────────────
+  if (isError || !artist) {
     return (
       <AppShell>
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <AlertCircle className="w-12 h-12 text-clark-accent mb-4" />
+          <Music className="w-12 h-12 text-clark-text-muted/30 mb-4" />
           <h2 className="font-display text-xl text-clark-text-primary mb-2">
-            {error ?? 'Artist not found'}
+            {artistNameFromQuery ?? 'Artist not found'}
           </h2>
+          <p className="font-body text-sm text-clark-text-muted mb-4">
+            This artist may not be in the local catalog yet.
+          </p>
           <Link href="/artists" className="text-clark-gold font-body text-sm hover:underline">
             Back to Artists
           </Link>
@@ -111,6 +100,19 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
       </AppShell>
     )
   }
+
+  // ── Play helpers ────────────────────────────────────────────
+  function handlePlayAll() {
+    if (topTracks.length > 0) {
+      setQueue(topTracks.map((tr, i) => toPlayerTrack(tr, i, artist?.name ?? '')))
+    }
+  }
+
+  function handlePlayTrack(item: CatalogTrackItem, idx: number) {
+    setQueue(topTracks.map((tr, i) => toPlayerTrack(tr, i, artist?.name ?? '')), idx)
+  }
+
+  const artistDisplayName = artistNameFromQuery ?? artist.name
 
   return (
     <AppShell>
@@ -137,7 +139,7 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
               {artist.image_url ? (
                 <Image
                   src={artist.image_url}
-                  alt={`${artist.name} artist photo`}
+                  alt={`${artistDisplayName} artist photo`}
                   fill
                   sizes="11rem"
                   className="object-cover"
@@ -145,7 +147,9 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <span className="font-display text-6xl text-white/30">{artist.name.charAt(0)}</span>
+                  <span className="font-display text-6xl text-white/30">
+                    {artistDisplayName.charAt(0)}
+                  </span>
                 </div>
               )}
             </div>
@@ -158,7 +162,7 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
                 )}
               </div>
               <h1 className="font-display text-4xl md:text-7xl tracking-widest uppercase text-clark-text-primary truncate">
-                {artist.name}
+                {artistDisplayName}
               </h1>
               {/* Genre tags */}
               {artist.genres.length > 0 && (
@@ -175,10 +179,10 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
               )}
               {/* Stats */}
               <div className="flex items-center gap-4 mt-3">
-                {artist.playcount > 0 && (
+                {artist.track_count > 0 && (
                   <span className="flex items-center gap-1.5 font-body text-sm text-clark-text-muted">
-                    <Users className="w-4 h-4" />
-                    {artist.playcount.toLocaleString()} listeners
+                    <Music className="w-4 h-4" />
+                    {artist.track_count.toLocaleString()} tracks
                   </span>
                 )}
                 {artist.popularity > 0 && (
@@ -203,7 +207,7 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
         )}
 
         {/* Top Tracks */}
-        {artist.top_tracks.length > 0 && (
+        {topTracks.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase">
@@ -218,20 +222,13 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
               </button>
             </div>
             <div className="space-y-0.5">
-              {artist.top_tracks.map((track, idx) => {
-                const tr = track as unknown as Record<string, unknown>
-                const name = (tr as { name?: string }).name ?? 'Unknown'
-                const artistNames = (tr as { artists?: Array<{ name: string }> }).artists?.map(a => a.name).join(', ') ?? ''
-                const album = (tr as { album?: { name: string; images?: Array<{ url: string }> } }).album
-                const duration = (tr as { duration_ms?: number }).duration_ms
-                const popularity = (tr as { popularity?: number }).popularity ?? 0
-                const previewUrl = (tr as { preview_url?: string }).preview_url
-
+              {topTracks.map((track, idx) => {
+                const hasPreview = !!track.preview_url
                 return (
                   <div
-                    key={tr.id as string ?? idx}
+                    key={track.id ?? idx}
                     className="group flex items-center gap-4 px-4 py-2.5 rounded-xl hover:bg-clark-bg-secondary/60 transition-all duration-200 cursor-pointer border border-transparent hover:border-clark-steel/20"
-                    onDoubleClick={() => handlePlayTrack(tr as Record<string, unknown>, idx)}
+                    onDoubleClick={() => handlePlayTrack(track, idx)}
                   >
                     {/* Index */}
                     <span className="w-6 text-right font-condensed text-xs text-clark-text-muted/50 flex-shrink-0">
@@ -240,10 +237,10 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
 
                     {/* Cover */}
                     <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-clark-bg-card">
-                      {album?.images?.[0]?.url ? (
+                      {track.cover_url ? (
                         <Image
-                          src={album.images[0].url}
-                          alt={`${name} album cover`}
+                          src={track.cover_url}
+                          alt={`${track.title} cover`}
                           fill
                           sizes="2.5rem"
                           className="object-cover"
@@ -256,8 +253,8 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
                       )}
                       <button
                         className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handlePlayTrack(tr as Record<string, unknown>, idx)}
-                        aria-label={`Play ${name}`}
+                        onClick={() => handlePlayTrack(track, idx)}
+                        aria-label={`Play ${track.title}`}
                       >
                         <Play className="w-5 h-5 text-white ml-0.5" />
                       </button>
@@ -266,33 +263,38 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <p className="font-body font-medium text-sm text-clark-text-primary truncate">
-                        {name}
+                        {track.title}
                       </p>
                       <p className="font-body text-xs text-clark-text-muted/70 truncate">
-                        {artistNames || artist.name}
+                        {track.artist_name || artist?.name}
                       </p>
                     </div>
 
                     {/* Popularity */}
-                    {popularity > 0 && (
+                    {track.popularity > 0 && (
                       <div className="hidden sm:block w-16">
                         <div className="h-1 bg-clark-bg-secondary rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full bg-gradient-to-r from-clark-gold to-clark-accent"
-                            style={{ width: `${popularity}%` }}
+                            style={{ width: `${Math.min(track.popularity, 100)}%` }}
                           />
                         </div>
                       </div>
                     )}
 
-                    {previewUrl && (
+                    {hasPreview && (
                       <button
                         className="flex items-center gap-1 p-1.5 rounded-lg hover:bg-clark-gold/10 text-clark-gold transition-colors group/preview"
                         onClick={(e) => {
                           e.stopPropagation()
-                          usePlayerStore.getState().playPreview(previewUrl, toTrack(tr as Record<string, unknown>, idx))
+                          if (track.preview_url) {
+                            usePlayerStore.getState().playPreview(
+                              track.preview_url,
+                              toPlayerTrack(track, idx, artist?.name ?? ''),
+                            )
+                          }
                         }}
-                        aria-label={`Preview ${name}`}
+                        aria-label={`Preview ${track.title}`}
                         title={t('previewLabel')}
                       >
                         <Headphones className="w-4 h-4" />
@@ -303,9 +305,9 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
                     )}
 
                     {/* Duration */}
-                    {duration && (
-                      <span className="font-condensed text-xs text-clark-text-muted flex-shrink-0">
-                        {Math.floor(Number(duration) / 60000)}:{(Math.floor(Number(duration) / 1000) % 60).toString().padStart(2, '0')}
+                    {track.duration && (
+                      <span className="font-condensed text-xs text-clark-text-muted flex-shrink-0 w-10 text-right">
+                        {formatDuration(track.duration)}
                       </span>
                     )}
                   </div>
@@ -315,64 +317,92 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
           </section>
         )}
 
-        {/* Tags */}
-        {artist.tags.length > 0 && (
+        {/* Albums */}
+        {albums.length > 0 && (
           <section>
-            <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase mb-3">Tags</h2>
-            <div className="flex flex-wrap gap-2">
-              {artist.tags.slice(0, 15).map((tag) => (
-                <span
-                  key={tag}
-                  className="px-3 py-1.5 rounded-full bg-clark-bg-secondary text-xs font-body text-clark-text-muted border border-clark-steel/10"
+            <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase mb-4">
+              Albums
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {albums.slice(0, 10).map((album) => (
+                <div
+                  key={album.id}
+                  className="group p-3 rounded-xl bg-clark-bg-secondary hover:bg-clark-bg-card transition-all duration-200 border border-transparent hover:border-clark-steel/20"
                 >
-                  {tag}
-                </span>
+                  <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md">
+                    {album.cover_url ? (
+                      <Image
+                        src={album.cover_url}
+                        alt={album.title}
+                        fill
+                        sizes="(max-width: 640px) 50vw, 20vw"
+                        className="object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Disc3 className="w-8 h-8 text-white/20" />
+                      </div>
+                    )}
+                  </div>
+                  <p className="font-body font-semibold text-sm text-clark-text-primary mt-2 truncate">
+                    {album.title}
+                  </p>
+                  <p className="font-body text-xs text-clark-text-muted truncate">
+                    {album.track_count > 0 ? `${album.track_count} tracks` : album.release_date ?? ''}
+                  </p>
+                </div>
               ))}
             </div>
           </section>
         )}
 
         {/* Similar Artists */}
-        {artist.similar_artists.length > 0 && (
+        {similar.length > 0 && (
           <section>
             <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase mb-4">
               {t('similarArtists')}
             </h2>
             <div className="flex gap-6 overflow-x-auto pb-2">
-              {artist.similar_artists.slice(0, 8).map((sa, idx) => {
-                const name = sa.name ?? 'Unknown'
-                const saMbid = sa.id ?? sa.mbid
-                const imgUrl = sa.images?.[0]?.url
-                return (
-                  <Link
-                    key={saMbid ?? idx}
-                    href={saMbid ? `/artists/${saMbid}?name=${encodeURIComponent(name)}` : '#'}
-                    className="flex flex-col items-center text-center flex-shrink-0 group"
-                  >
-                    <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card group-hover:scale-105 transition-transform">
-                      {imgUrl ? (
-                        <Image
-                          src={imgUrl}
-                          alt={`${name} artist photo`}
-                          fill
-                          sizes="5rem"
-                          className="object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="font-display text-2xl text-white/30">{name.charAt(0)}</span>
-                        </div>
-                      )}
-                    </div>
-                    <p className="font-body font-medium text-xs mt-2 text-clark-text-primary w-20 truncate">
-                      {name}
-                    </p>
-                  </Link>
-                )
-              })}
+              {similar.slice(0, 8).map((sa) => (
+                <Link
+                  key={sa.id}
+                  href={`/artists/${sa.id}?name=${encodeURIComponent(sa.name)}`}
+                  className="flex flex-col items-center text-center flex-shrink-0 group"
+                >
+                  <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card group-hover:scale-105 transition-transform">
+                    {sa.image_url ? (
+                      <Image
+                        src={sa.image_url}
+                        alt={`${sa.name} artist photo`}
+                        fill
+                        sizes="5rem"
+                        className="object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="font-display text-2xl text-white/30">{sa.name.charAt(0)}</span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="font-body font-medium text-xs mt-2 text-clark-text-primary w-20 truncate">
+                    {sa.name}
+                  </p>
+                </Link>
+              ))}
             </div>
           </section>
+        )}
+
+        {/* Empty state — no tracks, no albums */}
+        {topTracks.length === 0 && albums.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Music className="w-12 h-12 text-clark-text-muted/30 mb-4" />
+            <p className="font-body text-clark-text-muted">
+              No tracks or albums found for this artist in the catalog yet.
+            </p>
+          </div>
         )}
       </div>
     </AppShell>

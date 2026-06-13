@@ -5,12 +5,12 @@ Key naming convention (consistent with :mod:`app.core.redis`):
     clark:catalog:{type}:{identifier}
 
 TTL strategy (aligned with :mod:`app.core.cache`):
-  - Artists:      3600s (1h)  -- low mutation rate
-  - Albums:       1800s (30m) -- moderate mutation
-  - Tracks:       600s  (10m) -- consistent but preview URLs may refresh
-  - Genres:       7200s (2h)  -- almost never change
-  - Precomputed:  300s  (5m)  -- refreshed by background jobs
-  - Search:       120s  (2m)  -- near-instant local DB, cache for hot queries
+  - Artists:      21600s (6h)   -- low mutation rate
+  - Albums:       21600s (6h)   -- moderate mutation
+  - Tracks:       21600s (6h)   -- consistent but preview URLs may refresh
+  - Genres:       43200s (12h)  -- almost never change
+  - Precomputed:  21600s (6h)   -- refreshed by background jobs
+  - Search:       21600s (6h)   -- near-instant local DB, cache for hot queries
 """
 
 import json
@@ -22,12 +22,12 @@ _KEY_PREFIX = "clark:catalog"
 _STATS_PREFIX = "clark:catalog:stats"
 
 _CACHE_TTL: dict[str, int] = {
-    "artist": 3600,
-    "album": 1800,
-    "track": 600,
-    "genres": 7200,
-    "precomputed": 300,
-    "search": 120,
+    "artist": 21600,
+    "album": 21600,
+    "track": 21600,
+    "genres": 43200,
+    "precomputed": 21600,
+    "search": 21600,
 }
 
 
@@ -59,7 +59,7 @@ class CatalogCacheService:
         await redis.incr(f"{_STATS_PREFIX}:misses")
         return None
 
-    async def set_cached_artist(self, artist_id: str, data: dict, ttl: int = 3600) -> None:
+    async def set_cached_artist(self, artist_id: str, data: dict, ttl: int = 21600) -> None:
         """Store an artist dict in cache with the given TTL."""
         redis = await get_cache_redis()
         key = _cache_key("artist", artist_id)
@@ -83,7 +83,7 @@ class CatalogCacheService:
         await redis.incr(f"{_STATS_PREFIX}:misses")
         return None
 
-    async def set_cached_album(self, album_id: str, data: dict, ttl: int = 1800) -> None:
+    async def set_cached_album(self, album_id: str, data: dict, ttl: int = 21600) -> None:
         """Store an album dict in cache with the given TTL."""
         redis = await get_cache_redis()
         key = _cache_key("album", album_id)
@@ -107,7 +107,7 @@ class CatalogCacheService:
         await redis.incr(f"{_STATS_PREFIX}:misses")
         return None
 
-    async def set_cached_track(self, track_id: str, data: dict, ttl: int = 600) -> None:
+    async def set_cached_track(self, track_id: str, data: dict, ttl: int = 21600) -> None:
         """Store a track dict in cache with the given TTL."""
         redis = await get_cache_redis()
         key = _cache_key("track", track_id)
@@ -151,7 +151,7 @@ class CatalogCacheService:
         return None
 
     async def set_cached_search(
-        self, query: str, limit: int, offset: int, data: dict, ttl: int = 120
+        self, query: str, limit: int, offset: int, data: dict, ttl: int = 21600
     ) -> None:
         """Store search results in cache with the given TTL."""
         redis = await get_cache_redis()
@@ -171,7 +171,7 @@ class CatalogCacheService:
         await redis.incr(f"{_STATS_PREFIX}:misses")
         return None
 
-    async def set_cached_discovery(self, section: str, data: list[dict], ttl: int = 300) -> None:
+    async def set_cached_discovery(self, section: str, data: list[dict], ttl: int = 21600) -> None:
         """Store a discovery section in cache with the given TTL."""
         redis = await get_cache_redis()
         key = _cache_key("discovery", section)

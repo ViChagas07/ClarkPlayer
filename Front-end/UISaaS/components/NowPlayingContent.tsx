@@ -8,6 +8,8 @@ import { usePlayerStore } from '@/store/playerStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useDiscovery } from '@/hooks/useCatalog'
+import { queryClient } from '@/lib/queryClient'
+import { api } from '@/lib/api'
 import type { Track, CatalogTrackItem, CatalogArtistItem, CatalogDiscoverySection } from '@/types'
 
 // ── Section icon/color config ─────────────────────────────────────
@@ -29,6 +31,27 @@ export function NowPlayingContent() {
   const setSleepTimer = useSettingsStore((s) => s.setSleepTimer)
 
   const { data: discovery, isLoading, isError } = useDiscovery()
+
+  useEffect(() => {
+    const prefetchPromises = [
+      queryClient.prefetchQuery({
+        queryKey: ['catalog', 'artists', 30, 0, 'popularity'],
+        queryFn: () => api.catalogArtists(30, 0, 'popularity'),
+        staleTime: 6 * 60 * 60 * 1000,
+      }),
+      queryClient.prefetchQuery({
+        queryKey: ['catalog', 'genres'],
+        queryFn: () => api.catalogGenres(),
+        staleTime: 12 * 60 * 60 * 1000,
+      }),
+      queryClient.prefetchQuery({
+        queryKey: ['catalog', 'brazilian', 20, 0],
+        queryFn: () => api.catalogBrazilian(20, 0),
+        staleTime: 6 * 60 * 60 * 1000,
+      }),
+    ]
+    Promise.allSettled(prefetchPromises)
+  }, [])
 
   // ── Track played event ─────────────────────────────────────
   useEffect(() => {

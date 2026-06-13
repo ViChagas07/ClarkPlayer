@@ -10,6 +10,7 @@ import { SleepTimerRestore } from '@/components/SleepTimerRestore'
 import { ThemeRestore } from '@/components/ThemeRestore'
 import { PersistentShell } from '@/components/layout/PersistentShell'
 import { QueryProvider } from '@/components/providers/QueryProvider'
+import { CatalogPrefetcher } from '@/components/CatalogPrefetcher'
 import { WebSiteStructuredData } from '@/components/seo/WebSite'
 import { OrganizationStructuredData } from '@/components/seo/Organization'
 
@@ -173,6 +174,7 @@ export default function RootLayout({
                 <AuthModalWrapper />
               </Suspense>
               <PersistentShell>{children}</PersistentShell>
+              <CatalogPrefetcher />
             </AuthProvider>
           </ToastProvider>
           <ReactQueryDevtoolsProduction initialIsOpen={false} />

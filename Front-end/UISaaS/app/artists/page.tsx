@@ -1,20 +1,20 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import { AppShell } from '@/components/layout/AppShell'
 import { useTranslation } from '@/hooks/useTranslation'
-import { api } from '@/lib/api'
-import { Music, Loader2, RefreshCw, ChevronDown } from 'lucide-react'
+import { useInfiniteArtists, useGenres } from '@/hooks/useCatalog'
+import { getCachedCatalogData, setCachedCatalogData } from '@/lib/catalogCache'
+import { Music, Loader2, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import type { CatalogArtistItem } from '@/types'
 
-// ── Genre filter tabs — maps UI filter to catalog genre ─────────────────
 type GenreTab = {
   key: string
   label: string
-  genre: string | null  // null = all artists
+  genre: string | null
 }
 
 const GENRE_TABS: GenreTab[] = [
@@ -39,68 +39,57 @@ const GENRE_TABS: GenreTab[] = [
   { key: 'soul', label: 'Soul', genre: 'soul' },
 ]
 
-const PAGE_SIZE = 30
+const CACHE_KEY = 'all_artists'
 
 export default function ArtistsPage() {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<string>('all')
-  const [artists, setArtists] = useState<CatalogArtistItem[]>([])
-  const [totalArtists, setTotalArtists] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState(false)
-  const [hasMore, setHasMore] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
   const observerRef = useRef<HTMLDivElement>(null)
-  const offsetRef = useRef(0)
 
-  // ── Load artists ──────────────────────────────────────────────────────
-  const loadArtists = useCallback(async (tab: GenreTab, reset: boolean) => {
-    if (reset) {
-      setIsLoading(true)
-      offsetRef.current = 0
-    } else {
-      setLoadingMore(true)
+  const restoredFromCache = getCachedCatalogData<CatalogArtistItem[]>(CACHE_KEY)
+  const previousDataRef = useRef<CatalogArtistItem[]>(restoredFromCache ?? [])
+
+  useGenres()
+
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteArtists(30)
+
+  const allArtists = useMemo(() => {
+    if (data) {
+      const items = data.pages.flatMap((page) => page.items)
+      previousDataRef.current = items
+      return items
     }
+    return previousDataRef.current
+  }, [data])
 
-    setLoadError(false)
-
-    try {
-      const data = await api.catalogArtists(PAGE_SIZE, offsetRef.current)
-
-      const filtered = tab.genre
-        ? data.items.filter((a) => a.genres.some((g) => g.toLowerCase() === tab.genre?.toLowerCase()))
-        : data.items
-
-      if (reset) {
-        setArtists(filtered)
-      } else {
-        setArtists((prev) => [...prev, ...filtered])
-      }
-
-      setTotalArtists(data.total)
-      offsetRef.current += PAGE_SIZE
-      setHasMore(offsetRef.current < data.total)
-    } catch {
-      setLoadError(true)
-    } finally {
-      setIsLoading(false)
-      setLoadingMore(false)
-    }
-  }, [])
-
-  // ── Tab switch ────────────────────────────────────────────────────────
   useEffect(() => {
-    const tab = GENRE_TABS.find((t) => t.key === activeTab) ?? GENRE_TABS[0]
-    loadArtists(tab, true)
-  }, [activeTab, loadArtists])
+    if (allArtists.length > 0 && data) {
+      setCachedCatalogData(CACHE_KEY, allArtists)
+    }
+  }, [allArtists, data])
 
-  // ── Infinite scroll with Intersection Observer ────────────────────────
+  const tab = GENRE_TABS.find((t) => t.key === activeTab) ?? GENRE_TABS[0]
+
+  const filteredArtists = useMemo(() => {
+    if (!tab.genre) return allArtists
+    const genreLower = tab.genre.toLowerCase()
+    return allArtists.filter((a) =>
+      a.genres.some((g) => g.toLowerCase() === genreLower),
+    )
+  }, [allArtists, tab.genre])
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting && hasMore && !isLoading && !loadingMore) {
-          const tab = GENRE_TABS.find((t) => t.key === activeTab) ?? GENRE_TABS[0]
-          loadArtists(tab, false)
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
         }
       },
       { threshold: 0.1 },
@@ -111,7 +100,11 @@ export default function ArtistsPage() {
     }
 
     return () => observer.disconnect()
-  }, [hasMore, isLoading, loadingMore, activeTab, loadArtists])
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  const showSkeleton = isLoading && allArtists.length === 0
+
+  const totalCount = data?.pages[0]?.total ?? allArtists.length
 
   return (
     <AppShell>
@@ -120,32 +113,32 @@ export default function ArtistsPage() {
 
         {/* Genre tabs — horizontal scroll on mobile */}
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
-          {GENRE_TABS.map((tab) => (
+          {GENRE_TABS.map((gt) => (
             <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
+              key={gt.key}
+              onClick={() => setActiveTab(gt.key)}
               className={cn(
                 'flex-shrink-0 px-4 py-2 rounded-full font-body text-sm transition-all duration-200',
                 'border min-w-[44px] min-h-[44px] flex items-center justify-center',
-                activeTab === tab.key
+                activeTab === gt.key
                   ? 'bg-clark-accent text-white border-clark-accent shadow-glow-hero'
                   : 'bg-clark-bg-secondary text-clark-text-muted border-clark-steel/30 hover:text-clark-text-primary hover:border-clark-gold/40',
               )}
             >
-              {tab.label}
+              {gt.label}
             </button>
           ))}
         </div>
 
         {/* Artist stats */}
-        {!isLoading && !loadError && (
+        {!showSkeleton && (
           <p className="font-body text-sm text-clark-text-muted">
-            {totalArtists.toLocaleString()} {t('artists').toLowerCase()} found
+            {filteredArtists.length.toLocaleString()} {t('artists').toLowerCase()} found
           </p>
         )}
 
         {/* Artist grid */}
-        {isLoading ? (
+        {showSkeleton ? (
           <div role="status" aria-label="Loading artists" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="p-4 rounded-xl bg-clark-bg-secondary animate-pulse">
@@ -156,38 +149,17 @@ export default function ArtistsPage() {
             ))}
             <span className="sr-only">Loading artists...</span>
           </div>
-        ) : loadError ? (
-          <div className="flex flex-col items-center justify-center py-12 px-6 rounded-2xl bg-clark-bg-secondary border border-clark-steel/20 text-center">
-            <div className="w-12 h-12 rounded-full bg-clark-danger/10 flex items-center justify-center mb-4">
-              <RefreshCw className="w-6 h-6 text-clark-danger" />
-            </div>
-            <p className="font-display text-lg tracking-wider text-clark-text-primary mb-2">
-              Failed to load artists
-            </p>
-            <p className="font-body text-sm text-clark-text-muted mb-4">
-              The catalog is still being populated. Try the search page instead.
-            </p>
-            <Link
-              href="/search"
-              className="flex items-center gap-2 px-4 py-2 bg-clark-bg-card hover:bg-clark-steel/20 font-body text-sm text-clark-text-primary rounded-lg transition-colors border border-clark-steel/30"
-            >
-              Go to Search
-            </Link>
-          </div>
-        ) : artists.length === 0 ? (
+        ) : filteredArtists.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Music className="w-12 h-12 text-clark-text-muted/30 mb-4" />
             <p className="font-body text-clark-text-muted">
-              No artists found for this genre in the catalog yet.
-            </p>
-            <p className="font-body text-sm text-clark-text-muted/50 mt-1">
-              Try running the catalog ingestion or check back later.
+              No artists found for this genre yet.
             </p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-              {artists.map((artist) => (
+              {filteredArtists.map((artist) => (
                 <Link
                   key={artist.id}
                   href={`/artists/${artist.id}?name=${encodeURIComponent(artist.name)}`}
@@ -241,20 +213,27 @@ export default function ArtistsPage() {
 
             {/* Infinite scroll sentinel */}
             <div ref={observerRef} className="flex items-center justify-center py-8">
-              {loadingMore && (
+              {isFetchingNextPage && (
                 <div className="flex items-center gap-2">
                   <Loader2 className="w-5 h-5 text-clark-gold animate-spin" />
                   <span className="font-body text-sm text-clark-text-muted">Loading more artists...</span>
                 </div>
               )}
-              {!hasMore && artists.length > 0 && (
+              {!hasNextPage && allArtists.length > 0 && (
                 <div className="flex items-center gap-2 text-clark-text-muted/40">
                   <ChevronDown className="w-4 h-4" />
-                  <span className="font-body text-xs">All {totalArtists} artists loaded</span>
+                  <span className="font-body text-xs">All {totalCount.toLocaleString()} artists loaded</span>
                 </div>
               )}
             </div>
           </>
+        )}
+
+        {/* Subtle stale-data indicator when showing cached results after an error */}
+        {isError && allArtists.length > 0 && (
+          <p className="text-center font-body text-xs text-clark-text-muted/40">
+            Showing cached catalog data — refresh may be unavailable
+          </p>
         )}
       </div>
     </AppShell>
