@@ -1,0 +1,30 @@
+# ClarkPlayer Robots.txt
+# Allows all public content pages
+# Blocks admin, API, and internal utilities
+
+User-agent: *
+Allow: /
+Allow: /artists
+Allow: /artists/*
+Allow: /genres
+Allow: /genres/*
+Allow: /playlists
+Allow: /playlists/*
+Allow: /music
+Allow: /music/*
+Allow: /search
+Allow: /library
+Allow: /audios
+Allow: /settings
+Allow: /account
+
+Disallow: /api
+Disallow: /auth
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /login
+Disallow: /forgot-password
+
+# Crawl-delay: 1
+
+Sitemap: https://clark-player.vercel.app/sitemap.xml

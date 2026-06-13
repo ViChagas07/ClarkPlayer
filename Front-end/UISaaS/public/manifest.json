@@ -1,0 +1,27 @@
+{
+  "name": "ClarkPlayer",
+  "short_name": "ClarkPlayer",
+  "description": "Your personal Fortress of Sound. Upload, organize, and stream your music collection with heroic style.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070E2B",
+  "theme_color": "#0A1628",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/ClarkPlayer_Favicon.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "/ClarkPlayer_Transparent.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["music", "entertainment", "lifestyle"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "scope": "/",
+  "prefer_related_applications": false
+}

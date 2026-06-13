@@ -122,7 +122,7 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
 
         {/* Track grid — Spotify-style cards */}
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div role="status" aria-label="Loading tracks" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="p-3 rounded-xl bg-clark-bg-secondary animate-pulse">
                 <div className="aspect-square rounded-lg bg-clark-bg-card" />
@@ -130,6 +130,7 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
                 <div className="h-3 bg-clark-bg-card rounded mt-1 w-1/2" />
               </div>
             ))}
+            <span className="sr-only">Loading tracks...</span>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -160,10 +161,12 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
                   {/* Album art with play overlay */}
                   <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md">
                     {coverUrl ? (
-                      <img
+                      <Image
                         src={coverUrl}
-                        alt={track.title}
-                        className="w-full h-full object-cover"
+                        alt={`${track.title} album cover`}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                        className="object-cover"
                         loading="lazy"
                       />
                     ) : (
@@ -171,7 +174,7 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
                         <Music className="w-8 h-8 text-white/20" />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center" aria-label={`Play ${track.title}`}>
                       <div className="w-10 h-10 rounded-full bg-clark-accent flex items-center justify-center shadow-lg">
                         <Play className="w-4 h-4 text-white ml-0.5" />
                       </div>

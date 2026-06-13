@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Music, ListMusic, TrendingUp, Headphones, Loader2, Globe, Mic2, Disc3, Zap, Radio, Heart } from 'lucide-react'
 import { usePlayerStore } from '@/store/playerStore'
 import { useSettingsStore } from '@/store/settingsStore'
@@ -164,7 +165,14 @@ export function NowPlayingContent() {
             >
               <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md">
                 {coverUrl ? (
-                  <img src={coverUrl} alt={track.title} className="w-full h-full object-cover" loading="lazy" />
+                  <Image
+                    src={coverUrl}
+                    alt={`${track.title} album art`}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                    className="object-cover"
+                    loading="lazy"
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Music className="w-8 h-8 text-white/20" />
@@ -217,7 +225,16 @@ export function NowPlayingContent() {
           <div className="relative w-full h-full rounded-2xl flex items-center justify-center overflow-hidden">
             <div className="relative">
               <div className="absolute inset-0 rounded-full bg-clark-gold/10 blur-2xl animate-pulse-slow" />
-              <img src="/logo.png" alt="ClarkPlayer" className="relative w-48 h-48 object-contain drop-shadow-[0_0_30px_rgba(245,197,24,0.3)]" />
+              <div className="relative w-48 h-48">
+                <Image
+                  src="/logo.png"
+                  alt="ClarkPlayer Logo — Fortress of Sound"
+                  fill
+                  priority
+                  sizes="12rem"
+                  className="object-contain drop-shadow-[0_0_30px_rgba(245,197,24,0.3)]"
+                />
+              </div>
             </div>
           </div>
           <div className="absolute -inset-1 rounded-3xl border border-clark-gold/20 -z-10" />
@@ -317,7 +334,7 @@ export function NowPlayingContent() {
                 <div className="relative w-full h-36 rounded-xl bg-gradient-to-br from-clark-bg-secondary to-clark-bg-primary border border-clark-steel/20 overflow-hidden">
                   <div className="absolute inset-0 bg-clark-gold/0 group-hover:bg-clark-gold/5 transition-colors duration-300" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-[0.08]">
-                    <img src="/logo.png" alt="" className="w-12 h-12 object-contain" />
+                    <Image src="/logo.png" alt="" width={48} height={48} className="object-contain" aria-hidden="true" />
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-clark-gold to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
                 </div>

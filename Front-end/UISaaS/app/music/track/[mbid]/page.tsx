@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { AppShell } from '@/components/layout/AppShell'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -112,7 +113,7 @@ export default function TrackDetailPage({ params }: { params: Promise<{ mbid: st
   if (isLoading) {
     return (
       <AppShell>
-        <div className="space-y-8 animate-pulse">
+        <div className="space-y-8 animate-pulse" role="status" aria-label="Loading track details">
           <div className="flex items-end gap-6 -mx-6 -mt-8 h-72 bg-gradient-to-b from-clark-bg-secondary/30 to-clark-bg-primary p-6">
             <div className="w-52 h-52 rounded-xl bg-clark-bg-secondary flex-shrink-0 shadow-2xl" />
             <div className="flex-1 space-y-3 pb-4">
@@ -157,10 +158,17 @@ export default function TrackDetailPage({ params }: { params: Promise<{ mbid: st
         <div className="relative -mx-6 -mt-8 p-6 pb-8 bg-gradient-to-b from-clark-bg-secondary to-clark-bg-primary">
           <div className="flex items-end gap-6">
             {/* Album cover */}
-            <div className="w-44 h-44 md:w-52 md:h-52 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-2xl ring-1 ring-clark-steel/20">
-              {album?.cover_url ? (
-                <img src={album.cover_url} alt={album.title} className="w-full h-full object-cover" />
-              ) : (
+            <div className="relative w-44 h-44 md:w-52 md:h-52 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-2xl ring-1 ring-clark-steel/20">
+                {album?.cover_url ? (
+                  <Image
+                    src={album.cover_url}
+                    alt={`${album.title} album cover art`}
+                    fill
+                    sizes="(max-width: 768px) 11rem, 13rem"
+                    className="object-cover"
+                    priority
+                  />
+                ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <Disc3 className="w-16 h-16 text-white/20" />
                 </div>
@@ -395,12 +403,14 @@ export default function TrackDetailPage({ params }: { params: Promise<{ mbid: st
                   href={sa.mbid ? `/artists/${sa.mbid}` : '#'}
                   className="flex flex-col items-center text-center flex-shrink-0 group"
                 >
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-clark-steel to-clark-bg-card group-hover:scale-105 transition-transform overflow-hidden">
+                  <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-clark-steel to-clark-bg-card group-hover:scale-105 transition-transform overflow-hidden">
                     {sa.image?.[2]?.['#text'] || sa.image?.[0]?.['#text'] ? (
-                      <img
+                      <Image
                         src={sa.image?.[2]?.['#text'] ?? sa.image?.[0]?.['#text'] ?? ''}
-                        alt={sa.name}
-                        className="w-full h-full object-cover"
+                        alt={`${sa.name} artist photo`}
+                        fill
+                        sizes="4rem"
+                        className="object-cover"
                         loading="lazy"
                       />
                     ) : (

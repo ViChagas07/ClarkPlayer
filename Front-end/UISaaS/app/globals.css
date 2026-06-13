@@ -746,3 +746,60 @@ summary {
 .border-clark-gold      { border-color: var(--clark-gold); }
 .ring-clark-gold        { --tw-ring-color: var(--clark-gold); }
 .ring-clark-accent      { --tw-ring-color: var(--clark-accent); }
+
+/* ── Accessibility: Respect user motion preferences ──────────────────────── */
+/* Disable all animations when user prefers reduced motion */
+/* This overrides every animation class defined in this stylesheet.          */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-shimmer,
+  .animate-hero-glow,
+  .animate-blue-glow,
+  .animate-gold-float,
+  .animate-float,
+  .animate-aurora,
+  .animate-aurora-drift,
+  .animate-aurora-bounce,
+  .animate-aurora-spin,
+  .animate-aurora-wave,
+  .animate-aurora-pulse,
+  .animate-aurora-sway,
+  .animate-aurora-glow,
+  .animate-aurora-shimmer,
+  .animate-aurora-ripple,
+  .animate-aurora-float,
+  .animate-aurora-breath,
+  .animate-aurora-twirl,
+  .animate-aurora-wobble,
+  .animate-aurora-blur,
+  .animate-aurora-dance,
+  .animate-aurora-slide,
+  .animate-aurora-zoom,
+  .animate-aurora-flash,
+  .animate-aurora-morph,
+  .animate-aurora-roll,
+  .animate-aurora-shake,
+  .animate-aurora-swing,
+  .animate-aurora-pulse-glow,
+  .animate-aurora-waveform,
+  .animate-aurora-spiral,
+  .animate-aurora-burst,
+  .animate-logo-float,
+  .bg-gold-shimmer,
+  .animate-border-shimmer {
+    animation: none !important;
+  }
+
+  .hover-lift:hover {
+    transform: none !important;
+  }
+}

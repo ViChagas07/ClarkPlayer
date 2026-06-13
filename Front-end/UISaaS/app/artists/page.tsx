@@ -9,6 +9,7 @@ import { ALL_BRAZILIAN, ALL_INTERNATIONAL, BRAZILIAN_ARTISTS, INTERNATIONAL_ARTI
 import { Check, Music, Loader2, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { UnifiedSearchResult } from '@/types'
+import Image from 'next/image'
 
 // ── Genre tabs with their artist pools ──────────────────────────
 type GenreTab = {
@@ -134,7 +135,7 @@ export default function ArtistsPage() {
 
         {/* ── Loading skeleton ────────────────────────────── */}
         {(isLoading || tabLoading) && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+          <div role="status" aria-label="Loading artists" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-6">
             {Array.from({ length: activeTabObj?.count ?? 20 }).map((_, i) => (
               <div key={i} className="flex flex-col items-center animate-pulse">
                 <div className="w-24 h-24 rounded-full bg-clark-bg-secondary" />
@@ -142,6 +143,7 @@ export default function ArtistsPage() {
                 <div className="h-3 w-12 bg-clark-bg-secondary rounded mt-1" />
               </div>
             ))}
+            <span className="sr-only">Loading artists...</span>
           </div>
         )}
 
@@ -163,10 +165,12 @@ export default function ArtistsPage() {
                 >
                   <div className="relative w-28 h-28 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card group-hover:scale-105 transition-transform duration-200 shadow-lg">
                     {imgUrl ? (
-                      <img
+                      <Image
                         src={imgUrl}
-                        alt={artist.name}
-                        className="w-full h-full object-cover"
+                        alt={`${artist.name} artist photo`}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                        className="object-cover"
                         loading="lazy"
                       />
                     ) : (

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, Suspense } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
@@ -118,20 +119,30 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
         <div className="relative -mx-6 -mt-8 h-72 bg-gradient-to-b from-clark-bg-secondary to-clark-bg-primary overflow-hidden">
           <div className="absolute inset-0 opacity-30">
             {artist.image_url && (
-              <img
+              <Image
                 src={artist.image_url}
                 alt=""
-                className="w-full h-full object-cover blur-xl scale-110"
+                fill
+                sizes="100vw"
+                className="object-cover blur-xl scale-110"
                 aria-hidden="true"
+                priority
               />
             )}
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-clark-bg-primary via-transparent to-transparent" />
           <div className="relative z-10 flex items-end gap-6 h-full px-6 pb-6">
             {/* Artist image */}
-            <div className="w-44 h-44 rounded-full overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card flex-shrink-0 border-4 border-clark-bg-primary shadow-2xl">
+            <div className="relative w-44 h-44 rounded-full overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card flex-shrink-0 border-4 border-clark-bg-primary shadow-2xl">
               {artist.image_url ? (
-                <img src={artist.image_url} alt={artist.name} className="w-full h-full object-cover" />
+                <Image
+                  src={artist.image_url}
+                  alt={`${artist.name} artist photo`}
+                  fill
+                  sizes="11rem"
+                  className="object-cover"
+                  priority
+                />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <span className="font-display text-6xl text-white/30">{artist.name.charAt(0)}</span>
@@ -230,7 +241,14 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
                     {/* Cover */}
                     <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-clark-bg-card">
                       {album?.images?.[0]?.url ? (
-                        <img src={album.images[0].url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                        <Image
+                          src={album.images[0].url}
+                          alt={`${name} album cover`}
+                          fill
+                          sizes="2.5rem"
+                          className="object-cover"
+                          loading="lazy"
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Music className="w-4 h-4 text-white/20" />
@@ -331,9 +349,16 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
                     href={saMbid ? `/artists/${saMbid}?name=${encodeURIComponent(name)}` : '#'}
                     className="flex flex-col items-center text-center flex-shrink-0 group"
                   >
-                    <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card group-hover:scale-105 transition-transform">
+                    <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card group-hover:scale-105 transition-transform">
                       {imgUrl ? (
-                        <img src={imgUrl} alt={name} className="w-full h-full object-cover" loading="lazy" />
+                        <Image
+                          src={imgUrl}
+                          alt={`${name} artist photo`}
+                          fill
+                          sizes="5rem"
+                          className="object-cover"
+                          loading="lazy"
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <span className="font-display text-2xl text-white/30">{name.charAt(0)}</span>
