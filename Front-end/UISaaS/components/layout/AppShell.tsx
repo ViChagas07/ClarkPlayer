@@ -425,21 +425,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           rightPanelOpen ? 'translate-x-0' : 'translate-x-full',
         )}
       >
-          {/* Close button — inside the panel, on its left wall */}
-          <button
-            onClick={() => setRightPanelOpen(false)}
-            className={cn(
-              'absolute top-1/2 left-0 -translate-y-1/2 z-40 pointer-events-auto',
-              'w-7 h-20 rounded-r-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-l-0',
-              'text-clark-text-muted hover:text-clark-gold hover:bg-clark-bg-card transition-all duration-200',
-              'shadow-lg shadow-black/20 flex items-center justify-center',
-            )}
-            aria-label={t('closeNowPlayingPanel')}
-            title={t('nowPlaying')}
-          >
-            <Music className="w-4 h-4" />
-          </button>
-
           {/* Panel header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-clark-steel/20">
             <h2 className="font-display text-lg tracking-widest text-clark-text-primary uppercase">
@@ -481,15 +466,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </p>
           </div>
 
-          {/* Queue divider line — BELOW the toggle button area */}
-          <div className="mx-5 border-t border-clark-steel/20" />
+          {/* ── Queue section: toggle button + FILA header + divider + content ── */}
+          <div className="relative flex-shrink-0">
+            {/* Close button — on the left wall, aligned with the FILA header row */}
+            <button
+              onClick={() => setRightPanelOpen(false)}
+              className={cn(
+                'absolute top-1/2 left-0 -translate-y-1/2 z-40 pointer-events-auto',
+                'w-7 h-12 rounded-r-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-l-0',
+                'text-clark-text-muted hover:text-clark-gold hover:bg-clark-bg-card transition-all duration-200',
+                'shadow-lg shadow-black/20 flex items-center justify-center',
+              )}
+              aria-label={t('closeNowPlayingPanel')}
+              title={t('nowPlaying')}
+            >
+              <Music className="w-4 h-4" />
+            </button>
 
-          {/* Queue header — FILA (N faixas) */}
-          <div className="flex items-center gap-2 px-5 py-3">
-            <ListOrdered className="w-4 h-4 text-clark-gold" />
-            <h3 className="font-condensed text-xs tracking-widest text-clark-text-muted uppercase">{t('queue')}</h3>
-            <span className="font-condensed text-xs text-clark-text-muted/50">({queue.length} {t('tracks')})</span>
+            {/* FILA (N faixas) — header row aligned with toggle button */}
+            <div className="flex items-center gap-2 px-5 py-3 pl-12">
+              <ListOrdered className="w-4 h-4 text-clark-gold" />
+              <h3 className="font-condensed text-xs tracking-widest text-clark-text-muted uppercase">{t('queue')}</h3>
+              <span className="font-condensed text-xs text-clark-text-muted/50">({queue.length} {t('tracks')})</span>
+            </div>
           </div>
+
+          {/* Divider — BELOW the FILA header and toggle button area */}
+          <div className="mx-5 border-t border-clark-steel/20 flex-shrink-0" />
 
           {/* Queue content */}
           <div className="flex-1 overflow-y-auto px-3 py-2">
