@@ -33,7 +33,7 @@ import {
   ArrowUp,
   Headphones,
 } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, createContext, useContext } from 'react'
 import { usePlayerStore } from '@/store/playerStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useAuthStore } from '@/store/authStore'
@@ -85,7 +85,13 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+const AppShellContext = createContext(false)
+
 export function AppShell({ children }: { children: React.ReactNode }) {
+  // If already inside a parent AppShell, just pass through children
+  const parentShell = useContext(AppShellContext)
+  if (parentShell) return <>{children}</>
+
   const { t } = useTranslation()
   const pathname = usePathname()
   const router = useRouter()
@@ -175,6 +181,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   ]
 
   return (
+    <AppShellContext.Provider value={true}>
     <div className="flex h-screen bg-clark-bg-primary text-clark-text-primary overflow-hidden">
       {/* Standalone sidebar toggle — visible only when sidebar is closed */}
       <button
@@ -766,5 +773,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <ArrowUp className="w-4 h-4" />
       </button>
     </div>
+    </AppShellContext.Provider>
   )
 }

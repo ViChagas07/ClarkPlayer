@@ -7,6 +7,7 @@ import { AuthProvider } from '@/components/auth/AuthProvider'
 import { AuthModalWrapper } from '@/components/auth/AuthModalWrapper'
 import { SleepTimerRestore } from '@/components/SleepTimerRestore'
 import { ThemeRestore } from '@/components/ThemeRestore'
+import { PersistentShell } from '@/components/layout/PersistentShell'
 import { WebSiteStructuredData } from '@/components/seo/WebSite'
 import { OrganizationStructuredData } from '@/components/seo/Organization'
 
@@ -162,7 +163,7 @@ export default function RootLayout({
             <Suspense>
               <AuthModalWrapper />
             </Suspense>
-            <main id="main-content" role="main" className="min-h-screen">{children}</main>
+            <PersistentShell>{children}</PersistentShell>
           </AuthProvider>
         </ToastProvider>
       </body>
