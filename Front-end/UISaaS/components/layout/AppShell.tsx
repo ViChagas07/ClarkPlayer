@@ -74,6 +74,8 @@ const AURA_ANIMATIONS = [
   'animate-aurora-burst',
 ]
 
+const MOBILE_BREAKPOINT = 1024
+
 /** Picks a random element from an array using crypto‑grade randomness. */
 function pickRandom<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
@@ -95,16 +97,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation()
   const pathname = usePathname()
   const router = useRouter()
-  const { isOpen: sidebarOpen, width: sidebarWidth, toggle: toggleSidebar } = useSidebarStore()
+  const { isOpen: sidebarOpen, width: sidebarWidth, toggle: toggleSidebar, setOpen } = useSidebarStore()
   const [rightPanelOpen, setRightPanelOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [windowWidth, setWindowWidth] = useState(0)
 
+  // ── Mobile detection + sidebar auto-close on mobile ──────────────────
   useEffect(() => {
     let ticking = false
     const check = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
-          setIsMobile(window.innerWidth < 768)
+          const w = window.innerWidth
+          const mobile = w < MOBILE_BREAKPOINT
+          setWindowWidth(w)
+          setIsMobile(mobile)
+          // Close sidebar by default on mobile screens
+          if (mobile) {
+            setOpen(false)
+          }
           ticking = false
         })
         ticking = true
@@ -113,7 +124,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
-  }, [])
+  }, [setOpen])
+
+  // Close sidebar on route change (mobile behavior)
+  useEffect(() => {
+    if (isMobile && sidebarOpen) {
+      setOpen(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname])
 
   /* ── Pick 3 random animations on first render (per session) ─────── */
   const [auraAnimation] = useState(() => pickRandom(AURA_ANIMATIONS))
@@ -132,6 +151,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Wire audio engines — library + preview
   const { seek } = useDesktopAudioEngine()
   const { previewActive } = usePreviewPlayer()
+  void previewActive // referenced for liveness
   const { user, isAuthenticated, refreshToken, accessToken } = useAuthStore()
   const clearSession = useAuthStore((s) => s.clearSession)
 
@@ -152,6 +172,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const displayTrack = currentTrack
   const trackDuration = displayTrack?.duration ?? 0
+
+  // Calculate right panel width safely (no typeof window in SSR)
+  const rightPanelWidth = windowWidth > 0 ? Math.min(320, windowWidth) : 320
 
   async function handleLogout() {
     if (refreshToken) {
@@ -191,9 +214,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }}
         className={cn(
           'fixed left-0 top-1/2 -translate-y-1/2 z-50 pointer-events-auto',
-          'w-12 sm:w-7 h-20 rounded-r-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-l-0',
+          'w-7 h-20 rounded-r-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-l-0',
           'text-clark-text-muted hover:text-clark-gold hover:bg-clark-bg-card transition-all duration-300',
-          'shadow-lg shadow-black/20',
+          'shadow-lg shadow-black/20 flex items-center justify-center',
           sidebarOpen ? 'opacity-0 pointer-events-none' : 'opacity-100',
         )}
         aria-label={t('openSidebar')}
@@ -297,7 +320,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onClick={() => toggleSidebar()}
           className={cn(
             'absolute top-1/2 right-0 -translate-y-1/2 z-40 pointer-events-auto',
-            'w-12 sm:w-7 h-20 rounded-l-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-r-0',
+            'w-7 h-20 rounded-l-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-r-0',
             'text-clark-text-muted hover:text-clark-gold hover:bg-clark-bg-card transition-all duration-200',
             'shadow-lg shadow-black/20 flex items-center justify-center',
           )}
@@ -343,7 +366,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           ? 'bg-clark-steel/20 text-clark-accent border-l-2 border-clark-accent pl-[10px]'
                           : 'text-clark-text-muted hover:text-clark-text-primary hover:bg-clark-steel/25 border-l-2 border-transparent pl-[10px]',
                       )}
-          onClick={() => toggleSidebar()}
+                      onClick={() => {
+                        if (isMobile) toggleSidebar()
+                      }}
                     >
                       <item.icon className={cn(
                         'w-5 h-5 flex-shrink-0 transition-colors transition-transform group-hover:translate-x-1',
@@ -370,7 +395,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Open button — outside panel, visible only when panel is closed */}
+      {/* Open button — outside right panel, visible only when panel is closed */}
       {!rightPanelOpen && (
         <button
           onClick={() => {
@@ -379,7 +404,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           }}
           className={cn(
             'fixed top-1/2 right-0 -translate-y-1/2 z-50 pointer-events-auto',
-            'w-12 sm:w-7 h-20 rounded-l-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-r-0',
+            'w-7 h-20 rounded-l-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-r-0',
             'text-clark-text-muted hover:text-clark-gold hover:bg-clark-bg-card transition-all duration-200',
             'shadow-lg shadow-black/20 flex items-center justify-center',
           )}
@@ -405,7 +430,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => setRightPanelOpen(false)}
             className={cn(
               'absolute top-1/2 left-0 -translate-y-1/2 z-40 pointer-events-auto',
-              'w-12 sm:w-7 h-20 rounded-r-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-l-0',
+              'w-7 h-20 rounded-r-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-l-0',
               'text-clark-text-muted hover:text-clark-gold hover:bg-clark-bg-card transition-all duration-200',
               'shadow-lg shadow-black/20 flex items-center justify-center',
             )}
@@ -430,7 +455,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Current track info */}
-          <div className="px-5 py-6 border-b border-clark-steel/10">
+          <div className="px-5 py-6">
             <div className="relative mx-auto mb-4 w-48 h-48">
               <div className="absolute inset-0 rounded-xl bg-clark-gold/15 blur-2xl" />
               <div className="relative w-full h-full rounded-xl bg-gradient-to-br from-clark-steel to-clark-accent flex items-center justify-center ring-1 ring-clark-gold/30 overflow-hidden">
@@ -456,14 +481,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </p>
           </div>
 
-          {/* Queue */}
-          <div className="flex-1 overflow-y-auto px-3 py-4">
-            <div className="flex items-center gap-2 mb-3 pl-8">
-              <ListOrdered className="w-4 h-4 text-clark-gold" />
-              <h3 className="font-condensed text-xs tracking-widest text-clark-text-muted uppercase">{t('queue')}</h3>
-              <span className="font-condensed text-xs text-clark-text-muted/50">({queue.length} {t('tracks')})</span>
-            </div>
+          {/* Queue divider line — BELOW the toggle button area */}
+          <div className="mx-5 border-t border-clark-steel/20" />
 
+          {/* Queue header — FILA (N faixas) */}
+          <div className="flex items-center gap-2 px-5 py-3">
+            <ListOrdered className="w-4 h-4 text-clark-gold" />
+            <h3 className="font-condensed text-xs tracking-widest text-clark-text-muted uppercase">{t('queue')}</h3>
+            <span className="font-condensed text-xs text-clark-text-muted/50">({queue.length} {t('tracks')})</span>
+          </div>
+
+          {/* Queue content */}
+          <div className="flex-1 overflow-y-auto px-3 py-2">
             {queue.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Music className="w-10 h-10 text-clark-text-muted/30 mb-3" />
@@ -540,18 +569,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )} />
         </div>
         <AuthGuard>
-          <div className="relative max-w-7xl mx-auto px-6 py-8">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
             {children}
           </div>
         </AuthGuard>
       </main>
 
-      {/* Player bar — centered controls, slides fully off-screen when hidden */}
+      {/* Player bar — fully centered, mobile-optimized */}
       <footer
         style={{
           position: 'fixed',
-          left: sidebarOpen ? `${sidebarWidth}px` : '0px',
-          right: rightPanelOpen ? (typeof window !== 'undefined' ? `${Math.min(320, window.innerWidth)}px` : '320px') : '0px',
+          left: sidebarOpen && !isMobile ? `${sidebarWidth}px` : '0px',
+          right: rightPanelOpen && !isMobile ? `${rightPanelWidth}px` : '0px',
           bottom: '0px',
           zIndex: 30,
           height: '96px',
@@ -565,11 +594,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           isPlayerVisible ? 'translate-y-0' : 'translate-y-[calc(100%+1.5rem)]',
         )}
       >
-        {/* Track info — left (slim on mobile, full on desktop) */}
-        <div className="hidden items-center gap-3 min-w-0 flex-1 sm:flex sm:w-56 sm:flex-shrink-0 sm:flex-none">
+        {/* Track info — left (hidden on mobile) */}
+        <div className="hidden sm:flex items-center gap-3 min-w-0 flex-1 sm:w-56 sm:flex-shrink-0 sm:flex-none">
           {displayTrack ? (
             <>
-              <div className="relative flex-shrink-0 hidden sm:block">
+              <div className="relative flex-shrink-0">
                 <div className="absolute inset-0 rounded-md blur-md animate-gold-pulse" style={{ backgroundColor: accentColor + '30' }} />
                 <div className="relative w-12 h-12 rounded-md bg-gradient-to-br from-clark-steel to-clark-accent flex items-center justify-center overflow-hidden" style={{ boxShadow: `0 0 12px ${accentColor}40` }}>
                   {displayTrack.coverUrl ? (
@@ -591,7 +620,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </div>
                 <p className="font-body text-xs text-clark-text-muted truncate">{displayTrack.artist}</p>
               </div>
-              <button className="ml-2 text-clark-text-muted hover:text-clark-accent transition-colors hidden sm:block" aria-label={t('toggleFavorite')}>
+              <button className="ml-2 text-clark-text-muted hover:text-clark-accent transition-colors" aria-label={t('toggleFavorite')}>
                 <Heart className="w-4 h-4" />
               </button>
             </>
@@ -603,38 +632,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        {/* Mobile-only: track info line above controls */}
-        <div className="flex sm:hidden items-center gap-2 flex-1 min-w-0 mr-2 overflow-hidden">
-          {displayTrack ? (
-            <p className="font-condensed text-xs text-clark-text-muted truncate">
-              {displayTrack.title} · {displayTrack.artist}
-            </p>
-          ) : (
-            <p className="font-condensed text-xs text-clark-text-muted/40 truncate">
-              No track playing
-            </p>
-          )}
-        </div>
-
-        {/* Controls — center */}
-        <div className="flex flex-col items-center justify-center gap-1">
+        {/* Controls — center (fully centered on mobile) */}
+        <div className="flex flex-col items-center justify-center gap-1 flex-1 sm:flex-initial">
           <div className="flex items-center justify-center gap-3 sm:gap-5">
             <button
               className={cn(
-                'p-2 font-body text-clark-text-muted hover:text-clark-gold transition-colors',
+                'p-2 text-clark-text-muted hover:text-clark-gold transition-colors',
                 isShuffled && 'text-clark-gold'
               )}
               onClick={toggleShuffle}
               aria-label={t('toggleShuffle')}
+              style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              <Shuffle className="w-4 h-4 sm:w-4 sm:h-4" />
+              <Shuffle className="w-4 h-4" />
             </button>
-            <button className="p-2 font-body text-clark-text-muted/80 hover:text-clark-text-primary transition-colors" onClick={prevTrack} aria-label={t('previousTrack')}>
+            <button
+              className="p-2 text-clark-text-muted/80 hover:text-clark-text-primary transition-colors"
+              onClick={prevTrack}
+              aria-label={t('previousTrack')}
+              style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
               <SkipBack className="w-5 h-5" />
             </button>
             <button
-              className="relative w-11 h-11 sm:w-10 sm:h-10 rounded-full bg-clark-accent hover:bg-clark-accent-hover flex items-center justify-center transition-all hover:scale-105 group"
-              style={{ boxShadow: `0 0 14px ${accentColor}60` }}
+              className="relative w-11 h-11 rounded-full bg-clark-accent hover:bg-clark-accent-hover flex items-center justify-center transition-all hover:scale-105 group"
+              style={{ boxShadow: `0 0 14px ${accentColor}60`, minWidth: '44px', minHeight: '44px' }}
               onClick={() => {
                 if (isPreview && isPlaying) {
                   stopPreview()
@@ -652,24 +674,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 }
               </div>
             </button>
-            <button className="p-2 font-body text-clark-text-muted/80 hover:text-clark-text-primary transition-colors" onClick={nextTrack} aria-label={t('nextTrack')}>
+            <button
+              className="p-2 text-clark-text-muted/80 hover:text-clark-text-primary transition-colors"
+              onClick={nextTrack}
+              aria-label={t('nextTrack')}
+              style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
               <SkipForward className="w-5 h-5" />
             </button>
             <button
               className={cn(
-                'p-2 font-body text-clark-text-muted hover:text-clark-gold transition-colors',
+                'p-2 text-clark-text-muted hover:text-clark-gold transition-colors',
                 repeatMode !== 'off' && 'text-clark-gold'
               )}
               onClick={toggleRepeat}
               aria-label={t('toggleRepeat')}
+              style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               {repeatMode === 'one' ? <Repeat1 className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
             </button>
           </div>
 
-          {/* Progress bar — center (with expanded touch area) */}
-          <div className="flex items-center gap-2 w-full sm:max-w-md px-2 sm:px-0">
-            <span className="font-condensed text-xs text-clark-text-muted w-10 text-right tabular-nums">{formatTime(progress)}</span>
+          {/* Progress bar — fully centered */}
+          <div className="flex items-center justify-center gap-2 w-full max-w-[280px] sm:max-w-md px-1 sm:px-0">
+            <span className="font-condensed text-[10px] sm:text-xs text-clark-text-muted w-8 sm:w-10 text-right tabular-nums flex-shrink-0">{formatTime(progress)}</span>
             <div
               className="flex-1 py-3 cursor-pointer group relative"
               onClick={(e) => {
@@ -677,6 +705,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 const pct = (e.clientX - rect.left) / rect.width
                 seek(pct * trackDuration)
               }}
+              role="slider"
+              aria-label="Track progress"
+              aria-valuemin={0}
+              aria-valuemax={trackDuration}
+              aria-valuenow={progress}
+              tabIndex={0}
             >
               <div className="h-1.5 bg-clark-bg-secondary rounded-full relative">
                 <div
@@ -694,21 +728,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
             </div>
-            <span className="font-condensed text-xs text-clark-text-muted w-10 tabular-nums">{formatTime(trackDuration)}</span>
+            <span className="font-condensed text-[10px] sm:text-xs text-clark-text-muted w-8 sm:w-10 tabular-nums flex-shrink-0">{formatTime(trackDuration)}</span>
           </div>
         </div>
 
-        {/* Volume — right (compact icons on mobile, full slider on desktop) */}
+        {/* Volume — right (hidden on mobile) */}
         <div className="hidden sm:flex items-center justify-end gap-2 w-56 flex-shrink-0">
           {sleepTimer && (
             <span className="font-body text-xs bg-clark-steel/20 px-2 py-1 rounded text-clark-text-muted border border-clark-steel/30">
               {'\u23FE'} {t('sleepBtn')}
             </span>
           )}
-          <button className="p-2 font-body text-clark-text-muted hover:text-clark-sky transition-colors" aria-label={t('lyricsBtn')}>
+          <button className="p-2 text-clark-text-muted hover:text-clark-sky transition-colors" aria-label={t('lyricsBtn')}>
             <FileText className="w-4 h-4" />
           </button>
-          <button className="p-2 font-body text-clark-text-muted hover:text-clark-sky transition-colors" aria-label={t('queue')}>
+          <button className="p-2 text-clark-text-muted hover:text-clark-sky transition-colors" aria-label={t('queue')}>
             <ListOrdered className="w-4 h-4" />
           </button>
           {/* Volume slider — vertical, compact & centered */}
@@ -737,9 +771,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         {/* Mobile: volume icon button only */}
         <button
-          className="flex sm:hidden p-2 font-body text-clark-text-muted hover:text-clark-sky transition-colors"
+          className="flex sm:hidden p-2 text-clark-text-muted hover:text-clark-sky transition-colors"
           aria-label={t('volumeLabel')}
           onClick={() => { /* TODO: open volume slider modal/popover on mobile */ }}
+          style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <Volume2 className="w-4 h-4" />
         </button>
@@ -750,6 +785,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-lg text-clark-text-muted/50 hover:text-clark-accent hover:bg-clark-steel/20 transition-colors"
           aria-label={t('hidePlayer')}
           title={t('hidePlayer')}
+          style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <X className="w-4 h-4" />
         </button>

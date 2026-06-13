@@ -69,8 +69,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // ── Genre pages ──────────────────────────────────────────────
   const genreSlugs = [
-    'rock', 'jazz', 'classical', 'rnb', 'hip-hop', 'ambient',
-    'electronic', 'reggae', 'samba', 'latin', 'gospel', 'pagode',
+    'rock', 'pop', 'jazz', 'classical', 'rnb', 'hip-hop', 'soul', 'blues',
+    'ambient', 'electronic', 'house', 'techno', 'lo-fi', 'indie',
+    'reggae', 'samba', 'mpb', 'latin', 'gospel', 'pagode',
     'heavy-metal', 'rap', 'forro', 'funk', 'sertanejo', 'romantic', 'trap',
   ]
 
