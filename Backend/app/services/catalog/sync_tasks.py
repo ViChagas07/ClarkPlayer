@@ -163,19 +163,27 @@ async def recompute_discovery_sections() -> dict:
                 select(func.count()).select_from(CatalogGenreModel)
             )
 
+        from app.core.cache_keys import CacheTTL, make_cache_key
         from app.core.redis import get_cache_redis
         import json
-        redis = await get_cache_redis()
+        import logging
+
+        _log = logging.getLogger("catalog.sync.tasks")
         summary = {
             "artists": artist_count_result.scalar_one(),
             "tracks": track_count_result.scalar_one(),
             "genres": genre_count_result.scalar_one(),
             "updated_at": datetime.now(UTC).isoformat(),
         }
-        await redis.set("clark:cache:discovery:sections", json.dumps(summary))
-        await redis.expire("clark:cache:discovery:sections", 3600)
+        try:
+            redis = await get_cache_redis()
+            key = make_cache_key("discovery", "sections")
+            await redis.set(key, json.dumps(summary))
+            await redis.expire(key, CacheTTL.DISCOVERY)
+        except Exception:
+            _log.debug("Redis unavailable — discovery cache not updated")
 
-        logger.info("Discovery sections recomputed: %s", summary)
+        _log.info("Discovery sections recomputed: %s", summary)
         return {"status": "ok", **summary}
     except Exception as exc:
         logger.error("Discovery recompute failed: %s", exc)
@@ -199,13 +207,20 @@ async def recalculate_trending() -> dict:
             )
             rows = result.all()
 
+        from app.core.cache_keys import CacheTTL, make_cache_key
         from app.core.redis import get_cache_redis
-        redis = await get_cache_redis()
-        key = "clark:cache:trending"
-        await redis.delete(key)
-        for track_id, popularity in rows:
-            await redis.zadd(key, {str(track_id): popularity})
-        await redis.expire(key, 3600)
+        import logging as _sync_log
+
+        _log = _sync_log.getLogger("catalog.sync.tasks")
+        key = make_cache_key("trending")
+        try:
+            redis = await get_cache_redis()
+            await redis.delete(key)
+            for track_id, popularity in rows:
+                await redis.zadd(key, {str(track_id): popularity})
+            await redis.expire(key, CacheTTL.TRENDING)
+        except Exception:
+            _log.debug("Redis unavailable — trending cache not updated")
 
         logger.info("Trending recalculated: %d tracks", len(rows))
         return {"status": "ok", "tracks_ranked": len(rows)}

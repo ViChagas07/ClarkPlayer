@@ -55,12 +55,13 @@ class Settings:
     # ── Redis ─────────────────────────────────────────────────────────────
     REDIS_URL: str = os.getenv(
         "REDIS_URL",
-        "redis://localhost:6379/0",
+        "",  # Empty default — Redis is optional
     )
     REDIS_PASSWORD: str = os.getenv("REDIS_PASSWORD", "")
     REDIS_SESSION_DB: int = int(os.getenv("REDIS_SESSION_DB", "0"))
     REDIS_CACHE_DB: int = int(os.getenv("REDIS_CACHE_DB", "1"))
     REDIS_RATELIMIT_DB: int = int(os.getenv("REDIS_RATELIMIT_DB", "2"))
+    CACHE_NAMESPACE: str = os.getenv("CACHE_NAMESPACE", "clarkplayer")
 
     # ── JWE (JSON Web Encryption) ────────────────────────────────────────
     # RSA key pair for JWE. In production use proper key management.
