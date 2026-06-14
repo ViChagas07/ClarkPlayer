@@ -14,6 +14,7 @@ from uuid import UUID
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.application.interfaces.repositories import (
     ICatalogAlbumRepository,
@@ -548,7 +549,10 @@ class CatalogRepository:
         offset: int = 0,
         limit: int = 50,
     ) -> list[CatalogArtistModel]:
-        stmt = select(CatalogArtistModel)
+        stmt = (
+            select(CatalogArtistModel)
+            .options(selectinload(CatalogArtistModel.genre_associations).selectinload(CatalogArtistGenreModel.genre))
+        )
         if genre:
             stmt = (
                 stmt.join(CatalogArtistGenreModel)
@@ -575,7 +579,13 @@ class CatalogRepository:
         return result.scalar_one()
 
     async def get_artist_by_id(self, artist_id: str | UUID) -> CatalogArtistModel | None:
-        return await self._session.get(CatalogArtistModel, artist_id)
+        stmt = (
+            select(CatalogArtistModel)
+            .options(selectinload(CatalogArtistModel.genre_associations).selectinload(CatalogArtistGenreModel.genre))
+            .where(CatalogArtistModel.id == artist_id)
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
 
     # ── Tracks ───────────────────────────────────────────────────────────
 
@@ -588,7 +598,10 @@ class CatalogRepository:
         offset: int = 0,
         limit: int = 50,
     ) -> list[CatalogTrackModel]:
-        stmt = select(CatalogTrackModel)
+        stmt = (
+            select(CatalogTrackModel)
+            .options(selectinload(CatalogTrackModel.artist), selectinload(CatalogTrackModel.album))
+        )
         if artist_id:
             stmt = stmt.where(CatalogTrackModel.artist_id == artist_id)
         if genre:
@@ -622,6 +635,7 @@ class CatalogRepository:
         pattern = f"%{query}%"
         stmt = (
             select(CatalogTrackModel)
+            .options(selectinload(CatalogTrackModel.artist), selectinload(CatalogTrackModel.album))
             .join(CatalogArtistModel, CatalogTrackModel.artist_id == CatalogArtistModel.id)
             .where(
                 or_(

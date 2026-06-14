@@ -28,6 +28,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import func, select
+from sqlalchemy.orm import selectinload
 
 from app.core.dependencies import SessionDep
 from app.infrastructure.models.catalog import (
@@ -492,6 +493,7 @@ async def get_artist(
 
     albums_result = await session.execute(
         select(CatalogAlbumModel)
+        .options(selectinload(CatalogAlbumModel.artist))
         .where(CatalogAlbumModel.artist_id == artist_id)
         .order_by(CatalogAlbumModel.title)
     )
@@ -586,6 +588,7 @@ async def get_artist_albums(
 
     albums_result = await session.execute(
         select(CatalogAlbumModel)
+        .options(selectinload(CatalogAlbumModel.artist))
         .where(CatalogAlbumModel.artist_id == artist_id)
         .order_by(CatalogAlbumModel.title)
         .offset(offset)
@@ -614,7 +617,12 @@ async def get_album(
     album_id: UUID,
     session: SessionDep,
 ) -> CatalogAlbumDetailResponse:
-    album = await session.get(CatalogAlbumModel, album_id)
+    album_result = await session.execute(
+        select(CatalogAlbumModel)
+        .options(selectinload(CatalogAlbumModel.artist))
+        .where(CatalogAlbumModel.id == album_id)
+    )
+    album = album_result.scalar_one_or_none()
     if album is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -623,6 +631,7 @@ async def get_album(
 
     tracks_result = await session.execute(
         select(CatalogTrackModel)
+        .options(selectinload(CatalogTrackModel.artist), selectinload(CatalogTrackModel.album))
         .where(CatalogTrackModel.album_id == album_id)
         .order_by(CatalogTrackModel.track_number)
     )
@@ -657,11 +666,12 @@ async def get_album_tracks(
     if album is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Album '{album_id}' not found in catalog.",
+             detail=f"Album '{album_id}' not found in catalog.",
         )
 
     tracks_result = await session.execute(
         select(CatalogTrackModel)
+        .options(selectinload(CatalogTrackModel.artist), selectinload(CatalogTrackModel.album))
         .where(CatalogTrackModel.album_id == album_id)
         .order_by(CatalogTrackModel.track_number)
     )
@@ -881,6 +891,7 @@ async def get_genre_tracks(
 
     tracks_result = await session.execute(
         select(CatalogTrackModel)
+        .options(selectinload(CatalogTrackModel.artist), selectinload(CatalogTrackModel.album))
         .join(
             CatalogArtistGenreModel,
             CatalogTrackModel.artist_id == CatalogArtistGenreModel.artist_id,
