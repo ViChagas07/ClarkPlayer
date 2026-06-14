@@ -214,7 +214,10 @@ function TrendingSection() {
 function GenreSection({ slug }: { slug: string }) {
   const meta = GENRE_META[slug]
   const { data, isLoading } = useDiscoverySection(
-    (d) => (d.sections as unknown as Record<string, CatalogTrackItem[]>)[slug] ?? [],
+    (d) => {
+      const section = d.sections.find((s) => s.genre === slug)
+      return section?.items ?? []
+    },
     `genre-${slug}`,
   )
 

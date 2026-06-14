@@ -48,30 +48,35 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = React.use(params)
   const searchParams = useSearchParams()
   const { setQueue } = usePlayerStore()
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const artistId = resolvedParams.id
   const artistNameFromQuery = searchParams.get('name') ?? undefined
 
-  // ── Three independent queries — no blocking on each other ──
+  // ── Skip queries during SSR to avoid backend cold‑start timeouts ──
   const {
     data: artistData,
     isLoading: artistLoading,
     isError: artistError,
     error: artistErrorObj,
     refetch: refetchArtist,
-  } = useArtist(artistId)
+  } = useArtist(mounted ? artistId : '')
 
   const {
     data: tracksData,
     isLoading: tracksLoading,
     isError: tracksError,
-  } = useArtistTracks(artistId, 30, 0)
+  } = useArtistTracks(mounted ? artistId : '', 30, 0)
 
   const {
     data: albumsData,
     isLoading: albumsLoading,
     isError: albumsError,
-  } = useArtistAlbums(artistId)
+  } = useArtistAlbums(mounted ? artistId : '')
 
   // ── Extract and validate data ──────────────────────────────
   const artist: CatalogArtistItem | undefined = artistData?.artist
@@ -80,6 +85,23 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
 
   // Safe artist name fallback chain
   const artistDisplayName = artistNameFromQuery ?? artist?.name ?? 'Unknown Artist'
+
+  // ── Pre‑mount / SSR — show skeleton immediately ──────────
+  if (!mounted) {
+    return (
+      <AppShell>
+        <div className="space-y-8 animate-pulse">
+          <div className="relative -mx-6 -mt-8 h-72 bg-gradient-to-b from-clark-bg-secondary/30 to-clark-bg-primary" />
+          <div className="h-8 bg-clark-bg-secondary/50 rounded w-48" />
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-14 bg-clark-bg-secondary/30 rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </AppShell>
+    )
+  }
 
   // ── Loading — only when NO data at all ─────────────────────
   if (artistLoading && !artist) {

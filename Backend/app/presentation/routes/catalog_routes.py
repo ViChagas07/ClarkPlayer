@@ -110,6 +110,12 @@ def _artist_to_response(artist: CatalogArtistModel, track_count: int = 0) -> Cat
 
 
 def _track_to_item(track: CatalogTrackModel) -> CatalogTrackItem:
+    # Artwork fallback chain: album cover → artist image → None
+    album_cover = (
+        track.album.cover_url
+        if (track.album and track.album.cover_url)
+        else (track.artist.image_url if track.artist else None)
+    )
     return CatalogTrackItem(
         id=str(track.id),
         title=track.title,
@@ -117,7 +123,7 @@ def _track_to_item(track: CatalogTrackModel) -> CatalogTrackItem:
         artist_name=track.artist.name if track.artist else "Unknown",
         album_id=str(track.album_id) if track.album_id else None,
         album_title=track.album.title if track.album else None,
-        album_cover=track.album.cover_url if track.album else None,
+        album_cover=album_cover,
         preview_url=track.preview_url,
         duration_ms=track.duration_ms,
         popularity=track.popularity,
@@ -129,7 +135,12 @@ def _track_to_item(track: CatalogTrackModel) -> CatalogTrackItem:
 def _track_to_response(track: CatalogTrackModel) -> CatalogTrackResponse:
     artist_name = track.artist.name if track.artist else "Unknown"
     album_title = track.album.title if track.album else None
-    album_cover = track.album.cover_url if track.album else None
+    # Artwork fallback chain: album cover → artist image → None
+    album_cover = (
+        track.album.cover_url
+        if (track.album and track.album.cover_url)
+        else (track.artist.image_url if track.artist else None)
+    )
 
     return CatalogTrackResponse(
         id=str(track.id),

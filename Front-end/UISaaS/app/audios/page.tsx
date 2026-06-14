@@ -5,9 +5,8 @@ import { AppShell } from '@/components/layout/AppShell'
 import { TrackRow } from '@/components/library/TrackRow'
 import { usePlayerStore } from '@/store/playerStore'
 import { useTranslation } from '@/hooks/useTranslation'
-import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
-import type { Track, TrackResponse, UnifiedSearchResult } from '@/types'
+import type { Track, CatalogTrackItem, CatalogDiscoveryResponse } from '@/types'
 import {
   ArrowDownAZ,
   ArrowUpAZ,
@@ -18,11 +17,10 @@ import {
   Play,
   TrendingUp,
   Loader2,
-  LogIn,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type SortKey = 'title' | 'artist' | 'album' | 'duration' | 'addedAt' | 'format'
+type SortKey = 'title' | 'artist' | 'album' | 'duration' | 'format'
 type SortDir = 'asc' | 'desc'
 
 function formatDuration(totalSeconds: number): string {
@@ -40,29 +38,25 @@ function formatTrackDuration(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-function apiTrackToTrack(api: TrackResponse): Track {
+function catalogTrackToTrack(item: CatalogTrackItem): Track {
   return {
-    id: api.id,
-    title: api.title,
-    artist: api.artist ?? 'Unknown',
-    album: api.album ?? 'Unknown',
-    duration: api.duration ?? 0,
-    format: (api.file_format as Track['format']) ?? 'MP3',
-    coverUrl: api.cover_art_path ?? undefined,
-    year: api.year ?? undefined,
-    genre: api.genre ?? undefined,
-    playCount: api.play_count,
-    isFavorite: api.is_favorite,
-    addedAt: api.created_at,
+    id: item.id,
+    title: item.title,
+    artist: item.artist_name ?? 'Unknown',
+    album: item.album_title ?? 'Unknown',
+    duration: item.duration_ms ? Math.round(item.duration_ms / 1000) : 0,
+    format: 'MP3',
+    coverUrl: item.album_cover ?? undefined,
+    previewUrl: item.preview_url ?? undefined,
+    isPreview: false,
   }
 }
+
+const DISCOVERY_KEY = ['catalog', 'discovery']
 
 export default function AudiosPage() {
   const { t } = useTranslation()
   const { setQueue, currentTrack, isPlaying } = usePlayerStore()
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-  const accessToken = useAuthStore((s) => s.accessToken)
-  const setShowAuthModal = useAuthStore((s) => s.setShowAuthModal)
 
   const [sortKey, setSortKey] = useState<SortKey>('title')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
@@ -74,26 +68,29 @@ export default function AudiosPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
 
-  const [trendingTracks, setTrendingTracks] = useState<UnifiedSearchResult[]>([])
+  const [trendingTracks, setTrendingTracks] = useState<CatalogTrackItem[]>([])
   const [trendingLoading, setTrendingLoading] = useState(true)
 
+  // ── Load catalog tracks (no auth required) ──────────────────────
   useEffect(() => {
-    if (!isAuthenticated || !accessToken) {
-      setTracks([])
-      setIsLoading(false)
-      setLoadError(false)
-      return
-    }
-
     let cancelled = false
     setIsLoading(true)
     setLoadError(false)
 
     async function loadTracks() {
       try {
-        const res = await api.listTracks(accessToken!, new URLSearchParams('limit=100'))
+        // Fetch catalog tracks with preview URLs (public endpoint)
+        const qs = new URLSearchParams({
+          limit: '100',
+          has_preview: 'false',
+          offset: '0',
+        })
+        const res = await fetch(`/api/v1/catalog/tracks?${qs.toString()}`)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data = await res.json()
+        const items: CatalogTrackItem[] = data.tracks ?? []
         if (cancelled) return
-        setTracks(res.items.map(apiTrackToTrack))
+        setTracks(items.map(catalogTrackToTrack))
       } catch {
         if (!cancelled) setLoadError(true)
       } finally {
@@ -103,25 +100,20 @@ export default function AudiosPage() {
 
     loadTracks()
     return () => { cancelled = true }
-  }, [isAuthenticated, accessToken])
+  }, [])
 
+  // ── Load trending tracks from discovery API ─────────────────────
   useEffect(() => {
     let cancelled = false
     async function loadTrending() {
-      const queries = [
-        'Blinding Lights', 'Shape of You', 'Bohemian Rhapsody',
-        'Dance Monkey', 'Uptown Funk', 'Rolling in the Deep',
-      ]
-      const results: UnifiedSearchResult[] = []
-      for (const q of queries) {
-        if (cancelled) return
-        try {
-          const data = await api.musicSearch(q, 1)
-          const track = data.tracks[0]
-          if (track) results.push(track)
-        } catch { /* skip */ }
-      }
-      if (!cancelled) setTrendingTracks(results)
+      try {
+        const res = await fetch('/api/v1/catalog/discovery')
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data: CatalogDiscoveryResponse = await res.json()
+        if (!cancelled) {
+          setTrendingTracks(data.trending_tracks ?? [])
+        }
+      } catch { /* skip trending on error */ }
       if (!cancelled) setTrendingLoading(false)
     }
     loadTrending()
@@ -143,7 +135,6 @@ export default function AudiosPage() {
         case 'artist': cmp = a.artist.localeCompare(b.artist); break
         case 'album': cmp = a.album.localeCompare(b.album); break
         case 'duration': cmp = a.duration - b.duration; break
-        case 'addedAt': cmp = (a.addedAt ?? '').localeCompare(b.addedAt ?? ''); break
         case 'format': cmp = a.format.localeCompare(b.format); break
       }
       return sortDir === 'asc' ? cmp : -cmp
@@ -182,131 +173,12 @@ export default function AudiosPage() {
     </span>
   )
 
-  if (!isAuthenticated) {
-    return (
-      <AppShell>
-        <div className="space-y-6">
-          <h1 className="font-display text-3xl tracking-widest uppercase">{t('allTracks')}</h1>
-
-          {/* Login CTA */}
-          <div className="flex flex-col items-center justify-center py-12 px-6 rounded-2xl bg-gradient-to-b from-clark-bg-secondary to-clark-bg-card border border-clark-steel/20 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-clark-accent/10 flex items-center justify-center mb-4">
-              <LogIn className="w-8 h-8 text-clark-accent" />
-            </div>
-            <h2 className="font-display text-xl tracking-wider text-clark-text-primary mb-2">
-              {t('signInToViewLibrary')}
-            </h2>
-            <p className="font-body text-sm text-clark-text-muted max-w-md mb-6">
-              {t('signInToViewLibraryDesc')}
-            </p>
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-clark-accent hover:bg-clark-accent-hover font-body font-semibold text-white rounded-lg transition-all hover:-translate-y-0.5 shadow-glow-hero"
-            >
-              <LogIn className="w-4 h-4" />
-              {t('signIn')}
-            </button>
-          </div>
-
-          {/* Trending Now section */}
-          <section>
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="w-5 h-5 text-clark-gold" />
-              <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase">Trending Now</h2>
-            </div>
-
-            {trendingLoading ? (
-              <div className="flex gap-4 overflow-x-auto pb-2">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-44 animate-pulse">
-                    <div className="w-44 h-44 rounded-xl bg-clark-bg-secondary" />
-                    <div className="h-4 bg-clark-bg-secondary rounded mt-3 w-3/4" />
-                    <div className="h-3 bg-clark-bg-secondary rounded mt-1 w-1/2" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-thin">
-                {trendingTracks.map((result, idx) => {
-                  const track = result.track
-                  const artist = result.artist
-                  const album = result.album
-                  const coverUrl = result.cover_url ?? album?.cover_url ?? null
-                  if (!track) return null
-
-                  function playThis() {
-                    const allTrackObjs: Track[] = trendingTracks
-                      .filter((r) => r.track)
-                      .map((r, i) => ({
-                        id: r.track?.mbid ?? `trending-${i}`,
-                        title: r.track?.title ?? '',
-                        artist: r.artist?.name ?? '',
-                        album: r.album?.title ?? '',
-                        duration: r.track?.duration ? Math.round(r.track.duration / 1000) : 200,
-                        format: 'MP3' as const,
-                        coverUrl: r.cover_url ?? r.album?.cover_url ?? undefined,
-                      }))
-                    setQueue(allTrackObjs, idx)
-                  }
-
-                  return (
-                    <div
-                      key={track.mbid ?? `trending-${idx}`}
-                      onClick={playThis}
-                      className="group flex-shrink-0 w-44 cursor-pointer p-2.5 rounded-xl hover:bg-clark-bg-secondary/60 transition-all duration-200 hover:scale-[1.02]"
-                    >
-                      <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-lg">
-                        {coverUrl ? (
-                          <img
-                            src={coverUrl}
-                            alt={track.title}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Music className="w-10 h-10 text-white/20" />
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <div className="w-12 h-12 rounded-full bg-clark-accent flex items-center justify-center shadow-xl">
-                            <Play className="w-5 h-5 text-white ml-0.5" />
-                          </div>
-                        </div>
-                      </div>
-
-                      <p className="font-body font-semibold text-sm text-clark-text-primary mt-3 truncate">
-                        {track.title}
-                      </p>
-                      <p className="font-body text-xs text-clark-text-muted truncate">
-                        {artist?.name ?? 'Unknown'}
-                      </p>
-
-                      {result.popularity > 0 && (
-                        <div className="mt-2 h-1 bg-clark-bg-secondary rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-clark-gold to-clark-accent"
-                            style={{ width: `${result.popularity}%` }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </section>
-        </div>
-      </AppShell>
-    )
-  }
-
   return (
     <AppShell>
       <div className="space-y-6">
         <h1 className="font-display text-3xl tracking-widest uppercase">{t('allTracks')}</h1>
 
-        {/* Trending Now */}
+        {/* Trending Now — powered by discovery API (no auth, diverse) */}
         <section>
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-clark-gold" />
@@ -325,31 +197,21 @@ export default function AudiosPage() {
             </div>
           ) : (
             <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-thin">
-              {trendingTracks.map((result, idx) => {
-                const track = result.track
-                const artist = result.artist
-                const album = result.album
-                const coverUrl = result.cover_url ?? album?.cover_url ?? null
-                if (!track) return null
+              {trendingTracks.slice(0, 20).map((item, idx) => {
+                const coverUrl = item.album_cover ?? null
+                if (!item) return null
 
                 function playThis() {
                   const allTrackObjs: Track[] = trendingTracks
-                    .filter((r) => r.track)
-                    .map((r, i) => ({
-                      id: r.track?.mbid ?? `trending-${i}`,
-                      title: r.track?.title ?? '',
-                      artist: r.artist?.name ?? '',
-                      album: r.album?.title ?? '',
-                      duration: r.track?.duration ? Math.round(r.track.duration / 1000) : 200,
-                      format: 'MP3' as const,
-                      coverUrl: r.cover_url ?? r.album?.cover_url ?? undefined,
-                    }))
+                    .slice(0, 20)
+                    .filter(Boolean)
+                    .map((t, i) => catalogTrackToTrack(t))
                   setQueue(allTrackObjs, idx)
                 }
 
                 return (
                   <div
-                    key={track.mbid ?? `trending-${idx}`}
+                    key={item.id ?? `trending-${idx}`}
                     onClick={playThis}
                     className="group flex-shrink-0 w-44 cursor-pointer p-2.5 rounded-xl hover:bg-clark-bg-secondary/60 transition-all duration-200 hover:scale-[1.02]"
                   >
@@ -357,7 +219,7 @@ export default function AudiosPage() {
                       {coverUrl ? (
                         <img
                           src={coverUrl}
-                          alt={track.title}
+                          alt={item.title}
                           className="w-full h-full object-cover"
                           loading="lazy"
                         />
@@ -374,17 +236,17 @@ export default function AudiosPage() {
                     </div>
 
                     <p className="font-body font-semibold text-sm text-clark-text-primary mt-3 truncate">
-                      {track.title}
+                      {item.title}
                     </p>
                     <p className="font-body text-xs text-clark-text-muted truncate">
-                      {artist?.name ?? 'Unknown'}
+                      {item.artist_name ?? 'Unknown'}
                     </p>
 
-                    {result.popularity > 0 && (
+                    {item.popularity > 0 && (
                       <div className="mt-2 h-1 bg-clark-bg-secondary rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full bg-gradient-to-r from-clark-gold to-clark-accent"
-                          style={{ width: `${result.popularity}%` }}
+                          style={{ width: `${Math.min(item.popularity, 100)}%` }}
                         />
                       </div>
                     )}
@@ -441,7 +303,6 @@ export default function AudiosPage() {
                 ['artist', t('artistColumn')],
                 ['album', t('albumColumn')],
                 ['duration', t('durationColumn')],
-                ['addedAt', t('dateAdded')],
                 ['format', t('formatColumn')],
               ] as [SortKey, string][]).map(([key, label]) => (
                 <button
@@ -516,22 +377,10 @@ export default function AudiosPage() {
                 Failed to load tracks
               </p>
               <p className="font-body text-sm text-clark-text-muted mb-4">
-                Please check your connection and try again.
+                The catalog backend may be starting up. Please try again in a moment.
               </p>
               <button
-                onClick={() => {
-                  setLoadError(false)
-                  setIsLoading(true)
-                  api.listTracks(accessToken!, new URLSearchParams('limit=100'))
-                    .then((res) => {
-                      setTracks(res.items.map(apiTrackToTrack))
-                      setIsLoading(false)
-                    })
-                    .catch(() => {
-                      setLoadError(true)
-                      setIsLoading(false)
-                    })
-                }}
+                onClick={() => window.location.reload()}
                 className="px-5 py-2 bg-clark-accent hover:bg-clark-accent-hover font-body font-medium text-white rounded-lg transition-colors"
               >
                 Retry

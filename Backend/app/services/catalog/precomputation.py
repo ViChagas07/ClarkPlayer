@@ -55,6 +55,12 @@ def _artist_to_dict(artist: CatalogArtistModel) -> dict:
 
 
 def _track_to_dict(track: CatalogTrackModel) -> dict:
+    # Artwork fallback chain: album cover → artist image → None
+    album_cover = (
+        track.album.cover_url
+        if (track.album and track.album.cover_url)
+        else (track.artist.image_url if track.artist else None)
+    )
     return {
         "id": str(track.id),
         "title": track.title,
@@ -62,7 +68,7 @@ def _track_to_dict(track: CatalogTrackModel) -> dict:
         "artist_name": track.artist.name if track.artist else "Unknown",
         "album_id": str(track.album_id) if track.album_id else None,
         "album_title": track.album.title if track.album else None,
-        "album_cover": track.album.cover_url if track.album else None,
+        "album_cover": album_cover,
         "preview_url": track.preview_url,
         "duration_ms": track.duration_ms,
         "popularity": track.popularity,
@@ -149,20 +155,39 @@ class DiscoveryPrecomputation:
     # ── Trending Tracks ────────────────────────────────────────────────────
 
     async def get_trending_tracks(self, limit: int = 100) -> list[dict]:
-        """Return top *limit* tracks by popularity with preview URLs."""
+        """Return diverse trending tracks — max 3 per artist, ordered by popularity."""
         cached = await self._cache.get_cached_discovery("trending_tracks")
         if cached and len(cached) >= limit:
             return cached[:limit]
 
+        # CTE: rank tracks within each artist by popularity descending
+        ranked = (
+            select(
+                CatalogTrackModel.id.label("inner_id"),
+                func.row_number()
+                .over(
+                    partition_by=CatalogTrackModel.artist_id,
+                    order_by=CatalogTrackModel.popularity.desc(),
+                )
+                .label("rn"),
+            )
+            .where(CatalogTrackModel.preview_url.is_not(None))
+            .cte("trending_ranked")
+        )
+
         stmt = (
             select(CatalogTrackModel)
-            .options(selectinload(CatalogTrackModel.artist), selectinload(CatalogTrackModel.album))
-            .where(CatalogTrackModel.preview_url.is_not(None))
+            .options(
+                selectinload(CatalogTrackModel.artist),
+                selectinload(CatalogTrackModel.album),
+            )
+            .join(ranked, CatalogTrackModel.id == ranked.c.inner_id)
+            .where(ranked.c.rn <= 3)
             .order_by(CatalogTrackModel.popularity.desc())
             .limit(limit)
         )
         result = await self._session.execute(stmt)
-        data = [_track_to_dict(t) for t in result.scalars()]
+        data = [_track_to_dict(t) for t in result.scalars().unique()]
         await self._cache.set_cached_discovery("trending_tracks", data)
         return data
 
@@ -274,15 +299,22 @@ class DiscoveryPrecomputation:
     # ── Genre Section ──────────────────────────────────────────────────────
 
     async def get_genre_section(self, genre_slug: str, limit: int = 12) -> list[dict]:
-        """Return top *limit* tracks for a given genre slug."""
+        """Return diverse top *limit* tracks for a given genre slug — max 2 per artist."""
         section_key = f"genre:{genre_slug}"
         cached = await self._cache.get_cached_discovery(section_key)
         if cached and len(cached) >= limit:
             return cached[:limit]
 
-        stmt = (
-            select(CatalogTrackModel)
-            .options(selectinload(CatalogTrackModel.artist), selectinload(CatalogTrackModel.album))
+        ranked = (
+            select(
+                CatalogTrackModel.id.label("inner_id"),
+                func.row_number()
+                .over(
+                    partition_by=CatalogTrackModel.artist_id,
+                    order_by=CatalogTrackModel.popularity.desc(),
+                )
+                .label("rn"),
+            )
             .join(
                 CatalogArtistGenreModel,
                 CatalogTrackModel.artist_id == CatalogArtistGenreModel.artist_id,
@@ -293,6 +325,17 @@ class DiscoveryPrecomputation:
             )
             .where(CatalogGenreModel.slug == genre_slug)
             .where(CatalogTrackModel.preview_url.is_not(None))
+            .cte("genre_ranked")
+        )
+
+        stmt = (
+            select(CatalogTrackModel)
+            .options(
+                selectinload(CatalogTrackModel.artist),
+                selectinload(CatalogTrackModel.album),
+            )
+            .join(ranked, CatalogTrackModel.id == ranked.c.inner_id)
+            .where(ranked.c.rn <= 2)
             .order_by(CatalogTrackModel.popularity.desc())
             .limit(limit)
         )
