@@ -63,7 +63,8 @@ export function useArtist(artistId: string) {
     queryFn: () => api.catalogArtist(artistId),
     enabled: !!artistId,
     staleTime: 10 * 60 * 1000,
-    placeholderData: queryClient.getQueryData<CatalogArtistResponse>(qKey),
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   })
 }
 
