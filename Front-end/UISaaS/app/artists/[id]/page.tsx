@@ -19,7 +19,6 @@ import {
   Activity,
   AlertCircle,
   RefreshCw,
-  Loader2,
 } from 'lucide-react'
 
 // ── Track to player Track mapper ────────────────────────────
@@ -62,7 +61,6 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
     data: artistData,
     isLoading: artistLoading,
     isError: artistError,
-    error: artistErrorObj,
     refetch: refetchArtist,
   } = useArtist(mounted ? artistId : '')
 
@@ -120,56 +118,61 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
     )
   }
 
-  // ── Error — API failed and no cached data ──────────────────
+  // ── Error — artist API failed ────────────────────────────
+  // Show degraded page with name from URL + retry
   if (artistError && !artist) {
-    const errMsg = artistErrorObj instanceof Error ? artistErrorObj.message : 'Unknown error'
     return (
       <AppShell>
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <AlertCircle className="w-12 h-12 text-clark-gold/60 mb-4" />
-          <h2 className="font-display text-xl text-clark-text-primary mb-2">
-            {artistNameFromQuery ?? 'Could not load artist'}
-          </h2>
-          <p className="font-body text-sm text-clark-text-muted mb-2 max-w-md">
-            {errMsg.includes('Network')
-              ? 'Backend unreachable — try again in a moment.'
-              : errMsg.includes('404') || errMsg.includes('not found')
-                ? 'This artist is not in the catalog yet.'
-                : `Error: ${errMsg}`}
-          </p>
-          <div className="flex items-center gap-3 mt-2">
-            <button
-              onClick={() => refetchArtist()}
-              className="flex items-center gap-2 px-4 py-2 bg-clark-accent hover:bg-clark-accent-hover text-white rounded-full font-body text-sm transition-colors"
-            >
-              <RefreshCw className="w-4 h-4" /> Retry
-            </button>
-            <Link href="/artists" className="text-clark-gold font-body text-sm hover:underline">
-              Back to Artists
-            </Link>
+        <div className="space-y-8">
+          {/* Degraded hero — shows artist name from URL */}
+          <div className="relative -mx-6 -mt-8 h-64 bg-gradient-to-b from-clark-bg-secondary to-clark-bg-primary overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-t from-clark-bg-primary via-transparent to-transparent" />
+            <div className="relative z-10 flex items-end h-full px-6 pb-6">
+              <div className="flex-1 min-w-0">
+                <h1 className="font-display text-4xl md:text-7xl tracking-widest uppercase text-clark-text-primary truncate">
+                  {artistDisplayName}
+                </h1>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <AlertCircle className="w-12 h-12 text-clark-gold/60 mb-4" />
+            <h2 className="font-display text-xl text-clark-text-primary mb-2">Could not load artist</h2>
+            <p className="font-body text-sm text-clark-text-muted mb-4 max-w-md">
+              An unexpected error occurred while loading this artist.
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => refetchArtist()}
+                className="flex items-center gap-2 px-4 py-2 bg-clark-accent hover:bg-clark-accent-hover text-white rounded-full font-body text-sm transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" /> Retry
+              </button>
+              <Link href="/artists" className="text-clark-gold font-body text-sm hover:underline">
+                Back to Artists
+              </Link>
+            </div>
           </div>
         </div>
       </AppShell>
     )
   }
 
-  // ── Missing artist after load (data shape mismatch) ────────
+  // ── Fallback — no artist data but no explicit error ──────
   if (!artist) {
     return (
       <AppShell>
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Music className="w-12 h-12 text-clark-text-muted/30 mb-4" />
           <h2 className="font-display text-xl text-clark-text-primary mb-2">
-            {artistNameFromQuery ?? 'Artist data unavailable'}
+            {artistDisplayName}
           </h2>
-          <p className="font-body text-sm text-clark-text-muted mb-4">
-            The response format may have changed. Please refresh.
-          </p>
           <button
             onClick={() => refetchArtist()}
-            className="flex items-center gap-2 px-4 py-2 bg-clark-accent hover:bg-clark-accent-hover text-white rounded-full font-body text-sm transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-clark-accent hover:bg-clark-accent-hover text-white rounded-full font-body text-sm transition-colors mt-4"
           >
-            <RefreshCw className="w-4 h-4" /> Refresh
+            <RefreshCw className="w-4 h-4" /> Load Artist
           </button>
         </div>
       </AppShell>
