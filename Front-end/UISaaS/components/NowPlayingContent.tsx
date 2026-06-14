@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Music, ListMusic, TrendingUp, Headphones, Globe, Mic2, Disc3, Radio, Zap, Heart } from 'lucide-react'
 import { usePlayerStore } from '@/store/playerStore'
 import { useSettingsStore } from '@/store/settingsStore'
+import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/hooks/useTranslation'
 import { queryClient } from '@/lib/queryClient'
 import { api } from '@/lib/api'
@@ -348,16 +349,24 @@ export function NowPlayingContent() {
 
   // ── Sleep timer restore ────────────────────────────────────────
   useEffect(() => {
+    const token = useAuthStore.getState().accessToken
+    if (!token) return
+
     async function restore() {
       try {
-        const res = await fetch('/api/v1/player/sleep-timer')
+        const res = await fetch('/api/v1/player/sleep-timer', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
         if (res.ok) {
           const data = await res.json()
           if (data.expires_at != null) {
             const now = Date.now()
             if (data.expires_at > now) setSleepTimer(data.expires_at)
             else {
-              await fetch('/api/v1/player/sleep-timer', { method: 'DELETE' })
+              await fetch('/api/v1/player/sleep-timer', {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+              })
               setSleepTimer(null)
             }
           }
