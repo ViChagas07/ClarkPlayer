@@ -112,10 +112,10 @@ export function NowPlayingContent() {
       id: item.id ?? `preview-${idx}`,
       title: item.title,
       artist: item.artist_name,
-      album: item.album_name ?? '',
-      duration: item.duration ? Math.round(item.duration / 1000) : 30,
+      album: item.album_title ?? '',
+      duration: item.duration_ms ? Math.round(item.duration_ms / 1000) : 30,
       format: 'MP3',
-      coverUrl: item.cover_url ?? undefined,
+      coverUrl: item.album_cover ?? undefined,
       previewUrl: item.preview_url,
       isPreview: true,
     }
@@ -134,9 +134,9 @@ export function NowPlayingContent() {
               className="group p-3 rounded-xl bg-clark-bg-secondary hover:bg-clark-bg-card transition-all duration-200 border border-transparent hover:border-clark-steel/20"
             >
               <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md">
-                {item.cover_url ? (
+                {item.album_cover ? (
                   <Image
-                    src={item.cover_url}
+                    src={item.album_cover}
                     alt={`${item.title} album art`}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"

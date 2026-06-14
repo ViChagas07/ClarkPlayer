@@ -27,10 +27,10 @@ function catalogTrackToPlayerTrack(item: CatalogTrackItem): Track {
     id: item.id,
     title: item.title,
     artist: item.artist_name,
-    album: item.album_name ?? '',
-    duration: item.duration ? Math.round(item.duration / 1000) : 200,
+    album: item.album_title ?? '',
+    duration: item.duration_ms ? Math.round(item.duration_ms / 1000) : 200,
     format: 'MP3',
-    coverUrl: item.cover_url ?? undefined,
+    coverUrl: item.album_cover ?? undefined,
     previewUrl: item.preview_url ?? null,
   }
 }
@@ -91,9 +91,9 @@ export default function SearchPage() {
       >
         {/* Cover art */}
         <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-clark-bg-card">
-          {item.cover_url ? (
+          {item.album_cover ? (
             <img
-              src={item.cover_url}
+              src={item.album_cover}
               alt={item.title}
               className="w-full h-full object-cover"
               loading="lazy"
@@ -130,10 +130,10 @@ export default function SearchPage() {
           </div>
           <div className="flex items-center gap-2">
             <p className="font-body text-xs text-clark-text-muted truncate">{item.artist_name}</p>
-            {item.album_name && (
+            {item.album_title && (
               <>
                 <span className="text-clark-text-muted/40">&middot;</span>
-                <p className="font-body text-xs text-clark-text-muted/70 truncate">{item.album_name}</p>
+                <p className="font-body text-xs text-clark-text-muted/70 truncate">{item.album_title}</p>
               </>
             )}
           </div>
@@ -167,10 +167,10 @@ export default function SearchPage() {
             </div>
           )}
 
-          {item.duration && (
+          {item.duration_ms && (
             <span className="flex items-center gap-1 font-condensed text-xs text-clark-text-muted">
               <Clock className="w-3 h-3" />
-              {formatDuration(item.duration)}
+              {formatDuration(item.duration_ms)}
             </span>
           )}
         </div>

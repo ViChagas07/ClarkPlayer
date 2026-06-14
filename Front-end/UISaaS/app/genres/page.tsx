@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useGenres } from '@/hooks/useCatalog'
 import { getCachedCatalogData, setCachedCatalogData } from '@/lib/catalogCache'
+import { getGenreImage } from '@/lib/genre-image-map'
 import { cn } from '@/lib/utils'
 import type { CatalogGenreItem } from '@/types'
 import Image from 'next/image'
@@ -114,6 +115,7 @@ export default function GenresPage() {
             {displayGenres.map((genre, i) => {
               const layoutIdx = i % mosaicLayout.length
               const gradient = getGenreGradient(genre.slug)
+              const localImage = getGenreImage(genre.slug)
               return (
                 <Link
                   key={genre.slug}
@@ -123,10 +125,10 @@ export default function GenresPage() {
                     mosaicLayout[layoutIdx],
                   )}
                 >
-                  {/* Genre cover image or gradient fallback */}
-                  {genre.cover_url ? (
+                  {/* Genre cover image (local) or gradient fallback */}
+                  {localImage ? (
                     <Image
-                      src={genre.cover_url}
+                      src={localImage}
                       alt={genre.name}
                       fill
                       className="object-cover"

@@ -26,10 +26,10 @@ function toPlayerTrack(item: CatalogTrackItem, idx: number, artistName: string):
     id: item.id ?? `artist-track-${idx}`,
     title: item.title,
     artist: item.artist_name || artistName,
-    album: item.album_name ?? '',
-    duration: item.duration ? Math.round(item.duration / 1000) : 200,
+    album: item.album_title ?? '',
+    duration: item.duration_ms ? Math.round(item.duration_ms / 1000) : 200,
     format: 'MP3',
-    coverUrl: item.cover_url ?? undefined,
+    coverUrl: item.album_cover ?? undefined,
     previewUrl: item.preview_url ?? null,
   }
 }
@@ -237,9 +237,9 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
 
                     {/* Cover */}
                     <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-clark-bg-card">
-                      {track.cover_url ? (
+                      {track.album_cover ? (
                         <Image
-                          src={track.cover_url}
+                          src={track.album_cover}
                           alt={`${track.title} cover`}
                           fill
                           sizes="2.5rem"
@@ -305,9 +305,9 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
                     )}
 
                     {/* Duration */}
-                    {track.duration && (
+                    {track.duration_ms && (
                       <span className="font-condensed text-xs text-clark-text-muted flex-shrink-0 w-10 text-right">
-                        {formatDuration(track.duration)}
+                        {formatDuration(track.duration_ms)}
                       </span>
                     )}
                   </div>

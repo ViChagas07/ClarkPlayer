@@ -361,14 +361,16 @@ export interface SimilarArtistsResponse {
 export interface CatalogTrackItem {
   id: string
   title: string
+  artist_id: string
   artist_name: string
-  album_name: string | null
-  cover_url: string | null
+  album_id: string | null
+  album_title: string | null
+  album_cover: string | null
   preview_url: string | null
-  duration: number | null
-  genres: string[]
+  duration_ms: number | null
   popularity: number
-  playcount: number
+  explicit: boolean
+  isrc: string | null
 }
 
 export interface CatalogArtistItem {
