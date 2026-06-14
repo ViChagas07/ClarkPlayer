@@ -159,7 +159,7 @@ export default function ArtistsPage() {
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-              {filteredArtists.map((artist) => (
+              {filteredArtists.filter(Boolean).map((artist) => (
                 <Link
                   key={artist.id}
                   href={`/artists/${artist.id}?name=${encodeURIComponent(artist.name)}`}

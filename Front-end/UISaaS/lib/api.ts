@@ -27,6 +27,7 @@ import type {
   UnifiedArtistResponse,
   SimilarArtistsResponse,
   CatalogDiscoveryResponse,
+  CatalogDiscoverySection,
   CatalogSearchResponse,
   CatalogListResponse,
   CatalogArtistItem,
@@ -598,7 +599,24 @@ export const api = {
   // ── Catalog endpoints (local DB) ──────────────────────────────────
 
   catalogDiscovery(): Promise<CatalogDiscoveryResponse> {
-    return _fetch<CatalogDiscoveryResponse>('/api/v1/catalog/discovery')
+    return _fetch<any>('/api/v1/catalog/discovery').then((data) => {
+      // Convert dict sections to array format expected by frontend
+      const sectionsDict = data.sections ?? {}
+      const sectionsArray: CatalogDiscoverySection[] = Object.entries(sectionsDict).map(([genre, items]) => ({
+        genre,
+        label: genre.charAt(0).toUpperCase() + genre.slice(1),
+        items: (items as any[]) ?? [],
+      }))
+      return {
+        top_artists: data.top_artists ?? [],
+        trending_tracks: data.trending_tracks ?? [],
+        featured_albums: data.featured_albums ?? [],
+        popular_genres: data.popular_genres ?? [],
+        brazilian_artists: data.brazilian_artists ?? [],
+        international_artists: data.international_artists ?? [],
+        sections: sectionsArray,
+      }
+    })
   },
 
   catalogSearch(query: string, limit: number = 20, offset: number = 0): Promise<CatalogSearchResponse> {
@@ -608,7 +626,12 @@ export const api = {
 
   catalogArtists(limit: number = 30, offset: number = 0, sort: string = 'popularity'): Promise<CatalogListResponse<CatalogArtistItem>> {
     const qs = new URLSearchParams({ limit: String(limit), offset: String(offset), sort })
-    return _fetch<CatalogListResponse<CatalogArtistItem>>(`/api/v1/catalog/artists?${qs.toString()}`)
+    return _fetch<any>(`/api/v1/catalog/artists?${qs.toString()}`).then((data) => ({
+      items: data.artists ?? [],
+      total: data.total ?? 0,
+      offset: data.offset ?? 0,
+      limit: data.limit ?? limit,
+    }))
   },
 
   catalogArtist(artistId: string): Promise<CatalogArtistResponse> {
@@ -617,11 +640,16 @@ export const api = {
 
   catalogArtistTracks(artistId: string, limit: number = 20, offset: number = 0): Promise<CatalogListResponse<CatalogTrackItem>> {
     const qs = new URLSearchParams({ limit: String(limit), offset: String(offset) })
-    return _fetch<CatalogListResponse<CatalogTrackItem>>(`/api/v1/catalog/artists/${encodeURIComponent(artistId)}/tracks?${qs.toString()}`)
+    return _fetch<any>(`/api/v1/catalog/artists/${encodeURIComponent(artistId)}/tracks?${qs.toString()}`).then((data) => ({
+      items: data.tracks ?? [],
+      total: data.total ?? 0,
+      offset: data.offset ?? 0,
+      limit: data.limit ?? limit,
+    }))
   },
 
   catalogArtistAlbums(artistId: string): Promise<CatalogAlbumItem[]> {
-    return _fetch<CatalogAlbumItem[]>(`/api/v1/catalog/artists/${encodeURIComponent(artistId)}/albums`)
+    return _fetch<any>(`/api/v1/catalog/artists/${encodeURIComponent(artistId)}/albums`).then((data) => data.albums ?? [])
   },
 
   catalogAlbum(albumId: string): Promise<CatalogAlbumResponse> {
@@ -629,7 +657,7 @@ export const api = {
   },
 
   catalogAlbumTracks(albumId: string): Promise<CatalogTrackItem[]> {
-    return _fetch<CatalogTrackItem[]>(`/api/v1/catalog/albums/${encodeURIComponent(albumId)}/tracks`)
+    return _fetch<any>(`/api/v1/catalog/albums/${encodeURIComponent(albumId)}/tracks`).then((data) => data.tracks ?? [])
   },
 
   catalogTrack(trackId: string): Promise<CatalogTrackResponse> {
@@ -646,12 +674,22 @@ export const api = {
 
   catalogGenreTracks(slug: string, limit: number = 20, offset: number = 0): Promise<CatalogListResponse<CatalogTrackItem>> {
     const qs = new URLSearchParams({ limit: String(limit), offset: String(offset) })
-    return _fetch<CatalogListResponse<CatalogTrackItem>>(`/api/v1/catalog/genres/${encodeURIComponent(slug)}/tracks?${qs.toString()}`)
+    return _fetch<any>(`/api/v1/catalog/genres/${encodeURIComponent(slug)}/tracks?${qs.toString()}`).then((data) => ({
+      items: data.tracks ?? [],
+      total: data.total ?? 0,
+      offset: data.offset ?? 0,
+      limit: data.limit ?? limit,
+    }))
   },
 
   catalogBrazilian(limit: number = 20, offset: number = 0): Promise<CatalogListResponse<CatalogArtistItem>> {
     const qs = new URLSearchParams({ limit: String(limit), offset: String(offset) })
-    return _fetch<CatalogListResponse<CatalogArtistItem>>(`/api/v1/catalog/brazilian?${qs.toString()}`)
+    return _fetch<any>(`/api/v1/catalog/brazilian?${qs.toString()}`).then((data) => ({
+      items: data.artists ?? [],
+      total: data.total ?? 0,
+      offset: data.offset ?? 0,
+      limit: data.limit ?? limit,
+    }))
   },
 
   catalogAutocomplete(query: string): Promise<CatalogAutocompleteResponse> {
