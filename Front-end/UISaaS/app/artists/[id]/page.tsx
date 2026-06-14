@@ -331,8 +331,12 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
                 return (
                   <div
                     key={track.id ?? idx}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Play ${track.title} by ${track.artist_name || artistDisplayName}`}
                     className="group flex items-center gap-4 px-4 py-2.5 rounded-xl hover:bg-clark-bg-secondary/60 transition-all duration-200 cursor-pointer border border-transparent hover:border-clark-steel/20"
-                    onDoubleClick={() => handlePlayTrack(track, idx)}
+                    onClick={() => handlePlayTrack(track, idx)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handlePlayTrack(track, idx) } }}
                   >
                     <span className="w-6 text-right font-condensed text-xs text-clark-text-muted/50 flex-shrink-0">
                       {idx + 1}

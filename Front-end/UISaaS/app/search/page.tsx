@@ -86,8 +86,12 @@ export default function SearchPage() {
     return (
       <div
         key={item.id}
+        role="button"
+        tabIndex={0}
+        aria-label={`Play ${item.title} by ${item.artist_name}`}
         className="group flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-clark-bg-secondary/80 transition-all duration-200 cursor-pointer border border-transparent hover:border-clark-steel/20"
-        onDoubleClick={() => handleDiscoveryPlay(item, idx)}
+        onClick={() => handleDiscoveryPlay(item, idx)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleDiscoveryPlay(item, idx) } }}
       >
         {/* Cover art */}
         <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-clark-bg-card">

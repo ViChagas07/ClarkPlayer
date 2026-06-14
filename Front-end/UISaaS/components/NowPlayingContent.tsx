@@ -74,7 +74,12 @@ function TrackGrid({ items, sectionKey }: { items: CatalogTrackItem[]; sectionKe
         return (
           <div
             key={item.id ?? `${sectionKey}-${idx}`}
-            className="group p-3 rounded-xl bg-clark-bg-secondary hover:bg-clark-bg-card transition-all duration-200 border border-transparent hover:border-clark-steel/20"
+            onClick={() => hasPreview && handlePreviewPlay(item, idx)}
+            onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && hasPreview) { e.preventDefault(); handlePreviewPlay(item, idx) } }}
+            role="button"
+            tabIndex={0}
+            aria-label={`Play ${item.title} by ${item.artist_name}`}
+            className="group p-3 rounded-xl bg-clark-bg-secondary hover:bg-clark-bg-card transition-all duration-200 border border-transparent hover:border-clark-steel/20 cursor-pointer hover:scale-[1.02]"
           >
             <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md">
               {item.album_cover ? (
@@ -93,7 +98,7 @@ function TrackGrid({ items, sectionKey }: { items: CatalogTrackItem[]; sectionKe
               )}
               {hasPreview && (
                 <button
-                  onClick={() => handlePreviewPlay(item, idx)}
+                  onClick={(e) => { e.stopPropagation(); handlePreviewPlay(item, idx) }}
                   className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-clark-accent hover:bg-clark-accent-hover flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
                   aria-label={t('playPreview')}
                 >
