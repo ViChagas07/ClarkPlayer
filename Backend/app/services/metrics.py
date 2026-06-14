@@ -76,64 +76,88 @@ class MetricsService:
     async def record_api_call(
         self, endpoint: str, duration_ms: float, status: int
     ) -> None:
-        bucket = _minute_bucket()
-        key = f"clark:metrics:api:{endpoint}:{bucket}"
-        redis = await get_cache_redis()
+        try:
+            bucket = _minute_bucket()
+            key = f"clark:metrics:api:{endpoint}:{bucket}"
+            redis = await get_cache_redis()
+            if redis is None:
+                return
 
-        pipe = redis.pipeline()
-        pipe.hincrby(key, "count", 1)
-        pipe.hincrbyfloat(key, "total_ms", duration_ms)
-        pipe.expire(key, 3600)
-        await pipe.execute()
+            pipe = redis.pipeline()
+            pipe.hincrby(key, "count", 1)
+            pipe.hincrbyfloat(key, "total_ms", duration_ms)
+            pipe.expire(key, 3600)
+            await pipe.execute()
+        except Exception:
+            pass  # Metrics are non-critical — silently skip if Redis is down
 
-        # Track error counts
+        # Track error counts (in-memory, no Redis needed)
         if status >= 400:
             self._error_counts[endpoint] = self._error_counts.get(endpoint, 0) + 1
 
     async def record_cache_hit(self, key_prefix: str) -> None:
-        redis = await get_cache_redis()
-        k = f"clark:metrics:cache:{key_prefix}:hits"
-        await redis.incr(k)
-        await redis.expire(k, 86400)
+        try:
+            redis = await get_cache_redis()
+            if redis is None:
+                return
+            k = f"clark:metrics:cache:{key_prefix}:hits"
+            await redis.incr(k)
+            await redis.expire(k, 86400)
+        except Exception:
+            pass
 
     async def record_cache_miss(self, key_prefix: str) -> None:
-        redis = await get_cache_redis()
-        k = f"clark:metrics:cache:{key_prefix}:misses"
-        await redis.incr(k)
-        await redis.expire(k, 86400)
+        try:
+            redis = await get_cache_redis()
+            if redis is None:
+                return
+            k = f"clark:metrics:cache:{key_prefix}:misses"
+            await redis.incr(k)
+            await redis.expire(k, 86400)
+        except Exception:
+            pass
 
     async def record_search(
         self, query: str, duration_ms: float, result_count: int
     ) -> None:
-        bucket = _minute_bucket()
-        key = f"clark:metrics:search:{bucket}"
-        redis = await get_cache_redis()
+        try:
+            bucket = _minute_bucket()
+            key = f"clark:metrics:search:{bucket}"
+            redis = await get_cache_redis()
+            if redis is None:
+                return
 
-        pipe = redis.pipeline()
-        pipe.hincrby(key, "count", 1)
-        pipe.hincrbyfloat(key, "total_ms", duration_ms)
-        pipe.hincrby(key, "total_results", result_count)
-        pipe.expire(key, 86400)
-        await pipe.execute()
+            pipe = redis.pipeline()
+            pipe.hincrby(key, "count", 1)
+            pipe.hincrbyfloat(key, "total_ms", duration_ms)
+            pipe.hincrby(key, "total_results", result_count)
+            pipe.expire(key, 86400)
+            await pipe.execute()
+        except Exception:
+            pass
 
     async def record_ingestion(
         self, entity_type: str, count: int, duration_ms: float
     ) -> None:
-        bucket = _minute_bucket()
-        key = f"clark:metrics:ingestion:{entity_type}:{bucket}"
-        redis = await get_cache_redis()
+        try:
+            bucket = _minute_bucket()
+            key = f"clark:metrics:ingestion:{entity_type}:{bucket}"
+            redis = await get_cache_redis()
+            if redis is None:
+                return
 
-        pipe = redis.pipeline()
-        pipe.hincrby(key, "count", count)
-        pipe.hincrbyfloat(key, "total_ms", duration_ms)
-        pipe.expire(key, 86400)
-        await pipe.execute()
-        # Also store latest ingestion timestamp
-        await redis.set(
-            f"clark:metrics:ingestion:last:{entity_type}",
-            str(time.time()),
-        )
-        await redis.expire(f"clark:metrics:ingestion:last:{entity_type}", 86400 * 7)
+            pipe = redis.pipeline()
+            pipe.hincrby(key, "count", count)
+            pipe.hincrbyfloat(key, "total_ms", duration_ms)
+            pipe.expire(key, 86400)
+            await pipe.execute()
+            await redis.set(
+                f"clark:metrics:ingestion:last:{entity_type}",
+                str(time.time()),
+            )
+            await redis.expire(f"clark:metrics:ingestion:last:{entity_type}", 86400 * 7)
+        except Exception:
+            pass
 
     async def get_metrics_summary(self) -> MetricsSummary:
         api = await self.get_api_stats(window_minutes=60)
@@ -147,97 +171,110 @@ class MetricsService:
         )
 
     async def get_cache_stats(self) -> CacheStats:
-        redis = await get_cache_redis()
-        stats = CacheStats()
+        try:
+            redis = await get_cache_redis()
+            if redis is None:
+                return CacheStats()
+            stats = CacheStats()
 
-        # Scan for all cache metrics keys
-        cursor: int = 0
-        while True:
-            cursor, keys = await redis.scan(
-                cursor, match="clark:metrics:cache:*:hits", count=100
-            )
-            for key in keys:
-                prefix = key.rsplit(":", 1)[0].replace("clark:metrics:cache:", "")
-                hits = int(await redis.get(key) or 0)
-                misses_key = f"clark:metrics:cache:{prefix}:misses"
-                misses = int(await redis.get(misses_key) or 0)
-                stats.hit_count += hits
-                stats.miss_count += misses
-                stats.by_prefix[prefix] = {"hits": hits, "misses": misses}
-            if cursor == 0:
-                break
+            cursor: int = 0
+            while True:
+                cursor, keys = await redis.scan(
+                    cursor, match="clark:metrics:cache:*:hits", count=100
+                )
+                for key in keys:
+                    prefix = key.rsplit(":", 1)[0].replace("clark:metrics:cache:", "")
+                    hits = int(await redis.get(key) or 0)
+                    misses_key = f"clark:metrics:cache:{prefix}:misses"
+                    misses = int(await redis.get(misses_key) or 0)
+                    stats.hit_count += hits
+                    stats.miss_count += misses
+                    stats.by_prefix[prefix] = {"hits": hits, "misses": misses}
+                if cursor == 0:
+                    break
 
-        return stats
+            return stats
+        except Exception:
+            return CacheStats()
 
     async def get_api_stats(self, window_minutes: int = 60) -> ApiStats:
-        redis = await get_cache_redis()
-        now_bucket = _minute_bucket()
-        start_bucket = now_bucket - window_minutes
+        try:
+            redis = await get_cache_redis()
+            if redis is None:
+                return ApiStats()
+            now_bucket = _minute_bucket()
+            start_bucket = now_bucket - window_minutes
 
-        stats = ApiStats()
-        all_durations: list[float] = []
+            stats = ApiStats()
+            all_durations: list[float] = []
 
-        # Scan API metric keys for the time window
-        cursor: int = 0
-        while True:
-            cursor, keys = await redis.scan(
-                cursor, match="clark:metrics:api:*", count=100
-            )
-            for key in keys:
-                parts = key.split(":")
-                if len(parts) < 6:
-                    continue
-                try:
-                    bucket = int(parts[-1])
-                except (ValueError, IndexError):
-                    continue
-                if bucket < start_bucket:
-                    continue
+            # Scan API metric keys for the time window
+            cursor: int = 0
+            while True:
+                cursor, keys = await redis.scan(
+                    cursor, match="clark:metrics:api:*", count=100
+                )
+                for key in keys:
+                    parts = key.split(":")
+                    if len(parts) < 6:
+                        continue
+                    try:
+                        bucket = int(parts[-1])
+                    except (ValueError, IndexError):
+                        continue
+                    if bucket < start_bucket:
+                        continue
 
-                endpoint = ":".join(parts[3:-1])
-                data = await redis.hgetall(key)
-                if not data:
-                    continue
-                count = int(data.get("count", 0))
-                total_ms = float(data.get("total_ms", 0))
+                    endpoint = ":".join(parts[3:-1])
+                    data = await redis.hgetall(key)
+                    if not data:
+                        continue
+                    count = int(data.get("count", 0))
+                    total_ms = float(data.get("total_ms", 0))
 
-                stats.total_requests += count
-                if count > 0:
-                    avg = total_ms / count
-                    all_durations.append(avg)
-                    if endpoint not in stats.by_endpoint:
-                        stats.by_endpoint[endpoint] = {
-                            "count": 0,
-                            "total_ms": 0.0,
-                        }
-                    stats.by_endpoint[endpoint]["count"] += count
-                    stats.by_endpoint[endpoint]["total_ms"] += total_ms
+                    stats.total_requests += count
+                    if count > 0:
+                        avg = total_ms / count
+                        all_durations.append(avg)
+                        if endpoint not in stats.by_endpoint:
+                            stats.by_endpoint[endpoint] = {
+                                "count": 0,
+                                "total_ms": 0.0,
+                            }
+                        stats.by_endpoint[endpoint]["count"] += count
+                        stats.by_endpoint[endpoint]["total_ms"] += total_ms
 
-            if cursor == 0:
-                break
+                if cursor == 0:
+                    break
 
-        if all_durations:
-            sorted_d = sorted(all_durations)
-            stats.avg_ms = sum(sorted_d) / len(sorted_d)
-            stats.p50_ms = sorted_d[int(len(sorted_d) * 0.50)]
-            stats.p95_ms = sorted_d[int(len(sorted_d) * 0.95)]
-            stats.p99_ms = sorted_d[int(len(sorted_d) * 0.99)]
+            if all_durations:
+                sorted_d = sorted(all_durations)
+                stats.avg_ms = sum(sorted_d) / len(sorted_d)
+                stats.p50_ms = sorted_d[int(len(sorted_d) * 0.50)]
+                stats.p95_ms = sorted_d[int(len(sorted_d) * 0.95)]
+                stats.p99_ms = sorted_d[int(len(sorted_d) * 0.99)]
 
-        # Compute per-endpoint averages
-        for ep_data in stats.by_endpoint.values():
-            if ep_data["count"] > 0:
-                ep_data["avg_ms"] = ep_data["total_ms"] / ep_data["count"]
+            # Compute per-endpoint averages
+            for ep_data in stats.by_endpoint.values():
+                if ep_data["count"] > 0:
+                    ep_data["avg_ms"] = ep_data["total_ms"] / ep_data["count"]
 
-        return stats
+            return stats
+        except Exception:
+            return ApiStats()
 
     async def get_catalog_size(self) -> CatalogSize:
-        """Read cached catalog counts or compute from DB."""
-        redis = await get_cache_redis()
-        cached = await redis.get("clark:metrics:catalog:size")
-        if cached:
-            import json
-            data = json.loads(cached)
-            return CatalogSize(**data)
+        """Read cached catalog counts or compute from DB (Redis optional)."""
+        try:
+            redis = await get_cache_redis()
+            if redis is not None:
+                cached = await redis.get("clark:metrics:catalog:size")
+                if cached:
+                    import json
+                    data = json.loads(cached)
+                    return CatalogSize(**data)
+        except Exception:
+            pass
 
         from app.infrastructure.database import _async_session_factory
         from app.infrastructure.models.catalog import (
@@ -268,8 +305,13 @@ class MetricsService:
             tracks=tracks or 0,
             genres=genres or 0,
         )
-        # Cache for 5 minutes
-        import json
-        await redis.set("clark:metrics:catalog:size", json.dumps(size.__dict__))
-        await redis.expire("clark:metrics:catalog:size", 300)
+        # Cache for 5 minutes (Redis optional)
+        try:
+            redis = await get_cache_redis()
+            if redis is not None:
+                import json
+                await redis.set("clark:metrics:catalog:size", json.dumps(size.__dict__))
+                await redis.expire("clark:metrics:catalog:size", 300)
+        except Exception:
+            pass
         return size

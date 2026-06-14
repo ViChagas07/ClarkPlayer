@@ -55,9 +55,8 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         elapsed_ms = (time.perf_counter() - start) * 1000
 
         # Use route path template if available, otherwise raw path
-        route_path = (
-            request.scope.get("route", {}).get("path") if request.scope.get("route") else None
-        )
+        route = request.scope.get("route")
+        route_path = route.path if route is not None else None
         endpoint = route_path or path
 
         await _metrics.record_api_call(endpoint, elapsed_ms, response.status_code)
