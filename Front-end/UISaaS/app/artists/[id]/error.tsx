@@ -12,7 +12,14 @@ export default function ArtistDetailError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('[Artist Detail Error]', error)
+    // Log FULL error details for diagnosis
+    console.error('═══ [Artist Detail Error] ═══')
+    console.error('Message:', error.message)
+    console.error('Stack:', error.stack)
+    console.error('Digest:', error.digest)
+    console.error('Cause:', error.cause)
+    console.error('Full error:', error)
+    console.error('═══════════════════════════')
   }, [error])
 
   return (
@@ -27,7 +34,9 @@ export default function ArtistDetailError({
             ? 'The backend is unreachable. Please check your connection and try again.'
             : error.message.includes('not found') || error.message.includes('404')
               ? 'This artist is not in our catalog yet.'
-              : 'An unexpected error occurred while loading this artist.'}
+              : error.message.length > 0
+                ? error.message
+                : 'An unexpected error occurred while loading this artist.'}
         </p>
         <p className="font-body text-xs text-clark-text-muted/50 mb-6">
           {error.digest ? `Error ID: ${error.digest}` : ''}

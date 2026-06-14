@@ -42,6 +42,7 @@ function formatDuration(ms: number | null): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+// ── Inner client component — receives plain string, not Promise ──
 function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
   const { t } = useTranslation()
   const resolvedParams = React.use(params)
@@ -83,6 +84,23 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
 
   // Safe artist name fallback chain
   const artistDisplayName = artistNameFromQuery ?? artist?.name ?? 'Unknown Artist'
+
+  // ── DEBUG: Log page-level data ─────────────────────────────
+  console.log('[ArtistPage] artistLoading:', artistLoading, 'artistError:', artistError)
+  console.log('[ArtistPage] artistData present:', !!artistData)
+  console.log('[ArtistPage] artistData type:', typeof artistData)
+  if (artistData) {
+    console.log('[ArtistPage] artistData keys:', Object.keys(artistData))
+    console.log('[ArtistPage] artistData.artist:', artistData.artist)
+  }
+  console.log('[ArtistPage] artist resolved:', !!artist)
+  if (artist) {
+    console.log('[ArtistPage] artist.name:', artist.name)
+    console.log('[ArtistPage] artist.image_url:', artist.image_url)
+    console.log('[ArtistPage] artist.genres:', artist.genres)
+  }
+  console.log('[ArtistPage] albums count:', albums?.length ?? 0)
+  console.log('[ArtistPage] topTracks count:', topTracks?.length ?? 0)
 
   // ── Pre‑mount / SSR — show skeleton immediately ──────────
   if (!mounted) {
