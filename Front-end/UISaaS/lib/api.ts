@@ -635,7 +635,33 @@ export const api = {
   },
 
   catalogArtist(artistId: string): Promise<CatalogArtistResponse> {
-    return _fetch<CatalogArtistResponse>(`/api/v1/catalog/artists/${encodeURIComponent(artistId)}`)
+    return _fetch<any>(`/api/v1/catalog/artists/${encodeURIComponent(artistId)}`).then((data) => {
+      const albums: CatalogAlbumItem[] = (data.albums ?? []).map((a: any) => ({
+        id: a.id,
+        title: a.title,
+        artist_name: a.artist_name ?? 'Unknown',
+        cover_url: a.cover_url ?? null,
+        release_date: a.release_date ?? null,
+        track_count: a.track_count ?? 0,
+        genres: [],
+      }))
+
+      return {
+        artist: {
+          id: data.id,
+          name: data.name,
+          image_url: data.image_url ?? null,
+          genres: data.genres ?? [],
+          bio: data.bio ?? null,
+          popularity: data.popularity ?? 0,
+          track_count: data.track_count ?? 0,
+          album_count: albums.length,
+        },
+        top_tracks: [],
+        albums,
+        similar: [],
+      }
+    })
   },
 
   catalogArtistTracks(artistId: string, limit: number = 20, offset: number = 0): Promise<CatalogListResponse<CatalogTrackItem>> {
@@ -649,7 +675,17 @@ export const api = {
   },
 
   catalogArtistAlbums(artistId: string): Promise<CatalogAlbumItem[]> {
-    return _fetch<any>(`/api/v1/catalog/artists/${encodeURIComponent(artistId)}/albums`).then((data) => data.albums ?? [])
+    return _fetch<any>(`/api/v1/catalog/artists/${encodeURIComponent(artistId)}/albums`).then((data) =>
+      (data.albums ?? []).map((a: any) => ({
+        id: a.id,
+        title: a.title,
+        artist_name: a.artist_name ?? 'Unknown',
+        cover_url: a.cover_url ?? null,
+        release_date: a.release_date ?? null,
+        track_count: a.track_count ?? 0,
+        genres: [],
+      }))
+    )
   },
 
   catalogAlbum(albumId: string): Promise<CatalogAlbumResponse> {

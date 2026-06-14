@@ -5,7 +5,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useGenres } from '@/hooks/useCatalog'
 import { getCachedCatalogData, setCachedCatalogData } from '@/lib/catalogCache'
-import { getGenreImage } from '@/lib/genre-image-map'
+import { getGenreImage, getGenreGradient } from '@/lib/genre-image-map'
 import { cn } from '@/lib/utils'
 import type { CatalogGenreItem } from '@/types'
 import Image from 'next/image'
@@ -32,37 +32,6 @@ const mosaicLayout = [
   'col-span-1 row-span-1',
   'col-span-1 row-span-1',
 ]
-
-const GENRE_GRADIENTS: { from: string; to: string }[] = [
-  { from: 'from-red-600', to: 'to-orange-500' },
-  { from: 'from-blue-600', to: 'to-cyan-400' },
-  { from: 'from-purple-600', to: 'to-pink-400' },
-  { from: 'from-green-600', to: 'to-emerald-400' },
-  { from: 'from-yellow-500', to: 'to-amber-400' },
-  { from: 'from-indigo-600', to: 'to-violet-400' },
-  { from: 'from-rose-600', to: 'to-red-400' },
-  { from: 'from-teal-600', to: 'to-green-400' },
-  { from: 'from-orange-600', to: 'to-yellow-400' },
-  { from: 'from-sky-600', to: 'to-blue-400' },
-  { from: 'from-fuchsia-600', to: 'to-purple-400' },
-  { from: 'from-lime-600', to: 'to-green-500' },
-  { from: 'from-cyan-600', to: 'to-teal-400' },
-  { from: 'from-amber-600', to: 'to-orange-400' },
-  { from: 'from-pink-600', to: 'to-rose-400' },
-  { from: 'from-violet-600', to: 'to-purple-400' },
-  { from: 'from-emerald-600', to: 'to-teal-500' },
-  { from: 'from-slate-700', to: 'to-gray-500' },
-  { from: 'from-stone-700', to: 'to-neutral-500' },
-  { from: 'from-zinc-700', to: 'to-stone-500' },
-]
-
-function getGenreGradient(slug: string): { from: string; to: string } {
-  let hash = 0
-  for (let i = 0; i < slug.length; i++) {
-    hash = ((hash << 5) - hash) + slug.charCodeAt(i)
-  }
-  return GENRE_GRADIENTS[Math.abs(hash) % GENRE_GRADIENTS.length]
-}
 
 const CACHE_KEY = 'genres'
 

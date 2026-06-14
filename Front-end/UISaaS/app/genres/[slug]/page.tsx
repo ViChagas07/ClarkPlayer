@@ -6,24 +6,10 @@ import { AppShell } from '@/components/layout/AppShell'
 import { useTranslation } from '@/hooks/useTranslation'
 import { usePlayerStore } from '@/store/playerStore'
 import { api } from '@/lib/api'
+import { getGenreImage, getGenreGradient } from '@/lib/genre-image-map'
 import type { UnifiedSearchResult, Track } from '@/types'
 import { Play, Music, ChevronLeft, Headphones, Mic2 } from 'lucide-react'
 import Image from 'next/image'
-
-// Genre name → image filename
-const genreImages: Record<string, string> = {
-  Rock: '/genres/Rock_Guitar.png', Jazz: '/genres/Jazz.png', Classical: '/genres/Classical.png',
-  'R&B': '/genres/RnB.png', 'Hip-Hop': '/genres/HipHop.png', Ambient: '/genres/Ambient.png',
-  Electronic: '/genres/Electronic.png', Reggae: '/genres/Reggae.png', Samba: '/genres/Samba.png',
-  Latin: '/genres/Latin.png', Gospel: '/genres/Gospel.png', Pagode: '/genres/Pagode.png',
-  'Heavy Metal': '/genres/HeavyMetal.png', Rap: '/genres/Rap.png', 'Forró': '/genres/Forro.png',
-  Funk: '/genres/Funk.png', Sertanejo: '/genres/Sertanejo.png', Romantic: '/genres/Romantic.png',
-  Trap: '/genres/Trap.png',
-  // Mapped to nearest visual match for genres without dedicated images
-  Pop: '/genres/Romantic.png', Soul: '/genres/RnB.png', Blues: '/genres/Jazz.png',
-  MPB: '/genres/Samba.png', House: '/genres/Electronic.png', Techno: '/genres/Electronic.png',
-  'Lo-fi': '/genres/Ambient.png', Indie: '/genres/Ambient.png',
-}
 
 // ── Curated artist catalog per genre (local data, no API required) ──────
 const GENRE_ARTISTS: Record<string, string[]> = {
@@ -134,16 +120,27 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
   return (
     <AppShell>
       <div className="space-y-6">
-        {/* Header with genre image banner */}
+        {/* Header with genre image banner or gradient fallback */}
         <div className="relative h-48 sm:h-56 rounded-xl overflow-hidden">
-          <Image
-            src={genreImages[displayName] ?? '/genres/Rock_Guitar.png'}
-            alt={displayName}
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority
-          />
+          {(() => {
+            const localImage = getGenreImage(slug)
+            if (localImage) {
+              return (
+                <Image
+                  src={localImage}
+                  alt={displayName}
+                  fill
+                  className="object-cover"
+                  sizes="100vw"
+                  priority
+                />
+              )
+            }
+            const gradient = getGenreGradient(slug)
+            return (
+              <div className={`absolute inset-0 bg-gradient-to-br ${gradient.from} ${gradient.to}`} />
+            )
+          })()}
           <div className="absolute inset-0 bg-gradient-to-t from-clark-bg-primary via-clark-bg-primary/60 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6 flex items-center gap-4">
             <Link href="/genres" className="p-2 rounded-lg hover:bg-white/10 text-white/80 hover:text-white transition-colors shrink-0">
