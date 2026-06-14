@@ -104,7 +104,8 @@ class ITunesClient:
         )
         for result in results:
             if result.get("wrapperType") == "artist":
-                return None  # iTunes doesn't return artist images directly in search
+                # iTunes musicArtist search doesn't include images — skip, try next
+                continue
         # Try album search to get artist-adjacent artwork
         results = await self.search(
             term=artist,

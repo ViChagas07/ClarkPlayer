@@ -59,14 +59,14 @@ SMALL_SEED_ARTISTS: list[str] = [
     # Hip-Hop (8)
     "Kendrick Lamar", "Drake", "J. Cole", "Travis Scott",
     "Eminem", "Kanye West", "Tyler the Creator", "Post Malone",
-    # R&B (6)
-    "Beyoncé", "Frank Ocean", "Alicia Keys", "H.E.R.",
-    "Daniel Caesar", "SZA",
-    # Electronic (6)
+    # R&B (5)
+    "Beyonce", "Frank Ocean", "Alicia Keys", "H.E.R.",
+    "Daniel Caesar",
+    # Electronic (8)
     "Calvin Harris", "David Guetta", "Avicii", "Disclosure",
-    "ODESZA", "Kygo",
+    "ODESZA", "Kygo", "Skrillex", "Marshmello",
     # Latin (6)
-    "Bad Bunny", "Shakira", "Rosalía", "J Balvin",
+    "Bad Bunny", "Shakira", "Rosalia", "J Balvin",
     "Karol G", "Anitta",
     # K-Pop (4)
     "BTS", "BLACKPINK", "NewJeans", "Stray Kids",
@@ -76,26 +76,40 @@ SMALL_SEED_ARTISTS: list[str] = [
     "Ludovico Einaudi", "Max Richter", "Hans Zimmer", "Yo-Yo Ma",
     # Metal (4)
     "Tool", "System of a Down", "Slipknot", "Rammstein",
-    # Indie (4)
+    # Indie (6)
     "Tame Impala", "Vampire Weekend", "Bon Iver", "Glass Animals",
-    # Country (4)
+    "Mac DeMarco", "Foster the People",
+    # Country (6)
     "Luke Combs", "Morgan Wallen", "Chris Stapleton", "Zach Bryan",
-    # Reggae (2)
-    "Bob Marley", "Damian Marley",
-    # Brazilian (15)
+    "Carrie Underwood", "Luke Bryan",
+    # Reggae (3)
+    "Bob Marley", "Damian Marley", "Jimmy Cliff",
+    # Gospel (6)
+    "Kirk Franklin", "CeCe Winans", "Donnie McClurkin", "Hillsong United",
+    "Elevation Worship", "Maverick City Music",
+    # Blues (4)
+    "B.B. King", "Buddy Guy", "John Lee Hooker", "Robert Johnson",
+    # Brazilian (30)
     "Caetano Veloso", "Gilberto Gil", "Elis Regina", "Tom Jobim",
     "Marisa Monte", "Djavan", "Anitta", "Ludmilla",
-    "Marília Mendonça", "Gusttavo Lima", "Jorge & Mateus",
-    "Zeca Pagodinho", "Legião Urbana", "Charlie Brown Jr.",
-    "Racionais MC's",
-    # Soul/Funk (4)
+    "Marilia Mendonca", "Gusttavo Lima", "Jorge e Mateus",
+    "Zeca Pagodinho", "Legiao Urbana", "Charlie Brown Jr",
+    "Racionais Mcs", "Ivete Sangalo", "Seu Jorge",
+    "Alceu Valenca", "Gal Costa", "Chico Buarque",
+    "Tim Maia", "Jorge Ben Jor", "Roberto Carlos", "Luan Santana",
+    "Matheus e Kauan", "Simone e Simaria", "Maiara e Maraisa",
+    "Henrique e Juliano", "Zezé Di Camargo e Luciano", "Alok",
+    # Soul/Funk (5)
     "Stevie Wonder", "Marvin Gaye", "Prince", "Anderson Paak",
-    # Alternative (4)
-    "Nine Inch Nails", "Björk", "The Smashing Pumpkins", "Beck",
-    # Singer-Songwriter (4)
+    "James Brown",
+    # Alternative (6)
+    "Nine Inch Nails", "Bjork", "The Smashing Pumpkins", "Beck",
+    "Radiohead", "Arcade Fire",
+    # Singer-Songwriter (5)
     "Adele", "John Mayer", "Norah Jones", "Tracy Chapman",
-    # Folk (3)
-    "Bob Dylan", "Hozier", "Noah Kahan",
+    "Ed Sheeran",
+    # Folk (4)
+    "Bob Dylan", "Hozier", "Noah Kahan", "Mumford and Sons",
 ]
 
 BRAZILIAN_NAMES = {n.lower() for n in [
@@ -264,6 +278,15 @@ class SmallCatalogSeeder:
                             image_url = images[0].get("url")
                 except Exception:
                     logger.debug("Spotify enrichment failed for %r", name, exc_info=True)
+
+            # Fallback: fetch artist image from iTunes if Spotify didn"t provide one
+            if not image_url:
+                try:
+                    image_url = await _retry(
+                        self._itunes.get_artist_image, artist=name
+                    )
+                except Exception:
+                    logger.debug("iTunes artist image failed for %r", name, exc_info=True)
 
             if not genre_names:
                 itunes_genres: set[str] = set()

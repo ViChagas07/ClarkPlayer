@@ -806,13 +806,20 @@ async def list_genres(session: SessionDep) -> list[CatalogGenreResponse]:
         )
         artist_count: int = artist_count_result.scalar_one()
 
+        track_count_result = await session.execute(
+            select(func.count()).select_from(CatalogTrackModel)
+            .join(CatalogArtistGenreModel, CatalogTrackModel.artist_id == CatalogArtistGenreModel.artist_id)
+            .where(CatalogArtistGenreModel.genre_id == g.id)
+        )
+        track_count: int = track_count_result.scalar_one()
+
         response.append(
             CatalogGenreResponse(
                 id=str(g.id),
                 name=g.name,
                 slug=g.slug,
                 artist_count=artist_count,
-                track_count=0,
+                track_count=track_count,
             )
         )
 
@@ -846,12 +853,19 @@ async def get_genre(
     )
     artist_count: int = artist_count_result.scalar_one()
 
+    track_count_result = await session.execute(
+        select(func.count()).select_from(CatalogTrackModel)
+        .join(CatalogArtistGenreModel, CatalogTrackModel.artist_id == CatalogArtistGenreModel.artist_id)
+        .where(CatalogArtistGenreModel.genre_id == genre.id)
+    )
+    track_count: int = track_count_result.scalar_one()
+
     return CatalogGenreResponse(
         id=str(genre.id),
         name=genre.name,
         slug=genre.slug,
         artist_count=artist_count,
-        track_count=0,
+        track_count=track_count,
     )
 
 
