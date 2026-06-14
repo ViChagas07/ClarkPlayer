@@ -227,3 +227,42 @@ async def recalculate_trending() -> dict:
     except Exception as exc:
         logger.error("Trending recalculation failed: %s", exc)
         return {"status": "error", "error": str(exc)}
+
+
+# ── New Phase 2+3 tasks ─────────────────────────────────────────────
+
+
+async def run_expansion_job() -> dict:
+    """
+    Incrementally expand the catalog by discovering new artists.
+
+    Uses Spotify related artists and playlist mining to find 100
+    new artists per run.  Only persists tracks with valid preview_url.
+    """
+    from app.services.catalog.expansion import run_expansion
+
+    try:
+        result = await run_expansion(max_new=100)
+        logger.info("Expansion job: %s", result)
+        return {"status": "ok", **result}
+    except Exception as exc:
+        logger.error("Expansion job failed: %s", exc)
+        return {"status": "error", "error": str(exc)}
+
+
+async def run_enhanced_deduplication() -> dict:
+    """
+    Run global deduplication across all catalog tables.
+
+    Uses enhanced strategies: name, Spotify ID, iTunes ID, ISRC,
+    and preview_url deduplication.
+    """
+    from app.services.catalog.dedup import run_full_deduplication
+
+    try:
+        result = await run_full_deduplication()
+        logger.info("Enhanced dedup: %s", result)
+        return {"status": "ok", **result}
+    except Exception as exc:
+        logger.error("Enhanced dedup failed: %s", exc)
+        return {"status": "error", "error": str(exc)}

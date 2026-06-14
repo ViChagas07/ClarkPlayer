@@ -233,3 +233,33 @@ class SpotifyClient:
         except Exception as exc:
             logger.warning("Spotify audio features batch failed: %s", exc)
             return []
+
+    async def get_playlist_tracks(
+        self, playlist_id: str, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        """Get tracks from a Spotify playlist."""
+        cache_key = f"api:spotify:playlist_tracks:{playlist_id}:{limit}"
+        data = await self._cached_get(
+            cache_key,
+            f"{SPOTIFY_API_URL}/playlists/{playlist_id}/tracks",
+            params={"limit": limit, "fields": "items(track(artists(name)))"},
+            ttl=3600,  # 1h TTL for playlists
+        )
+        if data:
+            return data.get("items", [])  # type: ignore[no-any-return]
+        return []
+
+    async def browse_category_playlists(
+        self, category_id: str, limit: int = 5
+    ) -> list[dict[str, Any]]:
+        """Browse Spotify category playlists."""
+        cache_key = f"api:spotify:category:{category_id}:{limit}"
+        data = await self._cached_get(
+            cache_key,
+            f"{SPOTIFY_API_URL}/browse/categories/{category_id}/playlists",
+            params={"limit": limit},
+            ttl=86400,  # 24h
+        )
+        if data:
+            return data.get("playlists", {}).get("items", [])  # type: ignore[no-any-return]
+        return []

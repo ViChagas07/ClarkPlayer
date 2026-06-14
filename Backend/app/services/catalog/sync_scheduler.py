@@ -60,6 +60,8 @@ class CatalogSyncScheduler:
             recompute_discovery_sections,
             refresh_expired_previews,
             run_deduplication,
+            run_enhanced_deduplication,
+            run_expansion_job,
             sync_all_artists_enrichment,
         )
 
@@ -78,6 +80,16 @@ class CatalogSyncScheduler:
                 name="deduplication",
                 interval_seconds=21600,  # 6h
                 coro_fn=run_deduplication,
+            ),
+            _JobDef(
+                name="enhanced_deduplication",
+                interval_seconds=86400,  # 24h — comprehensive dedup
+                coro_fn=run_enhanced_deduplication,
+            ),
+            _JobDef(
+                name="expansion",
+                interval_seconds=21600,  # 6h — discover 100 new artists
+                coro_fn=run_expansion_job,
             ),
             _JobDef(
                 name="discovery_sections",
