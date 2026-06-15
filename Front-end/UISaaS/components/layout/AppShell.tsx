@@ -426,6 +426,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           rightPanelOpen ? 'translate-x-0' : 'translate-x-full',
         )}
       >
+          {/* Toggle — on left wall, vertically centered on the full sidebar */}
+          <button
+            onClick={() => setRightPanelOpen(false)}
+            className={cn(
+              'absolute top-1/2 left-0 -translate-y-1/2 z-40 pointer-events-auto',
+              'w-7 h-12 rounded-r-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-l-0',
+              'text-clark-text-muted hover:text-clark-gold hover:bg-clark-bg-card transition-all duration-200',
+              'shadow-lg shadow-black/20 flex items-center justify-center',
+            )}
+            aria-label={t('closePanel')}
+            title={t('closePanel')}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
           {/* Panel header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-clark-steel/20">
             <h2 className="font-display text-lg tracking-widest text-clark-text-primary uppercase">
@@ -473,23 +488,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* ── Divider — now significantly lower ── */}
           <div className="mx-5 border-t border-clark-steel/20 flex-shrink-0 mb-4" />
 
-          {/* ── Queue section: toggle + header + content ── */}
-          <div className="relative flex-shrink-0">
-            {/* Toggle — on the left wall, always visible */}
-            <button
-              onClick={() => setRightPanelOpen(false)}
-              className={cn(
-                'absolute top-1/2 left-0 -translate-y-1/2 z-40 pointer-events-auto',
-                'w-7 h-12 rounded-r-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-l-0',
-                'text-clark-text-muted hover:text-clark-gold hover:bg-clark-bg-card transition-all duration-200',
-                'shadow-lg shadow-black/20 flex items-center justify-center',
-              )}
-              aria-label={t('closePanel')}
-              title={t('closePanel')}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-
+          {/* ── Queue section: header + content ── */}
+          <div className="flex-shrink-0">
             {/* Queue header — below the divider */}
             <div className="flex items-center gap-2 px-5 py-3 pl-12">
               <ListOrdered className="w-4 h-4 text-clark-gold" />
