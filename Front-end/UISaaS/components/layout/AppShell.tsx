@@ -650,8 +650,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        {/* Controls — centered by parent flex-col items-center, no width constraint */}
-        <div className="flex items-center justify-center gap-3 sm:gap-5 pt-1.5 pb-0.5">
+        {/* Controls — true centering via justify-center on full-width wrapper */}
+        <div className="w-full flex justify-center">
+          <div className="flex items-center justify-center gap-3 sm:gap-5 pt-1.5 pb-0.5">
           <button
             className={cn('p-2 text-clark-text-muted hover:text-clark-gold transition-colors', isShuffled && 'text-clark-gold')}
             onClick={toggleShuffle}
@@ -704,6 +705,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <Volume2 className="w-4 h-4" />
           </button>
+        </div>
         </div>
 
         {/* Progress bar — full width with padding */}
