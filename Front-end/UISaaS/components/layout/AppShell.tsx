@@ -467,9 +467,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </p>
           </div>
 
-          {/* ── Queue section: left-wall close button + header + divider + content ── */}
+          {/* ── Spacer — pushes divider down ── */}
+          <div className="flex-1 min-h-[40px]" />
+
+          {/* ── Divider — now significantly lower ── */}
+          <div className="mx-5 border-t border-clark-steel/20 flex-shrink-0 mb-4" />
+
+          {/* ── Queue section: toggle + header + content ── */}
           <div className="relative flex-shrink-0">
-            {/* Close button — on the left wall of the sidebar */}
+            {/* Toggle — on the left wall, always visible */}
             <button
               onClick={() => setRightPanelOpen(false)}
               className={cn(
@@ -484,19 +490,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <ChevronLeft className="w-4 h-4" />
             </button>
 
-            {/* Queue header */}
+            {/* Queue header — below the divider */}
             <div className="flex items-center gap-2 px-5 py-3 pl-12">
               <ListOrdered className="w-4 h-4 text-clark-gold" />
               <h3 className="font-condensed text-xs tracking-widest text-clark-text-muted uppercase">{t('queue')}</h3>
               <span className="font-condensed text-xs text-clark-text-muted/50">({queue.length} {t('tracks')})</span>
             </div>
-
-            {/* Spacer to push divider down */}
-            <div className="min-h-[16px]" />
           </div>
-
-          {/* Divider — visually separated from content above */}
-          <div className="mx-5 border-t border-clark-steel/20 flex-shrink-0 mb-3" />
 
           {/* Queue content */}
           <div className="flex-1 overflow-y-auto px-3 py-2">
