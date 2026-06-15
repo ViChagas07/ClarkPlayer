@@ -582,7 +582,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </AuthGuard>
       </main>
 
-      {/* Player bar — clean mobile layout */}
+      {/* Player bar — 3-region architecture: Left | Center (absolute) | Right */}
       <footer
         style={{
           position: 'fixed',
@@ -598,22 +598,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
         className={cn(
-          'border-t px-3 sm:px-4 flex flex-col pointer-events-auto backdrop-blur-md',
+          'border-t px-3 sm:px-4 flex items-center justify-between pointer-events-auto backdrop-blur-md',
           isPlayerVisible ? 'translate-y-0' : 'translate-y-[calc(100%+1.5rem)]',
         )}
       >
-        {/* Toggle collapse button — centered at top */}
-        <button
-          onClick={() => setPlayerVisible(false)}
-          className="w-12 h-7 flex items-center justify-center -mt-1 mb-0.5 rounded-b-lg bg-clark-bg-card/60 hover:bg-clark-bg-card border-b border-x border-clark-steel/20 text-clark-text-muted/60 hover:text-clark-gold transition-colors"
-          aria-label={t('hidePlayer')}
-          title={t('hidePlayer')}
-        >
-          <ChevronDown className="w-4 h-4" />
-        </button>
-
-        {/* Track info — hidden on mobile */}
-        <div className="hidden sm:flex items-center gap-3 min-w-0 flex-1 sm:w-56 sm:flex-shrink-0 sm:flex-none sm:absolute sm:left-4 sm:top-1/2 sm:-translate-y-1/2">
+        {/* ── LEFT REGION: Track info ── */}
+        <div className="hidden sm:flex items-center gap-3 min-w-0 w-56 flex-shrink-0">
           {displayTrack ? (
             <>
               <div className="relative flex-shrink-0">
@@ -631,8 +621,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <p className="font-display text-sm tracking-wider truncate">{displayTrack.title}</p>
                   {isPreview && (
                     <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-clark-gold/15 text-clark-gold font-condensed text-[10px] uppercase tracking-wider flex-shrink-0">
-                      <Headphones className="w-3 h-3" />
-                      Preview
+                      <Headphones className="w-3 h-3" /> Preview
                     </span>
                   )}
                 </div>
@@ -650,131 +639,63 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        {/* Controls — 5 items (odd count = Play IS the exact center) */}
-        <div className="mx-auto w-full max-w-[320px] sm:max-w-md flex items-center justify-center gap-3 sm:gap-5 pt-1.5 pb-0.5">
+        {/* ── CENTER REGION: absolutely centered — never affected by left/right ── */}
+        <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center gap-0.5 w-full max-w-[320px] sm:max-w-md px-2">
+          {/* Toggle */}
           <button
-            className={cn('p-2 text-clark-text-muted hover:text-clark-gold transition-colors', isShuffled && 'text-clark-gold')}
-            onClick={toggleShuffle}
-            aria-label={t('toggleShuffle')}
-            style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            onClick={() => setPlayerVisible(false)}
+            className="w-12 h-7 flex items-center justify-center -mt-1 rounded-b-lg bg-clark-bg-card/60 hover:bg-clark-bg-card border-b border-x border-clark-steel/20 text-clark-text-muted/60 hover:text-clark-gold transition-colors"
+            aria-label={t('hidePlayer')}
           >
-            <Shuffle className="w-4 h-4" />
+            <ChevronDown className="w-4 h-4" />
           </button>
-          <button
-            className="p-2 text-clark-text-muted/80 hover:text-clark-text-primary transition-colors"
-            onClick={prevTrack}
-            aria-label={t('previousTrack')}
-            style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            <SkipBack className="w-5 h-5" />
-          </button>
-          <button
-            className="relative w-11 h-11 rounded-full bg-clark-accent hover:bg-clark-accent-hover flex items-center justify-center transition-all hover:scale-105 group flex-shrink-0"
-            style={{ boxShadow: `0 0 14px ${accentColor}60`, minWidth: '44px', minHeight: '44px' }}
-            onClick={() => { if (isPreview && isPlaying) stopPreview(); else togglePlay() }}
-            aria-label={isPlaying ? t('pauseBtn') : t('playBtn')}
-          >
-            <div className="absolute inset-0 rounded-full bg-clark-gold/20 blur-sm group-hover:bg-clark-gold/40 transition-colors" />
-            <div className="relative flex items-center justify-center">
-              {isPlaying ? <Pause className="w-5 h-5 text-white" /> : <Play className="w-5 h-5 text-white ml-0.5" />}
-            </div>
-          </button>
-          <button
-            className="p-2 text-clark-text-muted/80 hover:text-clark-text-primary transition-colors"
-            onClick={nextTrack}
-            aria-label={t('nextTrack')}
-            style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            <SkipForward className="w-5 h-5" />
-          </button>
-          <button
-            className={cn('p-2 text-clark-text-muted hover:text-clark-gold transition-colors', repeatMode !== 'off' && 'text-clark-gold')}
-            onClick={toggleRepeat}
-            aria-label={t('toggleRepeat')}
-            style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            {repeatMode === 'one' ? <Repeat1 className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
-          </button>
-        </div>
 
-        {/* Volume — standalone, outside the 5-button centering group */}
-        <button
-          className="flex sm:hidden self-end px-2 pb-1 text-clark-text-muted hover:text-clark-sky transition-colors"
-          aria-label={t('volumeLabel')}
-          onClick={() => { /* TODO: open volume slider modal on mobile */ }}
-          style={{ minWidth: '44px', minHeight: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          <Volume2 className="w-4 h-4" />
-        </button>
+          {/* Controls row */}
+          <div className="flex items-center justify-center gap-3 sm:gap-5 py-0.5">
+            <button className={cn('p-2 text-clark-text-muted hover:text-clark-gold transition-colors', isShuffled && 'text-clark-gold')} onClick={toggleShuffle} aria-label={t('toggleShuffle')} style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Shuffle className="w-4 h-4" />
+            </button>
+            <button className="p-2 text-clark-text-muted/80 hover:text-clark-text-primary transition-colors" onClick={prevTrack} aria-label={t('previousTrack')} style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <SkipBack className="w-5 h-5" />
+            </button>
+            <button className="relative w-11 h-11 rounded-full bg-clark-accent hover:bg-clark-accent-hover flex items-center justify-center transition-all hover:scale-105 group flex-shrink-0" style={{ boxShadow: `0 0 14px ${accentColor}60`, minWidth: '44px', minHeight: '44px' }} onClick={() => { if (isPreview && isPlaying) stopPreview(); else togglePlay() }} aria-label={isPlaying ? t('pauseBtn') : t('playBtn')}>
+              <div className="absolute inset-0 rounded-full bg-clark-gold/20 blur-sm group-hover:bg-clark-gold/40 transition-colors" />
+              <div className="relative flex items-center justify-center">
+                {isPlaying ? <Pause className="w-5 h-5 text-white" /> : <Play className="w-5 h-5 text-white ml-0.5" />}
+              </div>
+            </button>
+            <button className="p-2 text-clark-text-muted/80 hover:text-clark-text-primary transition-colors" onClick={nextTrack} aria-label={t('nextTrack')} style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <SkipForward className="w-5 h-5" />
+            </button>
+            <button className={cn('p-2 text-clark-text-muted hover:text-clark-gold transition-colors', repeatMode !== 'off' && 'text-clark-gold')} onClick={toggleRepeat} aria-label={t('toggleRepeat')} style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {repeatMode === 'one' ? <Repeat1 className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
+            </button>
+          </div>
 
-        {/* Progress bar — same mx-auto + max-w as controls for identical centering */}
-        <div className="mx-auto flex items-center justify-center gap-2 w-full max-w-[340px] sm:max-w-md px-1 py-1">
-          <span className="font-condensed text-[10px] sm:text-xs text-clark-text-muted w-8 sm:w-10 text-right tabular-nums flex-shrink-0">{formatTime(progress)}</span>
-          <div
-            className="flex-1 py-2 cursor-pointer group relative"
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect()
-              const pct = (e.clientX - rect.left) / rect.width
-              seek(pct * trackDuration)
-            }}
-            role="slider"
-            aria-label="Track progress"
-            aria-valuemin={0}
-            aria-valuemax={trackDuration}
-            aria-valuenow={progress}
-            tabIndex={0}
-          >
-            <div className="h-1.5 bg-clark-bg-secondary rounded-full relative">
-              <div
-                className="h-full rounded-full relative group-hover:brightness-110 transition-all"
-                style={{
-                  width: `${trackDuration > 0 ? (progress / trackDuration) * 100 : 0}%`,
-                  backgroundColor: accentColor,
-                  boxShadow: `0 0 8px ${accentColor}80`,
-                }}
-              >
-                <div
-                  className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ backgroundColor: accentColor, boxShadow: `0 0 10px ${accentColor}` }}
-                />
+          {/* Progress bar */}
+          <div className="flex items-center justify-center gap-2 w-full px-1 pb-0.5">
+            <span className="font-condensed text-[10px] sm:text-xs text-clark-text-muted w-8 sm:w-10 text-right tabular-nums flex-shrink-0">{formatTime(progress)}</span>
+            <div className="flex-1 py-2 cursor-pointer group relative" onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); const pct = (e.clientX - rect.left) / rect.width; seek(pct * trackDuration) }} role="slider" aria-label="Track progress" aria-valuemin={0} aria-valuemax={trackDuration} aria-valuenow={progress} tabIndex={0}>
+              <div className="h-1.5 bg-clark-bg-secondary rounded-full relative">
+                <div className="h-full rounded-full relative group-hover:brightness-110 transition-all" style={{ width: `${trackDuration > 0 ? (progress / trackDuration) * 100 : 0}%`, backgroundColor: accentColor, boxShadow: `0 0 8px ${accentColor}80` }}>
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: accentColor, boxShadow: `0 0 10px ${accentColor}` }} />
+                </div>
               </div>
             </div>
+            <span className="font-condensed text-[10px] sm:text-xs text-clark-text-muted w-8 sm:w-10 tabular-nums flex-shrink-0">{formatTime(trackDuration)}</span>
           </div>
-          <span className="font-condensed text-[10px] sm:text-xs text-clark-text-muted w-8 sm:w-10 tabular-nums flex-shrink-0">{formatTime(trackDuration)}</span>
         </div>
 
-        {/* Desktop-only extras: sleep timer, lyrics, queue, volume slider */}
-        <div className="hidden sm:flex items-center justify-end gap-2 w-56 flex-shrink-0 sm:absolute sm:right-4 sm:top-1/2 sm:-translate-y-1/2">
+        {/* ── RIGHT REGION: Volume + queue ── */}
+        <div className="hidden sm:flex items-center justify-end gap-2 w-56 flex-shrink-0">
           {sleepTimer && (
-            <span className="font-body text-xs bg-clark-steel/20 px-2 py-1 rounded text-clark-text-muted border border-clark-steel/30">
-              {'\u23FE'} {t('sleepBtn')}
-            </span>
+            <span className="font-body text-xs bg-clark-steel/20 px-2 py-1 rounded text-clark-text-muted border border-clark-steel/30">{'\u23FE'} {t('sleepBtn')}</span>
           )}
-          <button className="p-2 text-clark-text-muted hover:text-clark-sky transition-colors" aria-label={t('lyricsBtn')}>
-            <FileText className="w-4 h-4" />
-          </button>
-          <button className="p-2 text-clark-text-muted hover:text-clark-sky transition-colors" aria-label={t('queue')}>
-            <ListOrdered className="w-4 h-4" />
-          </button>
+          <button className="p-2 text-clark-text-muted hover:text-clark-sky transition-colors" aria-label={t('lyricsBtn')}><FileText className="w-4 h-4" /></button>
+          <button className="p-2 text-clark-text-muted hover:text-clark-sky transition-colors" aria-label={t('queue')}><ListOrdered className="w-4 h-4" /></button>
           <div className="flex flex-col items-center justify-center gap-1">
             <div className="flex items-center justify-center" style={{ height: '50px' }}>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={(e) => setVolume(parseFloat(e.target.value))}
-                className="appearance-none cursor-pointer rounded-full"
-                style={{
-                  transform: 'rotate(-90deg)',
-                  width: '50px',
-                  height: '3px',
-                  margin: '0',
-                  background: `linear-gradient(to right, #F5C518 ${volume * 100}%, #0D1B4B ${volume * 100}%)`,
-                }}
-                aria-label={t('volumeLabel')}
-              />
+              <input type="range" min="0" max="1" step="0.01" value={volume} onChange={(e) => setVolume(parseFloat(e.target.value))} className="appearance-none cursor-pointer rounded-full" style={{ transform: 'rotate(-90deg)', width: '50px', height: '3px', margin: '0', background: `linear-gradient(to right, #F5C518 ${volume * 100}%, #0D1B4B ${volume * 100}%)` }} aria-label={t('volumeLabel')} />
             </div>
             <Volume2 className="w-3.5 h-3.5 text-clark-text-muted" />
           </div>
