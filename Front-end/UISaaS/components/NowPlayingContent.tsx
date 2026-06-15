@@ -313,6 +313,7 @@ function Hero({ t }: { t: ReturnType<typeof useTranslation>['t'] }) {
 
 // ── Main Component ───────────────────────────────────────────────
 export function NowPlayingContent() {
+  // Force Vercel rebuild — hotfix
   const { t } = useTranslation()
   const currentTrack = usePlayerStore((s) => s.currentTrack)
   const isPlaying = usePlayerStore((s) => s.isPlaying)
