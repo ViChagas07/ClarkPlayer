@@ -26,8 +26,6 @@ Endpoints:
 
 from uuid import UUID
 
-import asyncio
-
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
@@ -210,24 +208,17 @@ async def get_discovery(session: SessionDep) -> DiscoveryResponse:
     cache = _cache_service()
     precomp = DiscoveryPrecomputation(session, cache)
 
-    # ── Fetch all sections in parallel ──
-    (top_artists, trending_tracks, featured_albums, popular_genres_raw,
-     brazilian_artists, international_artists) = await asyncio.gather(
-        precomp.get_top_artists(),
-        precomp.get_trending_tracks(),
-        precomp.get_featured_albums(),
-        precomp.get_popular_genres(),
-        precomp.get_brazilian_artists(),
-        precomp.get_international_artists(),
-    )
+    # ── Fetch sections sequentially (shared SQLAlchemy session) ──
+    top_artists = await precomp.get_top_artists()
+    trending_tracks = await precomp.get_trending_tracks()
+    featured_albums = await precomp.get_featured_albums()
+    popular_genres_raw = await precomp.get_popular_genres()
+    brazilian_artists = await precomp.get_brazilian_artists()
+    international_artists = await precomp.get_international_artists()
 
-    # ── Genre sections — also in parallel ──
-    genre_slugs = ["pop", "rock", "rap", "electronic", "rnb"]
-    genre_results = await asyncio.gather(
-        *(precomp.get_genre_section(slug) for slug in genre_slugs)
-    )
     genre_sections: dict[str, list[CatalogTrackItem]] = {}
-    for slug, genre_tracks_raw in zip(genre_slugs, genre_results):
+    for slug in ["pop", "rock", "rap", "electronic", "rnb"]:
+        genre_tracks_raw = await precomp.get_genre_section(slug)
         genre_sections[slug] = [
             CatalogTrackItem(
                 id=t["id"],
