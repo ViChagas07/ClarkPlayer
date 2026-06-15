@@ -650,9 +650,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        {/* Controls — mx-auto + max-w matches progress bar for identical centering */}
-        <div className="mx-auto w-full max-w-[340px] sm:max-w-md flex justify-center pt-1.5 pb-0.5">
-          <div className="flex items-center justify-center gap-3 sm:gap-5">
+        {/* Controls — 5 items (odd count = Play IS the exact center) */}
+        <div className="mx-auto w-full max-w-[320px] sm:max-w-md flex items-center justify-center gap-3 sm:gap-5 pt-1.5 pb-0.5">
           <button
             className={cn('p-2 text-clark-text-muted hover:text-clark-gold transition-colors', isShuffled && 'text-clark-gold')}
             onClick={toggleShuffle}
@@ -696,17 +695,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             {repeatMode === 'one' ? <Repeat1 className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
           </button>
-          {/* Volume — inline in controls row */}
-          <button
-            className="p-2 text-clark-text-muted hover:text-clark-sky transition-colors"
-            aria-label={t('volumeLabel')}
-            onClick={() => { /* TODO: open volume slider modal on mobile */ }}
-            style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            <Volume2 className="w-4 h-4" />
-          </button>
         </div>
-        </div>
+
+        {/* Volume — standalone, outside the 5-button centering group */}
+        <button
+          className="flex sm:hidden self-end px-2 pb-1 text-clark-text-muted hover:text-clark-sky transition-colors"
+          aria-label={t('volumeLabel')}
+          onClick={() => { /* TODO: open volume slider modal on mobile */ }}
+          style={{ minWidth: '44px', minHeight: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Volume2 className="w-4 h-4" />
+        </button>
 
         {/* Progress bar — same mx-auto + max-w as controls for identical centering */}
         <div className="mx-auto flex items-center justify-center gap-2 w-full max-w-[340px] sm:max-w-md px-1 py-1">
