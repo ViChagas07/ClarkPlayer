@@ -594,13 +594,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           minHeight: '96px',
           backgroundColor: accentColor + '18',
           borderTopColor: accentColor + '50',
-          transition: 'left 300ms ease-in-out, right 300ms ease-in-out, transform 300ms ease-in-out',
+          transition: 'left 300ms ease-in-out, right 300ms ease-in-out, transform 400ms cubic-bezier(0.4, 0, 0.2, 1)',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          transform: isPlayerVisible ? 'translateY(0)' : 'translateY(calc(100% + 1.5rem))',
         }}
-        className={cn(
-          'border-t px-3 sm:px-4 flex items-center justify-between pointer-events-auto backdrop-blur-md',
-          isPlayerVisible ? 'translate-y-0' : 'translate-y-[calc(100%+1.5rem)]',
-        )}
+        className="border-t px-3 sm:px-4 flex items-center justify-between pointer-events-auto backdrop-blur-md"
       >
         {/* ── LEFT REGION: Track info ── */}
         <div className="hidden sm:flex items-center gap-3 min-w-0 w-56 flex-shrink-0">
@@ -702,14 +700,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </footer>
 
-      {/* Arrow-up toggle — shown when player is hidden, dead center on viewport */}
+      {/* Arrow-up toggle — shown when player is hidden, auto-margin centered */}
       <button
         onClick={() => setPlayerVisible(true)}
         style={{
           position: 'fixed',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          bottom: '0px',
+          left: '0',
+          right: '0',
+          bottom: '0',
+          marginLeft: 'auto',
+          marginRight: 'auto',
+          width: 'fit-content',
           zIndex: 30,
         }}
         className={cn(
