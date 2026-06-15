@@ -467,27 +467,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </p>
           </div>
 
-          {/* ── Queue section: spacer + divider + close button + header + content ── */}
-          {/* Spacer to push divider down */}
-          <div className="flex-1 min-h-[20px]" />
+          {/* ── Queue section: left-wall close button + header + divider + content ── */}
+          <div className="relative flex-shrink-0">
+            {/* Close button — on the left wall of the sidebar */}
+            <button
+              onClick={() => setRightPanelOpen(false)}
+              className={cn(
+                'absolute top-1/2 left-0 -translate-y-1/2 z-40 pointer-events-auto',
+                'w-7 h-12 rounded-r-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-l-0',
+                'text-clark-text-muted hover:text-clark-gold hover:bg-clark-bg-card transition-all duration-200',
+                'shadow-lg shadow-black/20 flex items-center justify-center',
+              )}
+              aria-label={t('closePanel')}
+              title={t('closePanel')}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            {/* Queue header */}
+            <div className="flex items-center gap-2 px-5 py-3 pl-12">
+              <ListOrdered className="w-4 h-4 text-clark-gold" />
+              <h3 className="font-condensed text-xs tracking-widest text-clark-text-muted uppercase">{t('queue')}</h3>
+              <span className="font-condensed text-xs text-clark-text-muted/50">({queue.length} {t('tracks')})</span>
+            </div>
+
+            {/* Spacer to push divider down */}
+            <div className="min-h-[16px]" />
+          </div>
 
           {/* Divider — visually separated from content above */}
           <div className="mx-5 border-t border-clark-steel/20 flex-shrink-0 mb-3" />
-
-          {/* Queue header row */}
-          <div className="flex items-center gap-2 px-5 pb-3">
-            <ListOrdered className="w-4 h-4 text-clark-gold" />
-            <h3 className="font-condensed text-xs tracking-widest text-clark-text-muted uppercase">{t('queue')}</h3>
-            <span className="font-condensed text-xs text-clark-text-muted/50">({queue.length} {t('tracks')})</span>
-            {/* Close button — at the end of the queue header row */}
-            <button
-              onClick={() => setRightPanelOpen(false)}
-              className="ml-auto p-1.5 rounded-lg text-clark-text-muted/50 hover:text-clark-gold hover:bg-clark-steel/20 transition-colors"
-              aria-label={t('closePanel')}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
 
           {/* Queue content */}
           <div className="flex-1 overflow-y-auto px-3 py-2">
@@ -596,7 +605,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Toggle collapse button — centered at top */}
         <button
           onClick={() => setPlayerVisible(false)}
-          className="w-12 h-7 flex items-center justify-center -mt-1 mb-1 rounded-b-lg bg-clark-bg-card/60 hover:bg-clark-bg-card border-b border-x border-clark-steel/20 text-clark-text-muted/60 hover:text-clark-gold transition-colors"
+          className="w-12 h-7 flex items-center justify-center -mt-1 mb-0.5 rounded-b-lg bg-clark-bg-card/60 hover:bg-clark-bg-card border-b border-x border-clark-steel/20 text-clark-text-muted/60 hover:text-clark-gold transition-colors"
           aria-label={t('hidePlayer')}
           title={t('hidePlayer')}
         >
@@ -641,8 +650,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        {/* Controls — centered row */}
-        <div className="flex items-center justify-center gap-3 sm:gap-5 w-full max-w-[320px] sm:max-w-md">
+        {/* Controls — perfectly centered row */}
+        <div className="mx-auto flex items-center justify-center gap-3 sm:gap-5 max-w-[340px] sm:max-w-md pt-1.5 pb-0.5">
           <button
             className={cn('p-2 text-clark-text-muted hover:text-clark-gold transition-colors', isShuffled && 'text-clark-gold')}
             onClick={toggleShuffle}
@@ -771,18 +780,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </footer>
 
-      {/* Arrow-up toggle — shown when player is hidden */}
+      {/* Arrow-up toggle — shown when player is hidden, centered on viewport */}
       <button
         onClick={() => setPlayerVisible(true)}
         className={cn(
-          'fixed left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex items-center justify-center safe-bottom',
+          'fixed left-1/2 -translate-x-1/2 z-30 pointer-events-auto',
           'w-12 h-10 rounded-t-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-b-0',
           'text-clark-text-muted hover:text-clark-gold hover:bg-clark-bg-card transition-all duration-200',
-          'shadow-lg shadow-black/20',
+          'shadow-lg shadow-black/20 flex items-center justify-center',
           isPlayerVisible ? 'opacity-0 pointer-events-none translate-y-full' : 'opacity-100 translate-y-0',
           'transition-all duration-300',
         )}
-        style={{ bottom: 'env(safe-area-inset-bottom, 0px)' }}
+        style={{ bottom: '0px' }}
         aria-label={t('showPlayer')}
         title={t('showPlayer')}
       >
