@@ -702,18 +702,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </footer>
 
-      {/* Arrow-up toggle — shown when player is hidden, centered on viewport */}
+      {/* Arrow-up toggle — shown when player is hidden, dead center on viewport */}
       <button
         onClick={() => setPlayerVisible(true)}
+        style={{
+          position: 'fixed',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          bottom: '0px',
+          zIndex: 30,
+        }}
         className={cn(
-          'fixed left-1/2 -translate-x-1/2 z-30 pointer-events-auto',
           'w-12 h-10 rounded-t-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-b-0',
           'text-clark-text-muted hover:text-clark-gold hover:bg-clark-bg-card transition-all duration-200',
           'shadow-lg shadow-black/20 flex items-center justify-center',
-          isPlayerVisible ? 'opacity-0 pointer-events-none translate-y-full' : 'opacity-100 translate-y-0',
+          isPlayerVisible ? 'opacity-0 pointer-events-none' : 'opacity-100',
           'transition-all duration-300',
         )}
-        style={{ bottom: '0px' }}
         aria-label={t('showPlayer')}
         title={t('showPlayer')}
       >
