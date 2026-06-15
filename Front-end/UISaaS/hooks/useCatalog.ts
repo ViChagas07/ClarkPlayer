@@ -2,7 +2,6 @@
 
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import { queryClient } from '@/lib/queryClient'
 import type {
   CatalogDiscoveryResponse,
   CatalogSearchResponse,
@@ -19,47 +18,38 @@ import type {
 
 // ── Discovery ─────────────────────────────────────────────────────────
 
-const DISCOVERY_KEY = ['catalog', 'discovery']
-
 export function useDiscovery() {
   return useQuery<CatalogDiscoveryResponse>({
-    queryKey: DISCOVERY_KEY,
+    queryKey: ['catalog', 'discovery'],
     queryFn: () => api.catalogDiscovery(),
     staleTime: 5 * 60 * 1000,
-    refetchInterval: 30 * 60 * 1000,
-    placeholderData: queryClient.getQueryData<CatalogDiscoveryResponse>(DISCOVERY_KEY),
   })
 }
 
 // ── Search ────────────────────────────────────────────────────────────
 
 export function useCatalogSearch(query: string, limit: number = 20) {
-  const qKey = ['catalog', 'search', query, limit]
   return useQuery<CatalogSearchResponse>({
-    queryKey: qKey,
+    queryKey: ['catalog', 'search', query, limit],
     queryFn: () => api.catalogSearch(query, limit),
     enabled: query.length >= 2,
     staleTime: 2 * 60 * 1000,
-    placeholderData: queryClient.getQueryData<CatalogSearchResponse>(qKey),
   })
 }
 
 // ── Artists ───────────────────────────────────────────────────────────
 
 export function useArtists(limit: number = 30, offset: number = 0, sort: string = 'popularity') {
-  const qKey = ['catalog', 'artists', limit, offset, sort]
   return useQuery<CatalogListResponse<CatalogArtistItem>>({
-    queryKey: qKey,
+    queryKey: ['catalog', 'artists', limit, offset, sort],
     queryFn: () => api.catalogArtists(limit, offset, sort),
     staleTime: 5 * 60 * 1000,
-    placeholderData: queryClient.getQueryData<CatalogListResponse<CatalogArtistItem>>(qKey),
   })
 }
 
 export function useArtist(artistId: string) {
-  const qKey = ['catalog', 'artist', artistId]
   return useQuery<CatalogArtistResponse>({
-    queryKey: qKey,
+    queryKey: ['catalog', 'artist', artistId],
     queryFn: () => api.catalogArtist(artistId),
     enabled: !!artistId,
     staleTime: 10 * 60 * 1000,
@@ -69,120 +59,100 @@ export function useArtist(artistId: string) {
 }
 
 export function useArtistTracks(artistId: string, limit: number = 30, offset: number = 0) {
-  const qKey = ['catalog', 'artist-tracks', artistId, limit, offset]
   return useQuery<CatalogListResponse<CatalogTrackItem>>({
-    queryKey: qKey,
+    queryKey: ['catalog', 'artist-tracks', artistId, limit, offset],
     queryFn: () => api.catalogArtistTracks(artistId, limit, offset),
     enabled: !!artistId,
     staleTime: 5 * 60 * 1000,
-    placeholderData: queryClient.getQueryData<CatalogListResponse<CatalogTrackItem>>(qKey),
   })
 }
 
 export function useArtistAlbums(artistId: string) {
-  const qKey = ['catalog', 'artist-albums', artistId]
   return useQuery<CatalogAlbumItem[]>({
-    queryKey: qKey,
+    queryKey: ['catalog', 'artist-albums', artistId],
     queryFn: () => api.catalogArtistAlbums(artistId),
     enabled: !!artistId,
     staleTime: 10 * 60 * 1000,
-    placeholderData: queryClient.getQueryData<CatalogAlbumItem[]>(qKey),
   })
 }
 
 // ── Albums ────────────────────────────────────────────────────────────
 
 export function useAlbum(albumId: string) {
-  const qKey = ['catalog', 'album', albumId]
   return useQuery<CatalogAlbumResponse>({
-    queryKey: qKey,
+    queryKey: ['catalog', 'album', albumId],
     queryFn: () => api.catalogAlbum(albumId),
     enabled: !!albumId,
     staleTime: 10 * 60 * 1000,
-    placeholderData: queryClient.getQueryData<CatalogAlbumResponse>(qKey),
   })
 }
 
 export function useAlbumTracks(albumId: string) {
-  const qKey = ['catalog', 'album-tracks', albumId]
   return useQuery<CatalogTrackItem[]>({
-    queryKey: qKey,
+    queryKey: ['catalog', 'album-tracks', albumId],
     queryFn: () => api.catalogAlbumTracks(albumId),
     enabled: !!albumId,
     staleTime: 10 * 60 * 1000,
-    placeholderData: queryClient.getQueryData<CatalogTrackItem[]>(qKey),
   })
 }
 
 // ── Track ─────────────────────────────────────────────────────────────
 
 export function useTrack(trackId: string) {
-  const qKey = ['catalog', 'track', trackId]
   return useQuery<CatalogTrackResponse>({
-    queryKey: qKey,
+    queryKey: ['catalog', 'track', trackId],
     queryFn: () => api.catalogTrack(trackId),
     enabled: !!trackId,
     staleTime: 5 * 60 * 1000,
-    placeholderData: queryClient.getQueryData<CatalogTrackResponse>(qKey),
   })
 }
 
 // ── Genres ────────────────────────────────────────────────────────────
 
 export function useGenres() {
-  const qKey = ['catalog', 'genres']
   return useQuery<CatalogGenreItem[]>({
-    queryKey: qKey,
+    queryKey: ['catalog', 'genres'],
     queryFn: () => api.catalogGenres(),
     staleTime: 2 * 60 * 60 * 1000,
-    placeholderData: queryClient.getQueryData<CatalogGenreItem[]>(qKey),
   })
 }
 
 export function useGenre(slug: string) {
-  const qKey = ['catalog', 'genre', slug]
   return useQuery<CatalogGenreItem>({
-    queryKey: qKey,
+    queryKey: ['catalog', 'genre', slug],
     queryFn: () => api.catalogGenre(slug),
     enabled: !!slug,
     staleTime: 2 * 60 * 60 * 1000,
-    placeholderData: queryClient.getQueryData<CatalogGenreItem>(qKey),
   })
 }
 
 export function useGenreTracks(slug: string, limit: number = 30, offset: number = 0) {
-  const qKey = ['catalog', 'genre-tracks', slug, limit, offset]
   return useQuery<CatalogListResponse<CatalogTrackItem>>({
-    queryKey: qKey,
+    queryKey: ['catalog', 'genre-tracks', slug, limit, offset],
     queryFn: () => api.catalogGenreTracks(slug, limit, offset),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
-    placeholderData: queryClient.getQueryData<CatalogListResponse<CatalogTrackItem>>(qKey),
   })
 }
 
 // ── Brazilian ─────────────────────────────────────────────────────────
 
 export function useBrazilianArtists(limit: number = 20, offset: number = 0) {
-  const qKey = ['catalog', 'brazilian', limit, offset]
   return useQuery<CatalogListResponse<CatalogArtistItem>>({
-    queryKey: qKey,
+    queryKey: ['catalog', 'brazilian', limit, offset],
     queryFn: () => api.catalogBrazilian(limit, offset),
     staleTime: 10 * 60 * 1000,
-    placeholderData: queryClient.getQueryData<CatalogListResponse<CatalogArtistItem>>(qKey),
   })
 }
 
 // ── Autocomplete ──────────────────────────────────────────────────────
 
 export function useAutocomplete(query: string) {
-  const qKey = ['catalog', 'autocomplete', query]
   return useQuery<CatalogAutocompleteResponse>({
-    queryKey: qKey,
+    queryKey: ['catalog', 'autocomplete', query],
     queryFn: () => api.catalogAutocomplete(query),
     enabled: query.length >= 2,
     staleTime: 60 * 1000,
-    placeholderData: queryClient.getQueryData<CatalogAutocompleteResponse>(qKey),
   })
 }
 

@@ -7,8 +7,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Music, ListMusic, TrendingUp, Headphones, Globe, Mic2, Disc3, Radio, Zap, Heart } from 'lucide-react'
 import { usePlayerStore } from '@/store/playerStore'
 import { useSettingsStore } from '@/store/settingsStore'
+import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/hooks/useTranslation'
-import { queryClient } from '@/lib/queryClient'
 import { api } from '@/lib/api'
 import type {
   Track,
@@ -35,14 +35,11 @@ function useDiscoverySection<T>(
   select: (data: CatalogDiscoveryResponse) => T,
   _sectionLabel: string,
 ) {
-  const placeholder = queryClient.getQueryData<CatalogDiscoveryResponse>(DISCOVERY_KEY)
   return useQuery<CatalogDiscoveryResponse, Error, T>({
     queryKey: DISCOVERY_KEY,
     queryFn: () => api.catalogDiscovery(),
     staleTime: 5 * 60 * 1000,
-    refetchInterval: 30 * 60 * 1000,
     select,
-    placeholderData: placeholder,
   })
 }
 
@@ -73,7 +70,12 @@ function TrackGrid({ items, sectionKey }: { items: CatalogTrackItem[]; sectionKe
         return (
           <div
             key={item.id ?? `${sectionKey}-${idx}`}
-            className="group p-3 rounded-xl bg-clark-bg-secondary hover:bg-clark-bg-card transition-all duration-200 border border-transparent hover:border-clark-steel/20"
+            onClick={() => hasPreview && handlePreviewPlay(item, idx)}
+            onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && hasPreview) { e.preventDefault(); handlePreviewPlay(item, idx) } }}
+            role="button"
+            tabIndex={0}
+            aria-label={`Play ${item.title} by ${item.artist_name}`}
+            className="group p-3 rounded-xl bg-clark-bg-secondary hover:bg-clark-bg-card transition-all duration-200 border border-transparent hover:border-clark-steel/20 cursor-pointer hover:scale-[1.02]"
           >
             <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md">
               {item.album_cover ? (
@@ -92,7 +94,7 @@ function TrackGrid({ items, sectionKey }: { items: CatalogTrackItem[]; sectionKe
               )}
               {hasPreview && (
                 <button
-                  onClick={() => handlePreviewPlay(item, idx)}
+                  onClick={(e) => { e.stopPropagation(); handlePreviewPlay(item, idx) }}
                   className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-clark-accent hover:bg-clark-accent-hover flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
                   aria-label={t('playPreview')}
                 >
@@ -348,16 +350,24 @@ export function NowPlayingContent() {
 
   // ── Sleep timer restore ────────────────────────────────────────
   useEffect(() => {
+    const token = useAuthStore.getState().accessToken
+    if (!token) return
+
     async function restore() {
       try {
-        const res = await fetch('/api/v1/player/sleep-timer')
+        const res = await fetch('/api/v1/player/sleep-timer', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
         if (res.ok) {
           const data = await res.json()
           if (data.expires_at != null) {
             const now = Date.now()
             if (data.expires_at > now) setSleepTimer(data.expires_at)
             else {
-              await fetch('/api/v1/player/sleep-timer', { method: 'DELETE' })
+              await fetch('/api/v1/player/sleep-timer', {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+              })
               setSleepTimer(null)
             }
           }
