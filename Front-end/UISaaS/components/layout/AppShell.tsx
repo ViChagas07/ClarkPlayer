@@ -101,6 +101,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { isOpen: sidebarOpen, width: sidebarWidth, toggle: toggleSidebar, setOpen } = useSidebarStore()
   const [rightPanelOpen, setRightPanelOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [toggleCenter, setToggleCenter] = useState(0)
   const [windowWidth, setWindowWidth] = useState(0)
 
   // ── Mobile detection + sidebar auto-close on mobile ──────────────────
@@ -113,6 +114,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           const mobile = w < MOBILE_BREAKPOINT
           setWindowWidth(w)
           setIsMobile(mobile)
+          setToggleCenter(w / 2 - 40) // center of 80px-wide toggle button
           // Close sidebar by default on mobile screens
           if (mobile) {
             setOpen(false)
@@ -700,21 +702,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </footer>
 
-      {/* Arrow-up toggle — shown when player is hidden, auto-margin centered */}
+      {/* Arrow-up toggle — shown when player is hidden, JS-calculated center */}
       <button
         onClick={() => setPlayerVisible(true)}
         style={{
           position: 'fixed',
-          left: '0',
-          right: '0',
-          bottom: '0',
-          marginLeft: 'auto',
-          marginRight: 'auto',
-          width: 'fit-content',
+          left: `${toggleCenter}px`,
+          bottom: '0px',
           zIndex: 30,
         }}
         className={cn(
-          'w-12 h-10 rounded-t-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-b-0',
+          'w-20 h-10 rounded-t-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-b-0',
           'text-clark-text-muted hover:text-clark-gold hover:bg-clark-bg-card transition-all duration-200',
           'shadow-lg shadow-black/20 flex items-center justify-center',
           isPlayerVisible ? 'opacity-0 pointer-events-none' : 'opacity-100',
