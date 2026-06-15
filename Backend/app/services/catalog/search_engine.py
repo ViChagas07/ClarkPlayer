@@ -19,7 +19,6 @@ Strategy:
   3. Results ordered by relevance score, then popularity descending
 """
 
-import asyncio
 from dataclasses import dataclass, field
 
 from sqlalchemy import func, or_, select
@@ -67,12 +66,10 @@ class CatalogSearchEngine:
         Returns aggregated results with artists, tracks, albums, and genres
         matching the query string.
         """
-        artists, tracks, albums, genres = await asyncio.gather(
-            self.search_artists(query, limit=limit, offset=offset),
-            self.search_tracks(query, limit=limit, offset=offset),
-            self.search_albums(query, limit=limit, offset=offset),
-            self.search_genres(query, limit=10),
-        )
+        artists = await self.search_artists(query, limit=limit, offset=offset)
+        tracks = await self.search_tracks(query, limit=limit, offset=offset)
+        albums = await self.search_albums(query, limit=limit, offset=offset)
+        genres = await self.search_genres(query, limit=10)
 
         total = len(artists) + len(tracks) + len(albums) + len(genres)
         return CatalogSearchResults(
