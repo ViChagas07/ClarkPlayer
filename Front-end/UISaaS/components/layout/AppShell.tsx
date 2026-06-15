@@ -29,6 +29,7 @@ import {
   LogIn,
   User,
   ChevronLeft,
+  ChevronDown,
   Disc3,
   ArrowUp,
   Headphones,
@@ -466,33 +467,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </p>
           </div>
 
-          {/* ── Queue section: toggle button + FILA header + divider + content ── */}
-          <div className="relative flex-shrink-0">
-            {/* Close button — on the left wall, aligned with the FILA header row */}
+          {/* ── Queue section: spacer + divider + close button + header + content ── */}
+          {/* Spacer to push divider down */}
+          <div className="flex-1 min-h-[20px]" />
+
+          {/* Divider — visually separated from content above */}
+          <div className="mx-5 border-t border-clark-steel/20 flex-shrink-0 mb-3" />
+
+          {/* Queue header row */}
+          <div className="flex items-center gap-2 px-5 pb-3">
+            <ListOrdered className="w-4 h-4 text-clark-gold" />
+            <h3 className="font-condensed text-xs tracking-widest text-clark-text-muted uppercase">{t('queue')}</h3>
+            <span className="font-condensed text-xs text-clark-text-muted/50">({queue.length} {t('tracks')})</span>
+            {/* Close button — at the end of the queue header row */}
             <button
               onClick={() => setRightPanelOpen(false)}
-              className={cn(
-                'absolute top-1/2 left-0 -translate-y-1/2 z-40 pointer-events-auto',
-                'w-7 h-12 rounded-r-lg bg-clark-bg-card/80 backdrop-blur-md border border-clark-steel/30 border-l-0',
-                'text-clark-text-muted hover:text-clark-gold hover:bg-clark-bg-card transition-all duration-200',
-                'shadow-lg shadow-black/20 flex items-center justify-center',
-              )}
-              aria-label={t('closeNowPlayingPanel')}
-              title={t('nowPlaying')}
+              className="ml-auto p-1.5 rounded-lg text-clark-text-muted/50 hover:text-clark-gold hover:bg-clark-steel/20 transition-colors"
+              aria-label={t('closePanel')}
             >
-              <Music className="w-4 h-4" />
+              <X className="w-4 h-4" />
             </button>
-
-            {/* FILA (N faixas) — header row aligned with toggle button */}
-            <div className="flex items-center gap-2 px-5 py-3 pl-12">
-              <ListOrdered className="w-4 h-4 text-clark-gold" />
-              <h3 className="font-condensed text-xs tracking-widest text-clark-text-muted uppercase">{t('queue')}</h3>
-              <span className="font-condensed text-xs text-clark-text-muted/50">({queue.length} {t('tracks')})</span>
-            </div>
           </div>
-
-          {/* Divider — BELOW the FILA header and toggle button area */}
-          <div className="mx-5 border-t border-clark-steel/20 flex-shrink-0" />
 
           {/* Queue content */}
           <div className="flex-1 overflow-y-auto px-3 py-2">
@@ -551,7 +546,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main
         style={{
           marginLeft: sidebarOpen ? `${sidebarWidth}px` : '0px',
-          paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))',
+          paddingBottom: 'calc(100px + env(safe-area-inset-bottom, 0px))',
           transition: 'margin-left 300ms ease-in-out',
         }}
         className="flex-1 overflow-y-auto relative"
@@ -578,7 +573,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </AuthGuard>
       </main>
 
-      {/* Player bar — fully centered, mobile-optimized */}
+      {/* Player bar — clean mobile layout */}
       <footer
         style={{
           position: 'fixed',
@@ -586,19 +581,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           right: rightPanelOpen && !isMobile ? `${rightPanelWidth}px` : '0px',
           bottom: '0px',
           zIndex: 30,
-          height: '96px',
+          height: 'auto',
+          minHeight: '96px',
           backgroundColor: accentColor + '18',
           borderTopColor: accentColor + '50',
           transition: 'left 300ms ease-in-out, right 300ms ease-in-out, transform 300ms ease-in-out',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
         className={cn(
-          'border-t px-2 sm:px-4 flex items-center justify-center gap-2 sm:gap-8 pointer-events-auto backdrop-blur-md',
+          'border-t px-3 sm:px-4 flex flex-col items-center pointer-events-auto backdrop-blur-md',
           isPlayerVisible ? 'translate-y-0' : 'translate-y-[calc(100%+1.5rem)]',
         )}
       >
-        {/* Track info — left (hidden on mobile) */}
-        <div className="hidden sm:flex items-center gap-3 min-w-0 flex-1 sm:w-56 sm:flex-shrink-0 sm:flex-none">
+        {/* Toggle collapse button — centered at top */}
+        <button
+          onClick={() => setPlayerVisible(false)}
+          className="w-12 h-7 flex items-center justify-center -mt-1 mb-1 rounded-b-lg bg-clark-bg-card/60 hover:bg-clark-bg-card border-b border-x border-clark-steel/20 text-clark-text-muted/60 hover:text-clark-gold transition-colors"
+          aria-label={t('hidePlayer')}
+          title={t('hidePlayer')}
+        >
+          <ChevronDown className="w-4 h-4" />
+        </button>
+
+        {/* Track info — hidden on mobile */}
+        <div className="hidden sm:flex items-center gap-3 min-w-0 flex-1 sm:w-56 sm:flex-shrink-0 sm:flex-none sm:absolute sm:left-4 sm:top-1/2 sm:-translate-y-1/2">
           {displayTrack ? (
             <>
               <div className="relative flex-shrink-0">
@@ -635,108 +641,100 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        {/* Controls — center (fully centered on mobile) */}
-        <div className="flex flex-col items-center justify-center gap-1 flex-1 sm:flex-initial">
-          <div className="flex items-center justify-center gap-3 sm:gap-5">
-            <button
-              className={cn(
-                'p-2 text-clark-text-muted hover:text-clark-gold transition-colors',
-                isShuffled && 'text-clark-gold'
-              )}
-              onClick={toggleShuffle}
-              aria-label={t('toggleShuffle')}
-              style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              <Shuffle className="w-4 h-4" />
-            </button>
-            <button
-              className="p-2 text-clark-text-muted/80 hover:text-clark-text-primary transition-colors"
-              onClick={prevTrack}
-              aria-label={t('previousTrack')}
-              style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              <SkipBack className="w-5 h-5" />
-            </button>
-            <button
-              className="relative w-11 h-11 rounded-full bg-clark-accent hover:bg-clark-accent-hover flex items-center justify-center transition-all hover:scale-105 group"
-              style={{ boxShadow: `0 0 14px ${accentColor}60`, minWidth: '44px', minHeight: '44px' }}
-              onClick={() => {
-                if (isPreview && isPlaying) {
-                  stopPreview()
-                } else {
-                  togglePlay()
-                }
-              }}
-              aria-label={isPlaying ? t('pauseBtn') : t('playBtn')}
-            >
-              <div className="absolute inset-0 rounded-full bg-clark-gold/20 blur-sm group-hover:bg-clark-gold/40 transition-colors" />
-              <div className="relative flex items-center justify-center">
-                {isPlaying
-                  ? <Pause className="w-5 h-5 text-white" />
-                  : <Play className="w-5 h-5 text-white ml-0.5" />
-                }
-              </div>
-            </button>
-            <button
-              className="p-2 text-clark-text-muted/80 hover:text-clark-text-primary transition-colors"
-              onClick={nextTrack}
-              aria-label={t('nextTrack')}
-              style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              <SkipForward className="w-5 h-5" />
-            </button>
-            <button
-              className={cn(
-                'p-2 text-clark-text-muted hover:text-clark-gold transition-colors',
-                repeatMode !== 'off' && 'text-clark-gold'
-              )}
-              onClick={toggleRepeat}
-              aria-label={t('toggleRepeat')}
-              style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              {repeatMode === 'one' ? <Repeat1 className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
-            </button>
-          </div>
-
-          {/* Progress bar — fully centered */}
-          <div className="flex items-center justify-center gap-2 w-full max-w-[280px] sm:max-w-md px-1 sm:px-0">
-            <span className="font-condensed text-[10px] sm:text-xs text-clark-text-muted w-8 sm:w-10 text-right tabular-nums flex-shrink-0">{formatTime(progress)}</span>
-            <div
-              className="flex-1 py-3 cursor-pointer group relative"
-              onClick={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect()
-                const pct = (e.clientX - rect.left) / rect.width
-                seek(pct * trackDuration)
-              }}
-              role="slider"
-              aria-label="Track progress"
-              aria-valuemin={0}
-              aria-valuemax={trackDuration}
-              aria-valuenow={progress}
-              tabIndex={0}
-            >
-              <div className="h-1.5 bg-clark-bg-secondary rounded-full relative">
-                <div
-                  className="h-full rounded-full relative group-hover:brightness-110 transition-all"
-                  style={{
-                    width: `${trackDuration > 0 ? (progress / trackDuration) * 100 : 0}%`,
-                    backgroundColor: accentColor,
-                    boxShadow: `0 0 8px ${accentColor}80`,
-                  }}
-                >
-                  <div
-                    className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ backgroundColor: accentColor, boxShadow: `0 0 10px ${accentColor}` }}
-                  />
-                </div>
-              </div>
+        {/* Controls — centered row */}
+        <div className="flex items-center justify-center gap-3 sm:gap-5 w-full max-w-[320px] sm:max-w-md">
+          <button
+            className={cn('p-2 text-clark-text-muted hover:text-clark-gold transition-colors', isShuffled && 'text-clark-gold')}
+            onClick={toggleShuffle}
+            aria-label={t('toggleShuffle')}
+            style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Shuffle className="w-4 h-4" />
+          </button>
+          <button
+            className="p-2 text-clark-text-muted/80 hover:text-clark-text-primary transition-colors"
+            onClick={prevTrack}
+            aria-label={t('previousTrack')}
+            style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <SkipBack className="w-5 h-5" />
+          </button>
+          <button
+            className="relative w-11 h-11 rounded-full bg-clark-accent hover:bg-clark-accent-hover flex items-center justify-center transition-all hover:scale-105 group flex-shrink-0"
+            style={{ boxShadow: `0 0 14px ${accentColor}60`, minWidth: '44px', minHeight: '44px' }}
+            onClick={() => { if (isPreview && isPlaying) stopPreview(); else togglePlay() }}
+            aria-label={isPlaying ? t('pauseBtn') : t('playBtn')}
+          >
+            <div className="absolute inset-0 rounded-full bg-clark-gold/20 blur-sm group-hover:bg-clark-gold/40 transition-colors" />
+            <div className="relative flex items-center justify-center">
+              {isPlaying ? <Pause className="w-5 h-5 text-white" /> : <Play className="w-5 h-5 text-white ml-0.5" />}
             </div>
-            <span className="font-condensed text-[10px] sm:text-xs text-clark-text-muted w-8 sm:w-10 tabular-nums flex-shrink-0">{formatTime(trackDuration)}</span>
-          </div>
+          </button>
+          <button
+            className="p-2 text-clark-text-muted/80 hover:text-clark-text-primary transition-colors"
+            onClick={nextTrack}
+            aria-label={t('nextTrack')}
+            style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <SkipForward className="w-5 h-5" />
+          </button>
+          <button
+            className={cn('p-2 text-clark-text-muted hover:text-clark-gold transition-colors', repeatMode !== 'off' && 'text-clark-gold')}
+            onClick={toggleRepeat}
+            aria-label={t('toggleRepeat')}
+            style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            {repeatMode === 'one' ? <Repeat1 className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
+          </button>
+          {/* Volume — inline in controls row */}
+          <button
+            className="p-2 text-clark-text-muted hover:text-clark-sky transition-colors"
+            aria-label={t('volumeLabel')}
+            onClick={() => { /* TODO: open volume slider modal on mobile */ }}
+            style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Volume2 className="w-4 h-4" />
+          </button>
         </div>
 
-        {/* Volume — right (hidden on mobile) */}
-        <div className="hidden sm:flex items-center justify-end gap-2 w-56 flex-shrink-0">
+        {/* Progress bar — full width with padding */}
+        <div className="flex items-center justify-center gap-2 w-full max-w-[340px] sm:max-w-md px-1 py-1">
+          <span className="font-condensed text-[10px] sm:text-xs text-clark-text-muted w-8 sm:w-10 text-right tabular-nums flex-shrink-0">{formatTime(progress)}</span>
+          <div
+            className="flex-1 py-2 cursor-pointer group relative"
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect()
+              const pct = (e.clientX - rect.left) / rect.width
+              seek(pct * trackDuration)
+            }}
+            role="slider"
+            aria-label="Track progress"
+            aria-valuemin={0}
+            aria-valuemax={trackDuration}
+            aria-valuenow={progress}
+            tabIndex={0}
+          >
+            <div className="h-1.5 bg-clark-bg-secondary rounded-full relative">
+              <div
+                className="h-full rounded-full relative group-hover:brightness-110 transition-all"
+                style={{
+                  width: `${trackDuration > 0 ? (progress / trackDuration) * 100 : 0}%`,
+                  backgroundColor: accentColor,
+                  boxShadow: `0 0 8px ${accentColor}80`,
+                }}
+              >
+                <div
+                  className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ backgroundColor: accentColor, boxShadow: `0 0 10px ${accentColor}` }}
+                />
+              </div>
+            </div>
+          </div>
+          <span className="font-condensed text-[10px] sm:text-xs text-clark-text-muted w-8 sm:w-10 tabular-nums flex-shrink-0">{formatTime(trackDuration)}</span>
+        </div>
+
+        {/* Desktop-only extras: sleep timer, lyrics, queue, volume slider */}
+        <div className="hidden sm:flex items-center justify-end gap-2 w-56 flex-shrink-0 sm:absolute sm:right-4 sm:top-1/2 sm:-translate-y-1/2">
           {sleepTimer && (
             <span className="font-body text-xs bg-clark-steel/20 px-2 py-1 rounded text-clark-text-muted border border-clark-steel/30">
               {'\u23FE'} {t('sleepBtn')}
@@ -748,7 +746,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <button className="p-2 text-clark-text-muted hover:text-clark-sky transition-colors" aria-label={t('queue')}>
             <ListOrdered className="w-4 h-4" />
           </button>
-          {/* Volume slider — vertical, compact & centered */}
           <div className="flex flex-col items-center justify-center gap-1">
             <div className="flex items-center justify-center" style={{ height: '50px' }}>
               <input
@@ -772,26 +769,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Volume2 className="w-3.5 h-3.5 text-clark-text-muted" />
           </div>
         </div>
-        {/* Mobile: volume icon button only */}
-        <button
-          className="flex sm:hidden p-2 text-clark-text-muted hover:text-clark-sky transition-colors"
-          aria-label={t('volumeLabel')}
-          onClick={() => { /* TODO: open volume slider modal/popover on mobile */ }}
-          style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          <Volume2 className="w-4 h-4" />
-        </button>
-
-        {/* Close (X) button — right edge of player bar */}
-        <button
-          onClick={() => setPlayerVisible(false)}
-          className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-lg text-clark-text-muted/50 hover:text-clark-accent hover:bg-clark-steel/20 transition-colors"
-          aria-label={t('hidePlayer')}
-          title={t('hidePlayer')}
-          style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          <X className="w-4 h-4" />
-        </button>
       </footer>
 
       {/* Arrow-up toggle — shown when player is hidden */}
