@@ -36,14 +36,14 @@ function useDiscoverySection<T>(
   select: (data: CatalogDiscoveryResponse) => T,
   _sectionLabel: string,
 ) {
-  const cached = queryClient.getQueryData<CatalogDiscoveryResponse>(DISCOVERY_KEY)
+  const placeholder = queryClient.getQueryData<CatalogDiscoveryResponse>(DISCOVERY_KEY)
   return useQuery<CatalogDiscoveryResponse, Error, T>({
     queryKey: DISCOVERY_KEY,
     queryFn: () => api.catalogDiscovery(),
     staleTime: 5 * 60 * 1000,
+    refetchInterval: 30 * 60 * 1000,
     select,
-    // Use cached raw data as placeholder — prevents flash on refetch
-    placeholderData: cached ?? undefined,
+    placeholderData: placeholder,
   })
 }
 
@@ -198,7 +198,6 @@ function TrendingSection() {
     'trending',
   )
 
-  // Only show skeleton on initial load when truly empty
   if (isLoading && !data) {
     return (
       <section className="w-full max-w-6xl mt-10">
