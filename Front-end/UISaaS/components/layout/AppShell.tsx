@@ -598,7 +598,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
         className={cn(
-          'border-t px-3 sm:px-4 flex flex-col items-center pointer-events-auto backdrop-blur-md',
+          'border-t px-3 sm:px-4 flex flex-col pointer-events-auto backdrop-blur-md',
           isPlayerVisible ? 'translate-y-0' : 'translate-y-[calc(100%+1.5rem)]',
         )}
       >
@@ -650,9 +650,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        {/* Controls — true centering via justify-center on full-width wrapper */}
-        <div className="w-full flex justify-center">
-          <div className="flex items-center justify-center gap-3 sm:gap-5 pt-1.5 pb-0.5">
+        {/* Controls — mx-auto + max-w matches progress bar for identical centering */}
+        <div className="mx-auto w-full max-w-[340px] sm:max-w-md flex justify-center pt-1.5 pb-0.5">
+          <div className="flex items-center justify-center gap-3 sm:gap-5">
           <button
             className={cn('p-2 text-clark-text-muted hover:text-clark-gold transition-colors', isShuffled && 'text-clark-gold')}
             onClick={toggleShuffle}
@@ -708,8 +708,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         </div>
 
-        {/* Progress bar — full width with padding */}
-        <div className="flex items-center justify-center gap-2 w-full max-w-[340px] sm:max-w-md px-1 py-1">
+        {/* Progress bar — same mx-auto + max-w as controls for identical centering */}
+        <div className="mx-auto flex items-center justify-center gap-2 w-full max-w-[340px] sm:max-w-md px-1 py-1">
           <span className="font-condensed text-[10px] sm:text-xs text-clark-text-muted w-8 sm:w-10 text-right tabular-nums flex-shrink-0">{formatTime(progress)}</span>
           <div
             className="flex-1 py-2 cursor-pointer group relative"
