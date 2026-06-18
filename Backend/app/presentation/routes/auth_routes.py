@@ -6,9 +6,10 @@ Access tokens are JWT (stateless) returned in the JSON body.
 """
 
 import uuid
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 
 if TYPE_CHECKING:
     from passlib.context import CryptContext
@@ -483,3 +484,26 @@ async def google_oidc_callback(
             is_active=user.is_active,
         ),
     )
+
+
+@router.post("/consent", status_code=status.HTTP_204_NO_CONTENT)
+async def record_consent(
+    request: Request,
+    user_id: CurrentUserId,
+    session: SessionDep,
+) -> None:
+    """Record user consent to Terms and Privacy Policy (LGPD compliance)."""
+    from app.infrastructure.repositories.user_repository import UserRepository
+    from datetime import datetime, timezone
+
+    repo = UserRepository(session)
+    user = await repo.get_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.terms_version = "1.0"
+    user.privacy_version = "1.0"
+    user.consent_accepted_at = datetime.now(timezone.utc)
+    user.consent_ip = request.client.host if request.client else None
+    user.consent_user_agent = request.headers.get("User-Agent")
+    await session.commit()

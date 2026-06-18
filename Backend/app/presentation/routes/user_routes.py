@@ -127,3 +127,48 @@ async def delete_my_account(
     """Permanently delete the authenticated user's account and all data."""
     service = UserService(UserRepository(session))
     await service.delete_account(user_id)
+
+
+@router.get("/me/export")
+async def export_my_data(
+    user_id: CurrentUserId,
+    session: SessionDep,
+) -> JSONResponse:
+    """Export all user data in JSON format (LGPD right to portability)."""
+    from app.infrastructure.models.user import UserModel
+    from app.infrastructure.models.track import TrackModel
+    from app.infrastructure.models.playlist import PlaylistModel
+    from app.infrastructure.repositories.track_repository import TrackRepository
+    from app.infrastructure.repositories.playlist_repository import PlaylistRepository
+
+    repo = UserRepository(session)
+    user = await repo.get_by_id(user_id)
+    if not user:
+        return JSONResponse(status_code=404, content={"error": "User not found"})
+
+    # ── Gather all user data ──
+    tracks = await session.execute(
+        select(TrackModel).where(TrackModel.user_id == user_id)
+    )
+    user_tracks = [{"title": t.title, "artist": t.artist, "album": t.album, "format": t.file_format.value if t.file_format else None} for t in tracks.scalars().all()]
+
+    playlists = await session.execute(
+        select(PlaylistModel).where(PlaylistModel.user_id == user_id)
+    )
+    user_playlists = [{"name": p.name, "visibility": p.visibility.value if p.visibility else None} for p in playlists.scalars().all()]
+
+    export_data = {
+        "exported_at": str(user_id),
+        "profile": {
+            "username": user.username,
+            "email": user.email,
+            "display_name": user.display_name,
+            "provider": user.provider,
+        },
+        "tracks": user_tracks,
+        "playlists": user_playlists,
+    }
+
+    return JSONResponse(content=export_data, headers={
+        "Content-Disposition": "attachment; filename=clarkplayer-export.json"
+    })
