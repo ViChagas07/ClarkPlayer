@@ -82,6 +82,7 @@ function AuthFormInner() {
   const [attemptState, setAttemptState] = useState<LoginAttemptState>({ count: 0, lockedUntil: null })
   const [countdown, setCountdown] = useState(0)
   const [registerSuccess, setRegisterSuccess] = useState(false)
+  const [agreeConsent, setAgreeConsent] = useState(false)
   const setSession = useAuthStore((state) => state.setSession)
 
   useEffect(() => {
@@ -444,13 +445,34 @@ function AuthFormInner() {
             </div>
           )}
 
+          {/* ── Consent checkbox (login tab) ─────────────────── */}
+          {activeTab === 'login' && (
+            <div className="flex items-start gap-3 mb-4">
+              <input
+                id="login-agreeConsent"
+                type="checkbox"
+                checked={agreeConsent}
+                onChange={(e) => setAgreeConsent(e.target.checked)}
+                disabled={isLoading || isLockedOut}
+                className="mt-1 w-4 h-4 rounded border-clark-steel/40 bg-clark-bg-secondary text-clark-accent focus:ring-clark-accent"
+              />
+              <label htmlFor="login-agreeConsent" className="font-body text-sm text-clark-text-muted">
+                I have read the{' '}
+                <Link href="/privacy-policy#terms" target="_blank" className="text-clark-gold hover:underline">Terms of Use</Link>
+                {' '}and{' '}
+                <Link href="/privacy-policy" target="_blank" className="text-clark-gold hover:underline">Privacy Policy</Link>
+                {' '}and agree to them.
+              </label>
+            </div>
+          )}
+
           {/* ── Social / Google button (both tabs) ─────────────────── */}
           {activeTab === 'login' && (
             <div className="space-y-3 mb-6">
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                disabled={isLoading || isLockedOut}
+                disabled={isLoading || isLockedOut || !agreeConsent}
                 className="w-full h-12 flex items-center justify-center gap-3 border border-clark-steel rounded-lg bg-transparent font-body font-medium text-clark-text-primary hover:bg-clark-bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -536,7 +558,7 @@ function AuthFormInner() {
 
               <button
                 type="submit"
-                disabled={isLoading || isLockedOut}
+                disabled={isLoading || isLockedOut || !agreeConsent}
                 className="w-full h-12 bg-clark-accent hover:bg-clark-accent-hover disabled:opacity-60 font-body font-semibold text-white rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 {isLoading ? (
@@ -700,7 +722,11 @@ function AuthFormInner() {
                   aria-describedby={registerFormHook.formState.errors.agreeTerms ? 'agreeTerms-error' : undefined}
                 />
                 <label htmlFor="agreeTerms" className="font-body text-sm text-clark-text-muted">
-                  {t('agreeTerms')}
+                  I have read the{' '}
+                  <Link href="/privacy-policy#terms" target="_blank" className="text-clark-gold hover:underline">Terms of Use</Link>
+                  {' '}and{' '}
+                  <Link href="/privacy-policy" target="_blank" className="text-clark-gold hover:underline">Privacy Policy</Link>
+                  {' '}and agree to them.
                 </label>
               </div>
               {registerFormHook.formState.errors.agreeTerms && (
