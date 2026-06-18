@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { AppShell } from '@/components/layout/AppShell'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -11,6 +12,7 @@ import {
   FolderOpen,
   Headphones,
   Info,
+  Shield,
   Check,
   FolderPlus,
   RefreshCw,
@@ -18,6 +20,8 @@ import {
   Eye,
   EyeOff,
   HelpCircle,
+  Download,
+  AlertTriangle,
 } from 'lucide-react'
 
 const ACCENT_COLORS = [
@@ -63,6 +67,7 @@ const TABS = [
   { id: 'language', labelKey: 'language' as const, icon: Globe },
   { id: 'library', labelKey: 'libraryFiles' as const, icon: FolderOpen },
   { id: 'playback', labelKey: 'playback' as const, icon: Headphones },
+  { id: 'privacy', label: 'Privacy', icon: Shield },
   { id: 'about', labelKey: 'about' as const, icon: Info },
 ]
 
@@ -167,7 +172,7 @@ export default function SettingsPage() {
                     )}
                   >
                     <tab.icon className="w-5 h-5 flex-shrink-0" />
-                    {t(tab.labelKey)}
+                    {t(tab.labelKey as any) || (tab as any).label || tab.id}
                   </button>
                 </li>
               ))}
@@ -541,6 +546,52 @@ export default function SettingsPage() {
               </>
             )}
 
+            {/* Privacy & Data */}
+            {activeTab === 'privacy' && (
+              <div className="space-y-6">
+                <div className="p-4 rounded-xl bg-clark-bg-secondary border border-clark-steel/20">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Shield className="w-5 h-5 text-clark-gold" />
+                    <h3 className="font-body font-semibold text-clark-text-primary">Music Privacy Center</h3>
+                  </div>
+                  <p className="font-body text-sm text-clark-text-muted mb-4">Manage your data, privacy settings, and account.</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Link href="/privacy-policy" className="px-4 py-2 rounded-lg bg-clark-bg-card border border-clark-steel/30 text-clark-text-primary text-sm hover:border-clark-gold/50 transition-colors">Privacy Policy</Link>
+                    <Link href="/privacy-policy#terms" className="px-4 py-2 rounded-lg bg-clark-bg-card border border-clark-steel/30 text-clark-text-primary text-sm hover:border-clark-gold/50 transition-colors">Terms of Use</Link>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-clark-bg-secondary border border-clark-steel/20">
+                  <h3 className="font-body font-semibold text-clark-text-primary mb-2">Export My Music Data</h3>
+                  <p className="font-body text-sm text-clark-text-muted mb-3">Download all your data in JSON format (LGPD right to portability).</p>
+                  <button className="flex items-center gap-2 px-4 py-2.5 bg-clark-accent hover:bg-clark-accent-hover text-white rounded-lg font-body text-sm transition-colors">
+                    <Download className="w-4 h-4" /> Export Data
+                  </button>
+                </div>
+
+                <div className="p-4 rounded-xl bg-clark-bg-secondary border border-clark-danger/30">
+                  <div className="flex items-center gap-3 mb-3">
+                    <AlertTriangle className="w-5 h-5 text-clark-danger" />
+                    <h3 className="font-body font-semibold text-clark-danger">Delete My Account</h3>
+                  </div>
+                  <p className="font-body text-sm text-clark-text-muted mb-3">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                  <button className="flex items-center gap-2 px-4 py-2.5 bg-clark-danger/20 hover:bg-clark-danger/30 text-clark-danger rounded-lg font-body text-sm transition-colors">
+                    <Trash2 className="w-4 h-4" /> Delete Account
+                  </button>
+                </div>
+
+                <div className="p-4 rounded-xl bg-clark-bg-secondary border border-clark-steel/20">
+                  <h3 className="font-body font-semibold text-clark-text-primary mb-2">Data We Store</h3>
+                  <ul className="space-y-2 font-body text-sm text-clark-text-muted">
+                    <li className="flex items-center gap-2"><Check className="w-3 h-3 text-clark-gold" /> Playlists</li>
+                    <li className="flex items-center gap-2"><Check className="w-3 h-3 text-clark-gold" /> Favorites</li>
+                    <li className="flex items-center gap-2"><Check className="w-3 h-3 text-clark-gold" /> Listening history</li>
+                    <li className="flex items-center gap-2"><Check className="w-3 h-3 text-clark-gold" /> Theme & language preferences</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
             {/* About */}
             {activeTab === 'about' && (
               <div className="text-center space-y-8">
@@ -578,9 +629,9 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex flex-wrap justify-center gap-4 font-body text-sm text-clark-text-muted">
-                  <a href="#" className="hover:text-clark-sky transition-colors">Privacy Policy</a>
+                  <Link href="/privacy-policy" className="hover:text-clark-gold transition-colors">Privacy Policy</Link>
                   <span className="text-clark-steel/40">·</span>
-                  <a href="#" className="hover:text-clark-sky transition-colors">Terms of Service</a>
+                  <Link href="/privacy-policy#terms" className="hover:text-clark-gold transition-colors">Terms of Service</Link>
                   <span className="text-clark-steel/40">·</span>
                   <a href="#" className="hover:text-clark-sky transition-colors">Open Source Licenses</a>
                 </div>

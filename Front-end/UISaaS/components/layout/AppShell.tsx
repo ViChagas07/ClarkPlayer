@@ -40,6 +40,7 @@ import { useSettingsStore } from '@/store/settingsStore'
 import { useAuthStore } from '@/store/authStore'
 import { useSidebarStore } from '@/store/sidebarStore'
 import { AuthGuard } from '@/components/auth/AuthGuard'
+import { GlobalFooter } from '@/components/layout/GlobalFooter'
 import { api } from '@/lib/api'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useDesktopAudioEngine } from '@/hooks/useDesktopAudioEngine'
@@ -582,6 +583,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {children}
           </div>
         </AuthGuard>
+        <GlobalFooter />
       </main>
 
       {/* Player bar — 3-region architecture: Left | Center (absolute) | Right */}
