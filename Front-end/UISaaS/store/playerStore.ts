@@ -16,19 +16,20 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
 // Action to set the current track and start playing it, also resets progress to 0
   setCurrentTrack: (track: Track) => {
-    set({ currentTrack: track, isPlaying: true, progress: 0, isPreview: false })
+    set({ currentTrack: track, isPlaying: true, progress: 0, isPreview: track.isPreview ?? false })
   },
 
   togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
 
   setQueue: (tracks: Track[], startIndex = 0) => {
+    const track = tracks[startIndex]
     set({
       queue: tracks,
       queueIndex: startIndex,
-      currentTrack: tracks[startIndex] ?? null,
+      currentTrack: track ?? null,
       isPlaying: true,
       progress: 0,
-      isPreview: false,
+      isPreview: track?.isPreview ?? false,
     })
   },
 
@@ -53,7 +54,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       queueIndex: nextIndex,
       currentTrack: queue[nextIndex] ?? null,
       progress: 0,
-      isPreview: false,
+      isPreview: queue[nextIndex]?.isPreview ?? false,
     })
   },
 
@@ -73,7 +74,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       queueIndex: prevIndex,
       currentTrack: queue[prevIndex] ?? null,
       progress: 0,
-      isPreview: false,
+      isPreview: queue[prevIndex]?.isPreview ?? false,
     })
   },
 
