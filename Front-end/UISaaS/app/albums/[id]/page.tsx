@@ -7,7 +7,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { usePlayerStore } from '@/store/playerStore'
 import { playWithAlbumQueue } from '@/lib/albumQueue'
 import { useAlbum } from '@/hooks/useCatalog'
-import type { CatalogTrackItem, Track } from '@/types'
+import type { CatalogTrackItem, CatalogAlbumItem, Track } from '@/types'
 import {
   Play,
   ArrowLeft,
@@ -60,9 +60,26 @@ function AlbumDetailInner({ params }: { params: Promise<{ id: string }> }) {
   } = useAlbum(mounted ? albumId : '')
 
   // ── Extract data ──────────────────────────────────────────
-  const album = albumData?.album
+  // Backend returns flat CatalogAlbumDetailResponse (no wrapper).
+  // We construct the album + artist objects here for backward compat with
+  // the rest of the page.
+  const album: CatalogAlbumItem | undefined = albumData
+    ? {
+        id: albumData.id,
+        title: albumData.title,
+        artist_name: albumData.artist_name,
+        cover_url: albumData.cover_url,
+        release_date: albumData.release_date,
+        track_count: albumData.track_count,
+        genres: [],
+      }
+    : undefined
+
   const tracks: CatalogTrackItem[] = albumData?.tracks ?? []
-  const artist = albumData?.artist
+
+  const artist: { id: string; name: string } | null = albumData
+    ? { id: albumData.artist_id, name: albumData.artist_name }
+    : null
 
   // ── Play helpers ──────────────────────────────────────────
   function handlePlayAll() {

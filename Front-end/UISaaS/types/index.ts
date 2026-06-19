@@ -442,9 +442,17 @@ export interface CatalogArtistResponse {
 }
 
 export interface CatalogAlbumResponse {
-  album: CatalogAlbumItem
+  id: string
+  title: string
+  artist_id: string
+  artist_name: string
+  cover_url: string | null
+  release_date: string | null
+  country: string | null
+  track_count: number
+  external_mb_id: string | null
+  external_spotify_id: string | null
   tracks: CatalogTrackItem[]
-  artist: CatalogArtistItem | null
 }
 
 export interface CatalogTrackResponse {
