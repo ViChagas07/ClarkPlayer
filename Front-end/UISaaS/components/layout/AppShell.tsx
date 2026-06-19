@@ -673,7 +673,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Toggle */}
           <button
             onClick={() => setPlayerVisible(false)}
-            className="w-10 h-6 flex items-center justify-center -mt-[1px] rounded-t-lg bg-clark-bg-card/60 hover:bg-clark-bg-card border-t border-x border-clark-steel/20 text-clark-text-muted/60 hover:text-clark-gold transition-colors"
+            className="w-12 h-7 flex items-center justify-center mt-0 rounded-b-lg bg-clark-bg-card/60 hover:bg-clark-bg-card border-b border-clark-steel/20 text-clark-text-muted/60 hover:text-clark-gold transition-colors"
             aria-label={t('hidePlayer')}
           >
             <ChevronDown className="w-4 h-4" />
