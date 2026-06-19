@@ -4,7 +4,10 @@ User-profile management routes.
 
 from pathlib import Path
 
+import aiofiles
 from fastapi import APIRouter, UploadFile, status
+from fastapi.responses import JSONResponse
+from sqlalchemy import select
 
 from app.application.services.user_service import UserService
 from app.core.config import get_settings
@@ -101,7 +104,6 @@ async def upload_avatar(
         raise ValueError(f"Avatar must be under {settings.MAX_AVATAR_SIZE_MB} MB.")
 
     # Save to media/avatars/<user_id><ext> (async I/O via aiofiles)
-    import aiofiles
     avatars_dir = settings.MEDIA_ROOT / "avatars"
     avatars_dir.mkdir(parents=True, exist_ok=True)
     filename = f"{user_id}{ext}"

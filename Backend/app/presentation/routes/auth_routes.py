@@ -82,6 +82,8 @@ async def _create_refresh_token(user_id: str) -> str:
 
     token = str(uuid.uuid4())
     redis = await get_session_redis()
+    if redis is None:
+        raise RuntimeError("Redis is not available — cannot create refresh token.")
     ttl = settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400
     await redis.setex(f"{REFRESH_KEY_PREFIX}{token}", ttl, user_id)
     return token
@@ -91,6 +93,8 @@ async def _validate_refresh_token(token: str) -> str:
     """Return user_id if refresh token is valid, raise ValueError otherwise."""
 
     redis = await get_session_redis()
+    if redis is None:
+        raise ValueError("Refresh token validation unavailable (Redis down).")
     user_id: str | None = await redis.get(f"{REFRESH_KEY_PREFIX}{token}")
     if not user_id:
         raise ValueError("Refresh token not found or expired")
@@ -98,14 +102,17 @@ async def _validate_refresh_token(token: str) -> str:
 
 
 async def _revoke_refresh_token(token: str) -> None:
-    """Delete refresh token from Redis."""
+    """Delete refresh token from Redis (no-op if Redis unavailable)."""
     redis = await get_session_redis()
-    await redis.delete(f"{REFRESH_KEY_PREFIX}{token}")
+    if redis is not None:
+        await redis.delete(f"{REFRESH_KEY_PREFIX}{token}")
 
 
 async def _revoke_all_user_tokens(user_id: str) -> None:
     """Logout from all devices — scans DB 0 for all tokens belonging to this user."""
     redis = await get_session_redis()
+    if redis is None:
+        return
     cursor = 0
     while True:
         cursor, keys = await redis.scan(cursor, match=f"{REFRESH_KEY_PREFIX}*", count=100)
@@ -493,17 +500,15 @@ async def record_consent(
     session: SessionDep,
 ) -> None:
     """Record user consent to Terms and Privacy Policy (LGPD compliance)."""
-    from app.infrastructure.repositories.user_repository import UserRepository
-    from datetime import datetime, timezone
+    from app.infrastructure.models.user import UserModel
 
-    repo = UserRepository(session)
-    user = await repo.get_by_id(user_id)
-    if not user:
+    user_model = await session.get(UserModel, user_id)
+    if user_model is None:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user.terms_version = "1.0"
-    user.privacy_version = "1.0"
-    user.consent_accepted_at = datetime.now(timezone.utc)
-    user.consent_ip = request.client.host if request.client else None
-    user.consent_user_agent = request.headers.get("User-Agent")
+    user_model.terms_version = "1.0"
+    user_model.privacy_version = "1.0"
+    user_model.consent_accepted_at = datetime.now(timezone.utc)
+    user_model.consent_ip = request.client.host if request.client else None
+    user_model.consent_user_agent = request.headers.get("User-Agent")
     await session.commit()

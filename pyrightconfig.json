@@ -1,3 +1,9 @@
 {
-    "reportUnusedFunction": false
+    "venvPath": "Backend",
+    "venv": "venv",
+    "reportUnusedFunction": false,
+    "exclude": [
+        "**/node_modules",
+        "**/alembic"
+    ]
 }

@@ -72,6 +72,11 @@ async def set_sleep_timer(
 
     ttl_seconds = (body.expires_at - now_ms) // 1000
     redis = await get_session_redis()
+    if redis is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Sleep timer requires Redis (not configured).",
+        )
     key = f"{SLEEP_KEY_PREFIX}{user_id}"
     await redis.setex(key, ttl_seconds, str(body.expires_at))
 
@@ -84,6 +89,8 @@ async def get_sleep_timer(
 ) -> SleepTimerResponse:
     """Return the current sleep timer if set and not yet expired."""
     redis = await get_session_redis()
+    if redis is None:
+        return SleepTimerResponse(expires_at=None)
     key = f"{SLEEP_KEY_PREFIX}{user_id}"
     value = await redis.get(key)
 
@@ -106,8 +113,9 @@ async def delete_sleep_timer(
 ) -> SleepTimerResponse:
     """Cancel the sleep timer."""
     redis = await get_session_redis()
-    key = f"{SLEEP_KEY_PREFIX}{user_id}"
-    await redis.delete(key)
+    if redis is not None:
+        key = f"{SLEEP_KEY_PREFIX}{user_id}"
+        await redis.delete(key)
     return SleepTimerResponse(expires_at=None)
 
 
@@ -134,10 +142,11 @@ async def get_recently_played_tracks(
     """
     cache_key = f"clark:cache:recently_played:{user_id}:{limit}"
     cache_redis = await get_cache_redis()
-    cached = await cache_redis.get(cache_key)
-    if cached:
-        data = json.loads(cached)
-        return RecentlyPlayedResponse(**data)
+    if cache_redis is not None:
+        cached = await cache_redis.get(cache_key)
+        if cached:
+            data = json.loads(cached)
+            return RecentlyPlayedResponse(**data)
 
     track_ids = await get_recently_played(str(user_id), limit)
 
@@ -167,7 +176,8 @@ async def get_recently_played_tracks(
             ))
 
     response = RecentlyPlayedResponse(track_ids=track_ids, tracks=tracks)
-    await cache_redis.setex(cache_key, 60, response.model_dump_json())
+    if cache_redis is not None:
+        await cache_redis.setex(cache_key, 60, response.model_dump_json())
     return response
 
 

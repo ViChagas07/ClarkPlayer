@@ -12,6 +12,8 @@ async def sliding_window_rate_limit(
     window_seconds: int,
 ) -> None:
     redis = await get_ratelimit_redis()
+    if redis is None:
+        return  # Redis unavailable — fail open (allow request through)
     if request.client is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

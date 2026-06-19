@@ -96,9 +96,10 @@ async def list_tracks(
     if not any([search, artist, album, genre]):
         cache_key = f"clark:cache:tracks:{user_id}:{offset}:{limit}"
         cache_redis = await get_cache_redis()
-        cached = await cache_redis.get(cache_key)
-        if cached:
-            return TrackListResponse(**json.loads(cached))
+        if cache_redis is not None:
+            cached = await cache_redis.get(cache_key)
+            if cached:
+                return TrackListResponse(**json.loads(cached))
 
     service = TrackService(TrackRepository(session))
     tracks = await service.list_tracks(
@@ -121,11 +122,12 @@ async def list_tracks(
 
     if not any([search, artist, album, genre]):
         cache_redis = await get_cache_redis()
-        await cache_redis.setex(
-            f"clark:cache:tracks:{user_id}:{offset}:{limit}",
-            30,
-            response.model_dump_json(),
-        )
+        if cache_redis is not None:
+            await cache_redis.setex(
+                f"clark:cache:tracks:{user_id}:{offset}:{limit}",
+                30,
+                response.model_dump_json(),
+            )
 
     return response
 

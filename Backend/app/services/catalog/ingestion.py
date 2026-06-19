@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 import httpx
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -321,6 +321,77 @@ class CatalogIngestionWorker:
 
         logger.info("Deduplication removed %d records", removed)
         return removed
+
+    async def run_full_ingestion(self) -> dict:
+        """
+        Run complete catalog ingestion from the seed artist lists.
+
+        Iterates over all artists defined in ``massive_seed.py`` (and
+        fallback ``seed_data.py``), ingests each one through the full
+        enrichment pipeline (iTunes → Spotify → MusicBrainz → Last.fm),
+        and returns summary statistics.
+
+        Returns a ``dict`` with keys ``"artists"`` (int), ``"tracks"``
+        (int), and ``"previews"`` (int).
+        """
+        # ── Load seed artist lists ──────────────────────────────────
+        from app.services.catalog.massive_seed import ALL_ARTISTS as MASSIVE_ALL
+        from app.services.catalog.seed_data import TOP_ARTISTS
+
+        # Prefer the massive seed list; fall back to TOP_ARTISTS
+        if MASSIVE_ALL:
+            artists_to_ingest = MASSIVE_ALL
+            logger.info(
+                "Full ingestion starting — %d artists in massive seed",
+                len(artists_to_ingest),
+            )
+        else:
+            artists_to_ingest: list[str] = []
+            for genre_artists in TOP_ARTISTS.values():
+                artists_to_ingest.extend(genre_artists)
+            artists_to_ingest = list(dict.fromkeys(artists_to_ingest))
+            logger.info(
+                "Full ingestion starting — %d artists in seed data",
+                len(artists_to_ingest),
+            )
+
+        # ── Ingest artists in batches ───────────────────────────────
+        results = await self.ingest_artists_batch(artists_to_ingest)
+        ingested_artists = sum(1 for r in results if r is not None)
+
+        logger.info(
+            "Ingestion completed — %d/%d artists successfully ingested",
+            ingested_artists, len(artists_to_ingest),
+        )
+
+        # ── Collect final statistics from the database ──────────────
+        async with self._session_factory() as session:
+            artist_result = await session.execute(
+                select(func.count()).select_from(CatalogArtistModel)
+            )
+            total_artists: int = artist_result.scalar_one()
+
+            track_result = await session.execute(
+                select(func.count()).select_from(CatalogTrackModel)
+            )
+            total_tracks: int = track_result.scalar_one()
+
+            preview_result = await session.execute(
+                select(func.count()).select_from(CatalogTrackModel).where(
+                    CatalogTrackModel.preview_url.is_not(None)
+                )
+            )
+            total_previews: int = preview_result.scalar_one()
+
+        logger.info(
+            "Final catalog: %d artists, %d tracks, %d with preview",
+            total_artists, total_tracks, total_previews,
+        )
+        return {
+            "artists": total_artists,
+            "tracks": total_tracks,
+            "previews": total_previews,
+        }
 
     async def close(self) -> None:
         """Cleanup resources. The httpx client is managed externally."""
