@@ -483,6 +483,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <p className="font-body text-sm text-clark-text-muted truncate text-center mt-1">
               {displayTrack?.artist ?? '\u00A0'}
             </p>
+
+            {/* Progress bar — inside Now Playing panel */}
+            {displayTrack && (
+              <div className="flex items-center justify-center gap-2 mt-4 px-2">
+                <span className="font-condensed text-[10px] text-clark-text-muted w-8 text-right tabular-nums flex-shrink-0">{formatTime(progress)}</span>
+                <div
+                  className="flex-1 py-2 cursor-pointer group relative"
+                  onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); const pct = (e.clientX - rect.left) / rect.width; seek(pct * trackDuration) }}
+                  role="slider"
+                  aria-label="Track progress"
+                  aria-valuemin={0}
+                  aria-valuemax={trackDuration}
+                  aria-valuenow={progress}
+                  tabIndex={0}
+                >
+                  <div className="h-1 bg-clark-bg-secondary rounded-full relative">
+                    <div
+                      className="h-full rounded-full relative group-hover:brightness-110 transition-all"
+                      style={{ width: `${trackDuration > 0 ? (progress / trackDuration) * 100 : 0}%`, backgroundColor: accentColor, boxShadow: `0 0 6px ${accentColor}80` }}
+                    >
+                      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: accentColor, boxShadow: `0 0 8px ${accentColor}` }} />
+                    </div>
+                  </div>
+                </div>
+                <span className="font-condensed text-[10px] text-clark-text-muted w-8 tabular-nums flex-shrink-0">{formatTime(trackDuration)}</span>
+              </div>
+            )}
           </div>
 
           {/* ── Spacer — pushes divider down ── */}
