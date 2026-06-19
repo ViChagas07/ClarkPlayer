@@ -24,6 +24,7 @@ Endpoints:
   - GET  /catalog/ingestion/status             → check ingestion progress
 """
 
+import asyncio
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, status
@@ -809,33 +810,61 @@ async def list_genres(session: SessionDep) -> list[CatalogGenreResponse]:
     )
     genres = list(genres_result.scalars())
 
-    response: list[CatalogGenreResponse] = []
-    for g in genres:
-        artist_count_result = await session.execute(
-            select(func.count()).select_from(CatalogArtistModel)
-            .join(CatalogArtistGenreModel)
-            .where(CatalogArtistGenreModel.genre_id == g.id)
-        )
-        artist_count: int = artist_count_result.scalar_one()
+    # ── Pre-count artists per genre (single query) ──────────────────────
+    artist_count_rows = await session.execute(
+        select(
+            CatalogArtistGenreModel.genre_id,
+            func.count(CatalogArtistGenreModel.artist_id).label("count"),
+        ).group_by(CatalogArtistGenreModel.genre_id)
+    )
+    artist_counts: dict[UUID, int] = {
+        row.genre_id: row.count for row in artist_count_rows.tuples()
+    }
 
-        track_count_result = await session.execute(
-            select(func.count()).select_from(CatalogTrackModel)
-            .join(CatalogArtistGenreModel, CatalogTrackModel.artist_id == CatalogArtistGenreModel.artist_id)
-            .where(CatalogArtistGenreModel.genre_id == g.id)
+    # ── Pre-count tracks per genre (single query) ───────────────────────
+    track_count_rows = await session.execute(
+        select(
+            CatalogArtistGenreModel.genre_id,
+            func.count(CatalogTrackModel.id).label("count"),
         )
-        track_count: int = track_count_result.scalar_one()
+        .join(
+            CatalogTrackModel,
+            CatalogArtistGenreModel.artist_id == CatalogTrackModel.artist_id,
+        )
+        .group_by(CatalogArtistGenreModel.genre_id)
+    )
+    track_counts: dict[UUID, int] = {
+        row.genre_id: row.count for row in track_count_rows.tuples()
+    }
 
-        response.append(
-            CatalogGenreResponse(
-                id=str(g.id),
-                name=g.name,
-                slug=g.slug,
-                artist_count=artist_count,
-                track_count=track_count,
-            )
+    # ── Enrich each genre with mosaic images (parallel) ─────────────────
+    cache_svc = CatalogCacheService()
+    search_engine = CatalogSearchEngine(session)
+
+    async def _enrich_genre(g: CatalogGenreModel) -> CatalogGenreResponse:
+        genre_id = str(g.id)
+
+        # Try cache first
+        cached_images = await cache_svc.get_cached_genre_mosaic(genre_id)
+        if cached_images is not None:
+            mosaic_images = cached_images
+        else:
+            # Fetch from DB and cache
+            mosaic_images = await search_engine.get_genre_mosaic_images(genre_id, limit=4)
+            await cache_svc.set_cached_genre_mosaic(genre_id, mosaic_images)
+
+        return CatalogGenreResponse(
+            id=genre_id,
+            name=g.name,
+            slug=g.slug,
+            artist_count=artist_counts.get(g.id, 0),
+            track_count=track_counts.get(g.id, 0),
+            mosaic_images=mosaic_images,
         )
 
-    return response
+    response = await asyncio.gather(*[_enrich_genre(g) for g in genres])
+
+    return list(response)
 
 
 @router.get(
@@ -872,12 +901,25 @@ async def get_genre(
     )
     track_count: int = track_count_result.scalar_one()
 
+    # ── Fetch mosaic images ─────────────────────────────────────────────
+    cache_svc = CatalogCacheService()
+    search_engine = CatalogSearchEngine(session)
+    genre_id = str(genre.id)
+
+    cached_images = await cache_svc.get_cached_genre_mosaic(genre_id)
+    if cached_images is not None:
+        mosaic_images = cached_images
+    else:
+        mosaic_images = await search_engine.get_genre_mosaic_images(genre_id, limit=4)
+        await cache_svc.set_cached_genre_mosaic(genre_id, mosaic_images)
+
     return CatalogGenreResponse(
-        id=str(genre.id),
+        id=genre_id,
         name=genre.name,
         slug=genre.slug,
         artist_count=artist_count,
         track_count=track_count,
+        mosaic_images=mosaic_images,
     )
 
 

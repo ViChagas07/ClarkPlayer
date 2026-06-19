@@ -400,6 +400,7 @@ export interface CatalogGenreItem {
   slug: string
   cover_url: string | null
   track_count: number
+  mosaic_images: string[]
 }
 
 export interface CatalogDiscoverySection {

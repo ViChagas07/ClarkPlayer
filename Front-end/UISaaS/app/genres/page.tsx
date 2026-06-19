@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { AppShell } from '@/components/layout/AppShell'
+import { GenreMosaic } from '@/components/GenreMosaic'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useGenres } from '@/hooks/useCatalog'
 import { getCachedCatalogData, setCachedCatalogData } from '@/lib/catalogCache'
@@ -10,6 +11,9 @@ import { cn } from '@/lib/utils'
 import type { CatalogGenreItem } from '@/types'
 import Image from 'next/image'
 import { Music } from 'lucide-react'
+
+// Tamanho do mosaico em px (match auto-rows-[120px])
+const MOSAIC_SIZE = 120
 
 const mosaicLayout = [
   'col-span-2 row-span-2',
@@ -94,8 +98,16 @@ export default function GenresPage() {
                     mosaicLayout[layoutIdx],
                   )}
                 >
-                  {/* Genre cover image (local) or gradient fallback */}
-                  {localImage ? (
+                  {/* Genre cover: dynamic mosaic, local image, or gradient fallback */}
+                  {genre.mosaic_images && genre.mosaic_images.length > 0 ? (
+                    <div className="flex items-center justify-center h-full p-1">
+                      <GenreMosaic
+                        images={genre.mosaic_images}
+                        genreName={genre.name}
+                        size={MOSAIC_SIZE}
+                      />
+                    </div>
+                  ) : localImage ? (
                     <Image
                       src={localImage}
                       alt={genre.name}

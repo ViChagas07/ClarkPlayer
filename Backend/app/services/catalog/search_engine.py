@@ -22,12 +22,13 @@ Strategy:
 import asyncio
 from dataclasses import dataclass, field
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.infrastructure.models.catalog import (
     CatalogAlbumModel,
+    CatalogArtistGenreModel,
     CatalogArtistModel,
     CatalogGenreModel,
     CatalogTrackModel,
@@ -229,6 +230,35 @@ class CatalogSearchEngine:
             }
             for g in result.scalars()
         ]
+
+    # ── Genre Mosaic ──────────────────────────────────────────────────────────
+
+    async def get_genre_mosaic_images(
+        self, genre_id: str, limit: int = 4
+    ) -> list[str]:
+        """
+        Return up to ``limit`` artist image URLs for the genre mosaic cover.
+
+        Selects the most popular artists linked to the genre via
+        catalog_artist_genres, filtering out artists without an image_url.
+        Used to render the 2×2 mosaic on the genre card.
+        """
+        stmt = (
+            select(CatalogArtistModel.image_url)
+            .join(
+                CatalogArtistGenreModel,
+                CatalogArtistModel.id == CatalogArtistGenreModel.artist_id,
+            )
+            .where(
+                CatalogArtistGenreModel.genre_id == genre_id,
+                CatalogArtistModel.image_url.isnot(None),
+                CatalogArtistModel.image_url != "",
+            )
+            .order_by(desc(CatalogArtistModel.popularity))
+            .limit(limit)
+        )
+        result = await self._session.execute(stmt)
+        return [row for row in result.scalars().all()]
 
     # ── Autocomplete ───────────────────────────────────────────────────────
 

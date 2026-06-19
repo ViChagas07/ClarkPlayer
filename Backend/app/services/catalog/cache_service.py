@@ -139,6 +139,23 @@ class CatalogCacheService:
     async def set_cached_genres(self, data: list[dict]) -> None:
         await _redis_set(make_cache_key("genres"), json.dumps(data), CacheTTL.GENRES)
 
+    # ── Genre Mosaic ─────────────────────────────────────────────────────────
+
+    async def get_cached_genre_mosaic(self, genre_id: str) -> list[str] | None:
+        """Return cached mosaic image URLs for a genre, or None on miss."""
+        raw = await _redis_get(make_cache_key("genre_mosaic", genre_id))
+        if raw:
+            await _redis_incr(make_stats_key("hits"))
+            return json.loads(raw)  # type: ignore[no-any-return]
+        await _redis_incr(make_stats_key("misses"))
+        return None
+
+    async def set_cached_genre_mosaic(
+        self, genre_id: str, images: list[str], ttl: int = CacheTTL.ARTIST
+    ) -> None:
+        """Cache mosaic image URLs for a genre (TTL: 6h)."""
+        await _redis_set(make_cache_key("genre_mosaic", genre_id), json.dumps(images), ttl)
+
     # ── Search ─────────────────────────────────────────────────────────────
 
     async def get_cached_search(self, query: str, limit: int, offset: int) -> dict | None:

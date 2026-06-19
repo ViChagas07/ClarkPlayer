@@ -176,13 +176,14 @@ class CatalogTrackListResponse(BaseModel):
 # ── Genre Schemas ──────────────────────────────────────────────────────────
 
 class CatalogGenreResponse(BaseModel):
-    """Genre representation with artist count."""
+    """Genre representation with artist count and mosaic cover images."""
 
     id: str
     name: str
     slug: str
     artist_count: int = 0
     track_count: int = 0
+    mosaic_images: list[str] = Field(default_factory=list)
 
 
 class GenreResponse(BaseModel):
