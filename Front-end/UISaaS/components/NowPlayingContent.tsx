@@ -2,19 +2,41 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Music, ListMusic } from 'lucide-react'
+import { Music, Play, ListMusic } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useDiscovery } from '@/hooks/useCatalog'
+import { playWithAlbumQueue } from '@/lib/albumQueue'
 import type { CatalogTrackItem, CatalogArtistItem } from '@/types'
 
-function MusicCard({ item }: { item: CatalogTrackItem }) {
+function MusicCard({ item, index }: { item: CatalogTrackItem; index: number }) {
+  const hasPreview = !!item.preview_url
+
+  function handleClick() {
+    if (hasPreview) {
+      playWithAlbumQueue(item, index)
+    }
+  }
+
   return (
-    <div className="p-3 rounded-xl bg-clark-bg-secondary group cursor-pointer hover:scale-[1.02] transition-all">
-      <div className="aspect-square rounded-lg overflow-hidden bg-clark-bg-card mb-2">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={handleClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick() } }}
+      className="p-3 rounded-xl bg-clark-bg-secondary group cursor-pointer hover:scale-[1.02] transition-all border border-transparent hover:border-clark-steel/20"
+    >
+      <div className="relative aspect-square rounded-lg overflow-hidden bg-clark-bg-card mb-2">
         {item.album_cover ? (
           <img src={item.album_cover} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
         ) : (
           <div className="w-full h-full flex items-center justify-center"><Music className="w-8 h-8 text-white/20" /></div>
+        )}
+        {hasPreview && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="w-10 h-10 rounded-full bg-clark-accent flex items-center justify-center">
+              <Play className="w-5 h-5 text-white ml-0.5" />
+            </div>
+          </div>
         )}
       </div>
       <p className="text-sm font-semibold truncate">{item.title}</p>
@@ -69,7 +91,7 @@ export function NowPlayingContent() {
           <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase mb-4">Trending Now</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {(data.trending_tracks as CatalogTrackItem[]).slice(0, 12).map((item, i) => (
-              <MusicCard key={item.id ?? i} item={item} />
+              <MusicCard key={item.id ?? i} item={item} index={i} />
             ))}
           </div>
         </section>
