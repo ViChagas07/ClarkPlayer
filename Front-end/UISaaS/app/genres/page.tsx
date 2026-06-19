@@ -12,9 +12,6 @@ import type { CatalogGenreItem } from '@/types'
 import Image from 'next/image'
 import { Music } from 'lucide-react'
 
-// Tamanho do mosaico em px (match auto-rows-[120px])
-const MOSAIC_SIZE = 120
-
 const mosaicLayout = [
   'col-span-2 row-span-2',
   'col-span-1 row-span-2',
@@ -98,13 +95,19 @@ export default function GenresPage() {
                     mosaicLayout[layoutIdx],
                   )}
                 >
-                  {/* Genre cover: dynamic mosaic, local image, or gradient fallback */}
+                  {/* ── Solid background layer ─────────────────────────── */}
+                  <div className={cn('absolute inset-0 bg-gradient-to-br', gradient.from, gradient.to)} />
+
+                  {/* ── Mosaic at bottom-right (when images available) ─── */}
                   {genre.mosaic_images && genre.mosaic_images.length > 0 ? (
-                    <div className="flex items-center justify-center h-full p-1">
+                    <div
+                      className="absolute bottom-0 right-0 z-0"
+                      style={{ width: '55%', height: '75%' }}
+                    >
                       <GenreMosaic
                         images={genre.mosaic_images}
                         genreName={genre.name}
-                        size={MOSAIC_SIZE}
+                        size="100%"
                       />
                     </div>
                   ) : localImage ? (
@@ -112,18 +115,18 @@ export default function GenresPage() {
                       src={localImage}
                       alt={genre.name}
                       fill
-                      className="object-cover"
+                      className="object-cover z-0"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     />
-                  ) : (
-                    <div className={cn('absolute inset-0 bg-gradient-to-br', gradient.from, gradient.to)} />
-                  )}
-                  {/* Gradient overlay for text readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                  ) : null}
 
-                  <div className="relative z-10 p-5 flex flex-col justify-end h-full">
-                    <h2 className="font-display text-2xl tracking-widest uppercase text-white drop-shadow-lg">{genre.name}</h2>
-                    <p className="font-condensed text-xs uppercase tracking-wider text-white/70 mt-1">
+                  {/* ── Title + track count at top-left ────────────────── */}
+                  <div className="absolute top-0 left-0 z-10 p-3 pr-16 max-w-full">
+                    <h3 className="text-white font-bold leading-tight line-clamp-2 drop-shadow-lg"
+                        style={{ fontSize: 'clamp(0.85rem, 1.5vw, 1rem)' }}>
+                      {genre.name}
+                    </h3>
+                    <p className="font-condensed text-[10px] uppercase tracking-wider text-white/70 mt-1">
                       {genre.track_count.toLocaleString()} {t('tracks')}
                     </p>
                   </div>

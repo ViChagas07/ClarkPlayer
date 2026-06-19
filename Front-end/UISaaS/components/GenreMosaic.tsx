@@ -7,7 +7,7 @@ interface GenreMosaicProps {
   genreName: string
   gradientFrom?: string
   gradientTo?: string
-  size?: number
+  size?: number | string
 }
 
 /**
@@ -19,6 +19,8 @@ interface GenreMosaicProps {
  * - 2 images → two equal columns
  * - 3 images → large left + stacked right (2:1:1 ratio)
  * - 4 images → classic 2×2 grid
+ *
+ * `size` accepts a number (px) or a string percentage (e.g. "100%").
  */
 export function GenreMosaic({
   images,
@@ -28,7 +30,10 @@ export function GenreMosaic({
   size = 120,
 }: GenreMosaicProps) {
   const filled = images.slice(0, 4)
-  const half = Math.floor(size / 2)
+
+  const isPx = typeof size === 'number'
+  const containerSize = isPx ? size : '100%'
+  const half = isPx ? Math.floor(size / 2) : '50%'
 
   // 0 images → gradient fallback
   if (filled.length === 0) {
@@ -36,8 +41,8 @@ export function GenreMosaic({
       <div
         className="overflow-hidden flex-shrink-0"
         style={{
-          width: size,
-          height: size,
+          width: containerSize,
+          height: containerSize,
           background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`,
         }}
         aria-label={genreName}
@@ -50,13 +55,13 @@ export function GenreMosaic({
     return (
       <div
         className="overflow-hidden flex-shrink-0 relative"
-        style={{ width: size, height: size }}
+        style={{ width: containerSize, height: containerSize }}
       >
         <Image
           src={filled[0]}
           alt={genreName}
           fill
-          sizes={`${size}px`}
+          sizes={isPx ? `${size}px` : '100vw'}
           className="object-cover"
         />
       </div>
@@ -68,7 +73,7 @@ export function GenreMosaic({
     return (
       <div
         className="overflow-hidden flex-shrink-0 flex"
-        style={{ width: size, height: size }}
+        style={{ width: containerSize, height: containerSize }}
         aria-label={genreName}
       >
         {filled.map((src, i) => (
@@ -77,7 +82,7 @@ export function GenreMosaic({
               src={src}
               alt={`${genreName} artist ${i + 1}`}
               fill
-              sizes={`${half}px`}
+              sizes={isPx ? `${half}px` : '50vw'}
               className="object-cover"
             />
           </div>
@@ -91,7 +96,7 @@ export function GenreMosaic({
     return (
       <div
         className="overflow-hidden flex-shrink-0 flex"
-        style={{ width: size, height: size }}
+        style={{ width: containerSize, height: containerSize }}
         aria-label={genreName}
       >
         <div className="relative h-full" style={{ width: half }}>
@@ -99,7 +104,7 @@ export function GenreMosaic({
             src={filled[0]}
             alt={`${genreName} artist 1`}
             fill
-            sizes={`${half}px`}
+            sizes={isPx ? `${half}px` : '50vw'}
             className="object-cover"
           />
         </div>
@@ -110,7 +115,7 @@ export function GenreMosaic({
                 src={src}
                 alt={`${genreName} artist ${i + 2}`}
                 fill
-                sizes={`${half}px`}
+                sizes={isPx ? `${half}px` : '50vw'}
                 className="object-cover"
               />
             </div>
@@ -124,7 +129,7 @@ export function GenreMosaic({
   return (
     <div
       className="overflow-hidden flex-shrink-0 grid grid-cols-2"
-      style={{ width: size, height: size }}
+      style={{ width: containerSize, height: containerSize }}
       aria-label={genreName}
     >
       {filled.map((src, i) => (
@@ -133,7 +138,7 @@ export function GenreMosaic({
             src={src}
             alt={`${genreName} artist ${i + 1}`}
             fill
-            sizes={`${half}px`}
+            sizes={isPx ? `${half}px` : '50vw'}
             className="object-cover"
           />
         </div>
