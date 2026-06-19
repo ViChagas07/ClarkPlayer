@@ -24,10 +24,7 @@ Endpoints:
   - GET  /catalog/ingestion/status             → check ingestion progress
 """
 
-import logging
 from uuid import UUID
-
-logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import func, select
@@ -207,56 +204,21 @@ def _album_to_response(album: CatalogAlbumModel) -> CatalogAlbumResponse:
     "PostgreSQL catalog.",
 )
 async def get_discovery(session: SessionDep) -> DiscoveryResponse:
-    """Serve precomputed discovery sections, computing on cache miss.
-
-    Each section is fetched independently with a try/except guard so that
-    a transient failure in one section never brings down the entire home
-    screen — failed sections are replaced with empty lists.
-    """
+    """Serve precomputed discovery sections, computing on cache miss."""
     cache = _cache_service()
     precomp = DiscoveryPrecomputation(session, cache)
 
-    # ── Helper: call an async precomp method and fall back to [] ─────────
-    async def _safe(
-        label: str,
-        coro,
-        empty: list = [],
-    ) -> list:
-        try:
-            return await coro
-        except Exception:
-            logger.exception(
-                "Discovery section %r failed — returning empty fallback",
-                label,
-            )
-            return empty
-
     # ── Fetch sections sequentially (shared SQLAlchemy session) ──
-    top_artists: list[dict] = await _safe(
-        "top_artists", precomp.get_top_artists()
-    )
-    trending_tracks: list[dict] = await _safe(
-        "trending_tracks", precomp.get_trending_tracks()
-    )
-    featured_albums: list[dict] = await _safe(
-        "featured_albums", precomp.get_featured_albums()
-    )
-    popular_genres_raw: list[dict] = await _safe(
-        "popular_genres", precomp.get_popular_genres()
-    )
-    brazilian_artists: list[dict] = await _safe(
-        "brazilian_artists", precomp.get_brazilian_artists()
-    )
-    international_artists: list[dict] = await _safe(
-        "international_artists", precomp.get_international_artists()
-    )
+    top_artists = await precomp.get_top_artists()
+    trending_tracks = await precomp.get_trending_tracks()
+    featured_albums = await precomp.get_featured_albums()
+    popular_genres_raw = await precomp.get_popular_genres()
+    brazilian_artists = await precomp.get_brazilian_artists()
+    international_artists = await precomp.get_international_artists()
 
     genre_sections: dict[str, list[CatalogTrackItem]] = {}
     for slug in ["pop", "rock", "rap", "electronic", "rnb"]:
-        genre_tracks_raw: list[dict] = await _safe(
-            f"genre_section:{slug}",
-            precomp.get_genre_section(slug),
-        )
+        genre_tracks_raw = await precomp.get_genre_section(slug)
         genre_sections[slug] = [
             CatalogTrackItem(
                 id=t["id"],
@@ -855,51 +817,39 @@ async def list_genres(session: SessionDep) -> list[CatalogGenreResponse]:
         return [CatalogGenreResponse(**g) for g in cached]
 
     # Cache miss — query DB with eager-loaded cover artist
-    try:
-        genres_result = await session.execute(
-            select(CatalogGenreModel)
-            .options(selectinload(CatalogGenreModel.cover_artist))
-            .order_by(CatalogGenreModel.name)
-        )
-        genres = list(genres_result.scalars())
-    except Exception:
-        logger.exception("list_genres — failed to query CatalogGenreModel, returning empty list")
-        return []
+    genres_result = await session.execute(
+        select(CatalogGenreModel)
+        .options(selectinload(CatalogGenreModel.cover_artist))
+        .order_by(CatalogGenreModel.name)
+    )
+    genres = list(genres_result.scalars())
 
     # Pre-count artists per genre (single query)
-    try:
-        artist_count_rows = await session.execute(
-            select(
-                CatalogArtistGenreModel.genre_id,
-                func.count(CatalogArtistGenreModel.artist_id).label("count"),
-            ).group_by(CatalogArtistGenreModel.genre_id)
-        )
-        artist_counts: dict[UUID, int] = {
-            row.genre_id: row.count for row in artist_count_rows.tuples()
-        }
-    except Exception:
-        logger.exception("list_genres — failed to count artists per genre")
-        artist_counts = {}
+    artist_count_rows = await session.execute(
+        select(
+            CatalogArtistGenreModel.genre_id,
+            func.count(CatalogArtistGenreModel.artist_id).label("count"),
+        ).group_by(CatalogArtistGenreModel.genre_id)
+    )
+    artist_counts: dict[UUID, int] = {
+        row.genre_id: row.count for row in artist_count_rows.tuples()
+    }
 
     # Pre-count tracks per genre (single query)
-    try:
-        track_count_rows = await session.execute(
-            select(
-                CatalogArtistGenreModel.genre_id,
-                func.count(CatalogTrackModel.id).label("count"),
-            )
-            .join(
-                CatalogTrackModel,
-                CatalogArtistGenreModel.artist_id == CatalogTrackModel.artist_id,
-            )
-            .group_by(CatalogArtistGenreModel.genre_id)
+    track_count_rows = await session.execute(
+        select(
+            CatalogArtistGenreModel.genre_id,
+            func.count(CatalogTrackModel.id).label("count"),
         )
-        track_counts: dict[UUID, int] = {
-            row.genre_id: row.count for row in track_count_rows.tuples()
-        }
-    except Exception:
-        logger.exception("list_genres — failed to count tracks per genre")
-        track_counts = {}
+        .join(
+            CatalogTrackModel,
+            CatalogArtistGenreModel.artist_id == CatalogTrackModel.artist_id,
+        )
+        .group_by(CatalogArtistGenreModel.genre_id)
+    )
+    track_counts: dict[UUID, int] = {
+        row.genre_id: row.count for row in track_count_rows.tuples()
+    }
 
     response = [
         CatalogGenreResponse(
@@ -915,10 +865,7 @@ async def list_genres(session: SessionDep) -> list[CatalogGenreResponse]:
     ]
 
     # Cache the result for next time
-    try:
-        await cache.set_cached_genres([r.model_dump() for r in response])
-    except Exception:
-        logger.exception("list_genres — failed to cache genres result")
+    await cache.set_cached_genres([r.model_dump() for r in response])
 
     return response
 
@@ -934,47 +881,31 @@ async def get_genre(
     slug: str,
     session: SessionDep,
 ) -> CatalogGenreResponse:
-    try:
-        result = await session.execute(
-            select(CatalogGenreModel)
-            .options(selectinload(CatalogGenreModel.cover_artist))
-            .where(CatalogGenreModel.slug == slug)
-        )
-        genre = result.scalar_one_or_none()
-    except Exception:
-        logger.exception("get_genre(%r) — DB query failed", slug)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to query genre data.",
-        )
-
+    result = await session.execute(
+        select(CatalogGenreModel)
+        .options(selectinload(CatalogGenreModel.cover_artist))
+        .where(CatalogGenreModel.slug == slug)
+    )
+    genre = result.scalar_one_or_none()
     if genre is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Genre '{slug}' not found in catalog.",
         )
 
-    artist_count: int = 0
-    try:
-        artist_count_result = await session.execute(
-            select(func.count()).select_from(CatalogArtistModel)
-            .join(CatalogArtistGenreModel)
-            .where(CatalogArtistGenreModel.genre_id == genre.id)
-        )
-        artist_count = artist_count_result.scalar_one()
-    except Exception:
-        logger.exception("get_genre(%r) — failed to count artists", slug)
+    artist_count_result = await session.execute(
+        select(func.count()).select_from(CatalogArtistModel)
+        .join(CatalogArtistGenreModel)
+        .where(CatalogArtistGenreModel.genre_id == genre.id)
+    )
+    artist_count: int = artist_count_result.scalar_one()
 
-    track_count: int = 0
-    try:
-        track_count_result = await session.execute(
-            select(func.count()).select_from(CatalogTrackModel)
-            .join(CatalogArtistGenreModel, CatalogTrackModel.artist_id == CatalogArtistGenreModel.artist_id)
-            .where(CatalogArtistGenreModel.genre_id == genre.id)
-        )
-        track_count = track_count_result.scalar_one()
-    except Exception:
-        logger.exception("get_genre(%r) — failed to count tracks", slug)
+    track_count_result = await session.execute(
+        select(func.count()).select_from(CatalogTrackModel)
+        .join(CatalogArtistGenreModel, CatalogTrackModel.artist_id == CatalogArtistGenreModel.artist_id)
+        .where(CatalogArtistGenreModel.genre_id == genre.id)
+    )
+    track_count: int = track_count_result.scalar_one()
 
     return CatalogGenreResponse(
         id=str(genre.id),
@@ -999,48 +930,35 @@ async def get_genre_tracks(
     limit: int = Query(50, ge=1, le=200, description="Maximum number of tracks"),
     offset: int = Query(0, ge=0, description="Number of tracks to skip"),
 ) -> CatalogTrackListResponse:
-    try:
-        genre_result = await session.execute(
-            select(CatalogGenreModel).where(CatalogGenreModel.slug == slug)
-        )
-        genre = genre_result.scalar_one_or_none()
-    except Exception:
-        logger.exception("get_genre_tracks(%r) — genre lookup failed", slug)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to query genre data.",
-        )
-
+    genre_result = await session.execute(
+        select(CatalogGenreModel).where(CatalogGenreModel.slug == slug)
+    )
+    genre = genre_result.scalar_one_or_none()
     if genre is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Genre '{slug}' not found in catalog.",
         )
 
-    total: int = 0
-    try:
-        count_result = await session.execute(
-            select(func.count())
-            .select_from(CatalogTrackModel)
-            .join(
-                CatalogArtistGenreModel,
-                CatalogTrackModel.artist_id == CatalogArtistGenreModel.artist_id,
-            )
-            .where(CatalogArtistGenreModel.genre_id == genre.id)
-            .where(CatalogTrackModel.preview_url.is_not(None))
+    count_result = await session.execute(
+        select(func.count())
+        .select_from(CatalogTrackModel)
+        .join(
+            CatalogArtistGenreModel,
+            CatalogTrackModel.artist_id == CatalogArtistGenreModel.artist_id,
         )
-        total = count_result.scalar_one()
-    except Exception:
-        logger.exception("get_genre_tracks(%r) — track count failed, returning empty", slug)
+        .where(CatalogArtistGenreModel.genre_id == genre.id)
+        .where(CatalogTrackModel.preview_url.is_not(None))
+    )
+    total: int = count_result.scalar_one()
 
-    try:
-        tracks_result = await session.execute(
-            select(CatalogTrackModel)
-            .options(selectinload(CatalogTrackModel.artist), selectinload(CatalogTrackModel.album))
-            .join(
-                CatalogArtistGenreModel,
-                CatalogTrackModel.artist_id == CatalogArtistGenreModel.artist_id,
-            )
+    tracks_result = await session.execute(
+        select(CatalogTrackModel)
+        .options(selectinload(CatalogTrackModel.artist), selectinload(CatalogTrackModel.album))
+        .join(
+            CatalogArtistGenreModel,
+            CatalogTrackModel.artist_id == CatalogArtistGenreModel.artist_id,
+        )
         .where(CatalogArtistGenreModel.genre_id == genre.id)
         .where(CatalogTrackModel.preview_url.is_not(None))
         .order_by(CatalogTrackModel.popularity.desc())

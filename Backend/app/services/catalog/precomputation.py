@@ -93,16 +93,13 @@ def _album_to_dict(album: CatalogAlbumModel) -> dict:
 
 
 def _genre_to_dict(genre: CatalogGenreModel, artist_count: int = 0) -> dict:
-    # Use getattr so that if the DB migration for cover columns hasn't run
-    # yet, the endpoint degrades gracefully (returns None) instead of crashing.
-    cover_artist = getattr(genre, "cover_artist", None)
     return {
         "id": str(genre.id),
         "name": genre.name,
         "slug": genre.slug,
         "artist_count": artist_count,
-        "cover_url": getattr(genre, "cover_image_url", None),
-        "cover_artist_name": cover_artist.name if cover_artist else None,
+        "cover_url": genre.cover_image_url,
+        "cover_artist_name": genre.cover_artist.name if genre.cover_artist else None,
     }
 
 
