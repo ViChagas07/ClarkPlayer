@@ -429,9 +429,10 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
           ) : albums.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {albums.slice(0, 10).map((album) => (
-                <div
+                <Link
                   key={album.id}
-                  className="group p-3 rounded-xl bg-clark-bg-secondary hover:bg-clark-bg-card transition-all duration-200 border border-transparent hover:border-clark-steel/20"
+                  href={`/albums/${album.id}`}
+                  className="group block p-3 rounded-xl bg-clark-bg-secondary hover:bg-clark-bg-card transition-all duration-200 border border-transparent hover:border-clark-steel/20"
                 >
                   <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md">
                     {album.cover_url ? (
@@ -455,7 +456,7 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
                   <p className="font-body text-xs text-clark-text-muted truncate">
                     {album.track_count > 0 ? `${album.track_count} tracks` : album.release_date ?? ''}
                   </p>
-                </div>
+                </Link>
               ))}
             </div>
           ) : null}

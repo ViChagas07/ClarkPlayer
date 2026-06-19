@@ -19,10 +19,12 @@ Strategy:
   3. Results ordered by relevance score, then popularity descending
 """
 
+import asyncio
 from dataclasses import dataclass, field
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.infrastructure.models.catalog import (
     CatalogAlbumModel,
@@ -66,10 +68,12 @@ class CatalogSearchEngine:
         Returns aggregated results with artists, tracks, albums, and genres
         matching the query string.
         """
-        artists = await self.search_artists(query, limit=limit, offset=offset)
-        tracks = await self.search_tracks(query, limit=limit, offset=offset)
-        albums = await self.search_albums(query, limit=limit, offset=offset)
-        genres = await self.search_genres(query, limit=10)
+        artists, tracks, albums, genres = await asyncio.gather(
+            self.search_artists(query, limit=limit, offset=offset),
+            self.search_tracks(query, limit=limit, offset=offset),
+            self.search_albums(query, limit=limit, offset=offset),
+            self.search_genres(query, limit=10),
+        )
 
         total = len(artists) + len(tracks) + len(albums) + len(genres)
         return CatalogSearchResults(
@@ -131,6 +135,10 @@ class CatalogSearchEngine:
         pattern = f"%{query}%"
         stmt = (
             select(CatalogTrackModel)
+            .options(
+                joinedload(CatalogTrackModel.artist),
+                joinedload(CatalogTrackModel.album),
+            )
             .join(CatalogArtistModel, CatalogTrackModel.artist_id == CatalogArtistModel.id)
             .where(
                 or_(
@@ -174,6 +182,9 @@ class CatalogSearchEngine:
         pattern = f"%{query}%"
         stmt = (
             select(CatalogAlbumModel)
+            .options(
+                joinedload(CatalogAlbumModel.artist),
+            )
             .where(CatalogAlbumModel.title.ilike(pattern))
             .order_by(CatalogAlbumModel.track_count.desc())
             .offset(offset)

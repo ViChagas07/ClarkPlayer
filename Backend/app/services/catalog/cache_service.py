@@ -142,7 +142,8 @@ class CatalogCacheService:
     # ── Search ─────────────────────────────────────────────────────────────
 
     async def get_cached_search(self, query: str, limit: int, offset: int) -> dict | None:
-        raw = await _redis_get(make_cache_key("search", query, str(limit), str(offset)))
+        normalized_query = query.strip().lower()
+        raw = await _redis_get(make_cache_key("search", normalized_query, str(limit), str(offset)))
         if raw:
             await _redis_incr(make_stats_key("hits"))
             return json.loads(raw)  # type: ignore[no-any-return]
@@ -152,8 +153,9 @@ class CatalogCacheService:
     async def set_cached_search(
         self, query: str, limit: int, offset: int, data: dict, ttl: int = CacheTTL.SEARCH
     ) -> None:
+        normalized_query = query.strip().lower()
         await _redis_set(
-            make_cache_key("search", query, str(limit), str(offset)),
+            make_cache_key("search", normalized_query, str(limit), str(offset)),
             json.dumps(data),
             ttl,
         )
