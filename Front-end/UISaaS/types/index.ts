@@ -435,10 +435,17 @@ export interface CatalogSearchResponse {
 }
 
 export interface CatalogArtistResponse {
-  artist: CatalogArtistItem
-  top_tracks: CatalogTrackItem[]
+  id: string
+  name: string
+  image_url: string | null
+  genres: string[]
+  popularity: number
+  playcount: number
+  country: string | null
+  bio: string | null
+  verified: boolean
+  track_count: number
   albums: CatalogAlbumItem[]
-  similar: CatalogArtistItem[]
 }
 
 export interface CatalogAlbumResponse {

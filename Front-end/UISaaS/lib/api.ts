@@ -635,42 +635,7 @@ export const api = {
   },
 
   catalogArtist(artistId: string): Promise<CatalogArtistResponse> {
-    return _fetch<any>(`/api/v1/catalog/artists/${encodeURIComponent(artistId)}`).then((data) => {
-      console.log('[catalogArtist] RAW response keys:', data ? Object.keys(data) : 'NULL')
-      console.log('[catalogArtist] RAW albums type:', typeof data?.albums, Array.isArray(data?.albums))
-
-      const transformed = {
-        artist: {
-          id: data?.id ?? '',
-          name: data?.name ?? 'Unknown',
-          image_url: data?.image_url ?? null,
-          genres: data?.genres ?? [],
-          bio: data?.bio ?? null,
-          popularity: data?.popularity ?? 0,
-          track_count: data?.track_count ?? 0,
-          album_count: Array.isArray(data?.albums) ? data.albums.length : 0,
-        },
-        top_tracks: [],
-        albums: Array.isArray(data?.albums) ? data.albums.map((a: any) => ({
-          id: a.id ?? '',
-          title: a.title ?? '',
-          artist_name: a.artist_name ?? 'Unknown',
-          cover_url: a.cover_url ?? null,
-          release_date: a.release_date ?? null,
-          track_count: a.track_count ?? 0,
-          genres: [],
-        })) : [],
-        similar: [],
-      }
-
-      console.log('[catalogArtist] TRANSFORMED keys:', Object.keys(transformed))
-      console.log('[catalogArtist] TRANSFORMED artist present:', !!transformed.artist)
-      console.log('[catalogArtist] TRANSFORMED artist.name:', transformed.artist.name)
-      return transformed
-    }).catch((err) => {
-      console.error('[catalogArtist] TRANSFORM FAILED:', err)
-      return { artist: undefined as any, top_tracks: [], albums: [], similar: [] }
-    })
+    return _fetch<CatalogArtistResponse>(`/api/v1/catalog/artists/${encodeURIComponent(artistId)}`)
   },
 
   catalogArtistTracks(artistId: string, limit: number = 20, offset: number = 0): Promise<CatalogListResponse<CatalogTrackItem>> {

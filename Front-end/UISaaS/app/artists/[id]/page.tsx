@@ -79,7 +79,20 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
   } = useArtistAlbums(mounted ? artistId : '')
 
   // ── Extract and validate data ──────────────────────────────
-  const artist: CatalogArtistItem | undefined = artistData?.artist
+  // Backend returns flat CatalogArtistDetailResponse (no wrapper).
+  // We construct the artist object here for backward compat.
+  const artist: CatalogArtistItem | undefined = artistData
+    ? {
+        id: artistData.id,
+        name: artistData.name,
+        image_url: artistData.image_url,
+        genres: artistData.genres,
+        bio: artistData.bio,
+        popularity: artistData.popularity,
+        track_count: artistData.track_count,
+        album_count: 0,
+      }
+    : undefined
   const topTracks: CatalogTrackItem[] = tracksData?.items ?? []
   const albums = albumsData ?? []
 
@@ -92,7 +105,6 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
   console.log('[ArtistPage] artistData type:', typeof artistData)
   if (artistData) {
     console.log('[ArtistPage] artistData keys:', Object.keys(artistData))
-    console.log('[ArtistPage] artistData.artist:', artistData.artist)
   }
   console.log('[ArtistPage] artist resolved:', !!artist)
   if (artist) {
