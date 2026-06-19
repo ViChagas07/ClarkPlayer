@@ -205,7 +205,9 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
   }
 
   function handlePlayTrack(item: CatalogTrackItem, idx: number) {
-    setQueue(topTracks.map((tr, i) => toPlayerTrack(tr, i, artist?.name ?? artistDisplayName)), idx)
+    if (item.preview_url) {
+      usePlayerStore.getState().playPreview(item.preview_url, toPlayerTrack(item, idx, artist?.name ?? artistDisplayName))
+    }
   }
 
   return (
