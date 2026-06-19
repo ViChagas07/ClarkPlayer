@@ -56,7 +56,6 @@ class CacheTTL:
     ALBUM: int = 21600        # 6 hours
     TRACK: int = 21600        # 6 hours
     GENRES: int = 43200       # 12 hours
-    GENRE_COVERS: int = 86400 # 24 hours (genre covers change once a day)
     DISCOVERY: int = 3600     # 1 hour
     TRENDING: int = 3600      # 1 hour
     SEARCH: int = 1800        # 30 minutes

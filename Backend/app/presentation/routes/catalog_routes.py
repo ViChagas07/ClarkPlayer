@@ -285,8 +285,6 @@ async def get_discovery(session: SessionDep) -> DiscoveryResponse:
                 slug=g["slug"],
                 artist_count=g.get("artist_count", 0),
                 track_count=0,
-                cover_url=g.get("cover_url"),
-                cover_artist_name=g.get("cover_artist_name"),
             )
             for g in popular_genres_raw
         ],
@@ -394,8 +392,6 @@ async def search_catalog(
                 slug=g["slug"],
                 artist_count=g.get("artist_count", 0),
                 track_count=0,
-                cover_url=g.get("cover_url"),
-                cover_artist_name=g.get("cover_artist_name"),
             )
             for g in results.genres
         ],
@@ -805,67 +801,39 @@ async def get_track(
     "/genres",
     response_model=list[CatalogGenreResponse],
     summary="List catalog genres",
-    description="List all genres available in the catalog with artist counts, "
-    "track counts, and auto-generated covers from the most popular artist.",
+    description="List all genres available in the catalog with artist counts.",
 )
 async def list_genres(session: SessionDep) -> list[CatalogGenreResponse]:
-    cache = _cache_service()
-
-    # Try Redis cache first
-    cached = await cache.get_cached_genres()
-    if cached is not None:
-        return [CatalogGenreResponse(**g) for g in cached]
-
-    # Cache miss — query DB with eager-loaded cover artist
     genres_result = await session.execute(
-        select(CatalogGenreModel)
-        .options(selectinload(CatalogGenreModel.cover_artist))
-        .order_by(CatalogGenreModel.name)
+        select(CatalogGenreModel).order_by(CatalogGenreModel.name)
     )
     genres = list(genres_result.scalars())
 
-    # Pre-count artists per genre (single query)
-    artist_count_rows = await session.execute(
-        select(
-            CatalogArtistGenreModel.genre_id,
-            func.count(CatalogArtistGenreModel.artist_id).label("count"),
-        ).group_by(CatalogArtistGenreModel.genre_id)
-    )
-    artist_counts: dict[UUID, int] = {
-        row.genre_id: row.count for row in artist_count_rows.tuples()
-    }
-
-    # Pre-count tracks per genre (single query)
-    track_count_rows = await session.execute(
-        select(
-            CatalogArtistGenreModel.genre_id,
-            func.count(CatalogTrackModel.id).label("count"),
+    response: list[CatalogGenreResponse] = []
+    for g in genres:
+        artist_count_result = await session.execute(
+            select(func.count()).select_from(CatalogArtistModel)
+            .join(CatalogArtistGenreModel)
+            .where(CatalogArtistGenreModel.genre_id == g.id)
         )
-        .join(
-            CatalogTrackModel,
-            CatalogArtistGenreModel.artist_id == CatalogTrackModel.artist_id,
-        )
-        .group_by(CatalogArtistGenreModel.genre_id)
-    )
-    track_counts: dict[UUID, int] = {
-        row.genre_id: row.count for row in track_count_rows.tuples()
-    }
+        artist_count: int = artist_count_result.scalar_one()
 
-    response = [
-        CatalogGenreResponse(
-            id=str(g.id),
-            name=g.name,
-            slug=g.slug,
-            artist_count=artist_counts.get(g.id, 0),
-            track_count=track_counts.get(g.id, 0),
-            cover_url=g.cover_image_url,
-            cover_artist_name=g.cover_artist.name if g.cover_artist else None,
+        track_count_result = await session.execute(
+            select(func.count()).select_from(CatalogTrackModel)
+            .join(CatalogArtistGenreModel, CatalogTrackModel.artist_id == CatalogArtistGenreModel.artist_id)
+            .where(CatalogArtistGenreModel.genre_id == g.id)
         )
-        for g in genres
-    ]
+        track_count: int = track_count_result.scalar_one()
 
-    # Cache the result for next time
-    await cache.set_cached_genres([r.model_dump() for r in response])
+        response.append(
+            CatalogGenreResponse(
+                id=str(g.id),
+                name=g.name,
+                slug=g.slug,
+                artist_count=artist_count,
+                track_count=track_count,
+            )
+        )
 
     return response
 
@@ -874,17 +842,14 @@ async def list_genres(session: SessionDep) -> list[CatalogGenreResponse]:
     "/genres/{slug}",
     response_model=CatalogGenreResponse,
     summary="Get a genre by slug",
-    description="Get a single genre by its URL-safe slug identifier, "
-    "including auto-generated cover from the most popular artist.",
+    description="Get a single genre by its URL-safe slug identifier.",
 )
 async def get_genre(
     slug: str,
     session: SessionDep,
 ) -> CatalogGenreResponse:
     result = await session.execute(
-        select(CatalogGenreModel)
-        .options(selectinload(CatalogGenreModel.cover_artist))
-        .where(CatalogGenreModel.slug == slug)
+        select(CatalogGenreModel).where(CatalogGenreModel.slug == slug)
     )
     genre = result.scalar_one_or_none()
     if genre is None:
@@ -913,8 +878,6 @@ async def get_genre(
         slug=genre.slug,
         artist_count=artist_count,
         track_count=track_count,
-        cover_url=genre.cover_image_url,
-        cover_artist_name=genre.cover_artist.name if genre.cover_artist else None,
     )
 
 
@@ -1009,28 +972,6 @@ async def list_brazilian_artists(
         limit=limit,
         genres=[],
     )
-
-
-# ── Genre Cover Precomputation ──────────────────────────────────────────────
-
-
-@router.post(
-    "/genres/recompute-covers",
-    summary="Recompute genre covers",
-    description="For every genre, find the most popular artist and set the "
-    "genre's cover_image_url and cover_artist_id. Run manually after "
-    "ingestion or via the daily scheduler.",
-)
-async def recompute_genre_covers(
-    session: SessionDep,
-) -> dict:
-    """Recompute the most popular artist per genre and persist as the cover."""
-    from app.services.catalog.precomputation import GenreCoverPrecomputation
-
-    cache = _cache_service()
-    precomp = GenreCoverPrecomputation(session, cache)
-    updated = await precomp.recompute_all()
-    return {"status": "ok", "genres_updated": updated}
 
 
 # ── Ingestion (backward-compatible) ─────────────────────────────────────────

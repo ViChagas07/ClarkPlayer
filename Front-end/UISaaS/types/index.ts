@@ -400,8 +400,6 @@ export interface CatalogGenreItem {
   slug: string
   cover_url: string | null
   track_count: number
-  artist_count: number
-  cover_artist_name?: string | null
 }
 
 export interface CatalogDiscoverySection {

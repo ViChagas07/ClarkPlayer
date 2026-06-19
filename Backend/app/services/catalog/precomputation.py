@@ -16,9 +16,7 @@ Sections:
   - genre_sections:       Top 12 tracks per major genre (pop, rock, rap, electronic, rnb)
 """
 
-from uuid import UUID
-
-from sqlalchemy import func, select, update as sa_update
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -98,8 +96,6 @@ def _genre_to_dict(genre: CatalogGenreModel, artist_count: int = 0) -> dict:
         "name": genre.name,
         "slug": genre.slug,
         "artist_count": artist_count,
-        "cover_url": genre.cover_image_url,
-        "cover_artist_name": genre.cover_artist.name if genre.cover_artist else None,
     }
 
 
@@ -228,7 +224,6 @@ class DiscoveryPrecomputation:
                 CatalogGenreModel,
                 func.count(CatalogArtistGenreModel.artist_id).label("artist_count"),
             )
-            .options(selectinload(CatalogGenreModel.cover_artist))
             .join(
                 CatalogArtistGenreModel,
                 CatalogGenreModel.id == CatalogArtistGenreModel.genre_id,
@@ -301,97 +296,7 @@ class DiscoveryPrecomputation:
         await self._cache.set_cached_discovery("international_artists", data)
         return data
 
-    # ── Genre Cover Precomputation ──────────────────────────────────────────
-
-
-class GenreCoverPrecomputation:
-    """
-    Computes and persists the most popular artist's image as each genre's cover.
-
-    For every genre, finds the artist with the highest ``popularity`` score
-    (via the ``catalog_artist_genres`` junction table) and updates the genre's
-    ``cover_image_url`` and ``cover_artist_id`` columns in PostgreSQL.
-
-    Results are also cached in Redis under ``genre:covers`` for fast API responses.
-    """
-
-    def __init__(self, session: AsyncSession, cache: CatalogCacheService) -> None:
-        self._session = session
-        self._cache = cache
-
-    async def recompute_all(self) -> int:
-        """
-        Recompute covers for ALL genres.
-
-        Returns the number of genres updated.
-        """
-        genres_result = await self._session.execute(
-            select(CatalogGenreModel).order_by(CatalogGenreModel.name)
-        )
-        genres = list(genres_result.scalars())
-        updated = 0
-
-        for genre in genres:
-            top_artist = await self._find_top_artist(genre.id)
-            new_cover_url = top_artist.image_url if top_artist else None
-            new_artist_id = top_artist.id if top_artist else None
-
-            if genre.cover_image_url != new_cover_url or genre.cover_artist_id != new_artist_id:
-                stmt = (
-                    sa_update(CatalogGenreModel)
-                    .where(CatalogGenreModel.id == genre.id)
-                    .values(
-                        cover_image_url=new_cover_url,
-                        cover_artist_id=new_artist_id,
-                    )
-                )
-                await self._session.execute(stmt)
-                updated += 1
-
-        if updated > 0:
-            await self._session.commit()
-
-        # Refresh the genre caches
-        await self._cache.invalidate_genres()
-        genre_covers = await self._build_covers_dict(genres)
-        await self._cache.set_cached_genre_covers(genre_covers)
-
-        return updated
-
-    async def _find_top_artist(self, genre_id: UUID) -> CatalogArtistModel | None:
-        """Return the artist with highest popularity for a genre."""
-        stmt = (
-            select(CatalogArtistModel)
-            .join(
-                CatalogArtistGenreModel,
-                CatalogArtistModel.id == CatalogArtistGenreModel.artist_id,
-            )
-            .where(CatalogArtistGenreModel.genre_id == genre_id)
-            .order_by(CatalogArtistModel.popularity.desc())
-            .limit(1)
-        )
-        result = await self._session.execute(stmt)
-        return result.scalar_one_or_none()
-
-    async def _build_covers_dict(
-        self, genres: list[CatalogGenreModel] | None = None,
-    ) -> dict[str, dict]:
-        """Build a dict mapping slug → {cover_url, cover_artist_name} for caching."""
-        if genres is None:
-            result = await self._session.execute(
-                select(CatalogGenreModel).options(
-                    selectinload(CatalogGenreModel.cover_artist)
-                )
-            )
-            genres = list(result.scalars())
-
-        covers: dict[str, dict] = {}
-        for genre in genres:
-            covers[genre.slug] = {
-                "cover_url": genre.cover_image_url,
-                "cover_artist_name": genre.cover_artist.name if genre.cover_artist else None,
-            }
-        return covers
+    # ── Genre Section ──────────────────────────────────────────────────────
 
     async def get_genre_section(self, genre_slug: str, limit: int = 12) -> list[dict]:
         """Return diverse top *limit* tracks for a given genre slug — max 2 per artist."""

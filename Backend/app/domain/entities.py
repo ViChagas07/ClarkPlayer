@@ -150,8 +150,6 @@ class CatalogGenre:
     slug: str
     gradient_from: str = '#1a1a2e'
     gradient_to: str = '#16213e'
-    cover_image_url: str | None = None
-    cover_artist_id: UUID | None = None
 
 
 # ── Catalog Artist ↔ Genre association ────────────────────────────────────
