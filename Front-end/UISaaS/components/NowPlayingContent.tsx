@@ -6,7 +6,7 @@ import { Music, Play, ListMusic } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useDiscovery } from '@/hooks/useCatalog'
 import { playWithAlbumQueue } from '@/lib/albumQueue'
-import type { CatalogTrackItem, CatalogArtistItem } from '@/types'
+import type { CatalogTrackItem, CatalogArtistItem, CatalogGenreItem } from '@/types'
 
 function MusicCard({ item, index }: { item: CatalogTrackItem; index: number }) {
   const hasPreview = !!item.preview_url
@@ -83,6 +83,35 @@ export function NowPlayingContent() {
             <div key={i} className="animate-pulse p-3"><div className="aspect-square rounded-xl bg-clark-bg-secondary" /><div className="h-4 bg-clark-bg-secondary rounded mt-3 w-3/4" /><div className="h-3 bg-clark-bg-secondary rounded mt-1 w-1/2" /></div>
           ))}
         </div>
+      )}
+
+      {/* Featured Genres */}
+      {data?.popular_genres && (data.popular_genres as CatalogGenreItem[]).length > 0 && (
+        <section className="w-full max-w-6xl mt-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase">{t('browseByGenre')}</h2>
+            <Link href="/genres" className="font-condensed text-[11px] tracking-wider text-clark-text-muted hover:text-clark-text-primary transition-colors">Show all</Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {(data.popular_genres as CatalogGenreItem[]).slice(0, 6).map((genre) => (
+              <Link
+                key={genre.slug}
+                href={`/genres/${genre.slug}`}
+                className="group relative aspect-square rounded-xl overflow-hidden bg-clark-bg-secondary transition-all duration-300 hover:scale-[1.03] hover:shadow-xl"
+              >
+                {genre.cover_url ? (
+                  <img src={genre.cover_url} alt={genre.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-clark-steel to-clark-bg-card" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-3">
+                  <h3 className="font-display text-lg tracking-widest uppercase text-white drop-shadow-lg">{genre.name}</h3>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* Trending */}

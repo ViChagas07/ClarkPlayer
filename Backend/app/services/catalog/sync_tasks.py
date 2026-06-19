@@ -266,3 +266,25 @@ async def run_enhanced_deduplication() -> dict:
     except Exception as exc:
         logger.error("Enhanced dedup failed: %s", exc)
         return {"status": "error", "error": str(exc)}
+
+
+async def recompute_genre_covers() -> dict:
+    """
+    Recompute the most popular artist per genre and persist as the genre cover.
+
+    Runs every 24 hours.  For each genre, finds the artist with the highest
+    ``popularity`` score and updates ``cover_image_url`` / ``cover_artist_id``.
+    """
+    from app.services.catalog.cache_service import CatalogCacheService
+    from app.services.catalog.precomputation import GenreCoverPrecomputation
+
+    try:
+        async with _async_session_factory() as session:
+            cache = CatalogCacheService()
+            precomp = GenreCoverPrecomputation(session, cache)
+            updated = await precomp.recompute_all()
+            logger.info("Genre covers recomputed: %d updated", updated)
+            return {"status": "ok", "genres_updated": updated}
+    except Exception as exc:
+        logger.error("Genre cover recomputation failed: %s", exc)
+        return {"status": "error", "error": str(exc)}

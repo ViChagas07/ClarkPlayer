@@ -270,6 +270,8 @@ def catalog_genre_to_entity(model: CatalogGenreModel) -> CatalogGenre:
         slug=model.slug,
         gradient_from=model.gradient_from,
         gradient_to=model.gradient_to,
+        cover_image_url=model.cover_image_url,
+        cover_artist_id=model.cover_artist_id,
     )
 
 
@@ -280,6 +282,8 @@ def catalog_genre_to_model(entity: CatalogGenre) -> CatalogGenreModel:
         slug=entity.slug,
         gradient_from=entity.gradient_from,
         gradient_to=entity.gradient_to,
+        cover_image_url=entity.cover_image_url,
+        cover_artist_id=entity.cover_artist_id,
     )
 
 

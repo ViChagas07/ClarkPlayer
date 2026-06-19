@@ -176,13 +176,15 @@ class CatalogTrackListResponse(BaseModel):
 # ── Genre Schemas ──────────────────────────────────────────────────────────
 
 class CatalogGenreResponse(BaseModel):
-    """Genre representation with artist count."""
+    """Genre representation with artist count, track count, and auto-generated cover."""
 
     id: str
     name: str
     slug: str
     artist_count: int = 0
     track_count: int = 0
+    cover_url: str | None = None
+    cover_artist_name: str | None = None
 
 
 class GenreResponse(BaseModel):

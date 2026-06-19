@@ -151,16 +151,31 @@ class CatalogGenreModel(Base):
     gradient_to: Mapped[str] = mapped_column(
         String(7), default="#16213e", nullable=False
     )
+    cover_image_url: Mapped[str | None] = mapped_column(String(1000))
+    cover_artist_id: Mapped[UUID | None] = mapped_column(  # type: ignore[type-arg]
+        ForeignKey("catalog_artists.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=_utcnow,
         server_default=func.now(),
         nullable=False,
     )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        default=_utcnow,
+        onupdate=_utcnow,
+    )
 
     # ── Relationships ─────────────────────────────────────────────────
     artist_associations: Mapped[list[CatalogArtistGenreModel]] = relationship(
         back_populates="genre", cascade="all, delete-orphan"
+    )
+    cover_artist: Mapped[CatalogArtistModel | None] = relationship(
+        foreign_keys=[cover_artist_id],
+        uselist=False,
     )
 
     def __repr__(self) -> str:

@@ -58,6 +58,7 @@ class CatalogSyncScheduler:
         from app.services.catalog.sync_tasks import (
             recalculate_trending,
             recompute_discovery_sections,
+            recompute_genre_covers,
             refresh_expired_previews,
             run_deduplication,
             run_enhanced_deduplication,
@@ -90,6 +91,11 @@ class CatalogSyncScheduler:
                 name="expansion",
                 interval_seconds=21600,  # 6h — discover 100 new artists
                 coro_fn=run_expansion_job,
+            ),
+            _JobDef(
+                name="genre_covers",
+                interval_seconds=86400,  # 24h — recompute top artist per genre
+                coro_fn=recompute_genre_covers,
             ),
             _JobDef(
                 name="discovery_sections",

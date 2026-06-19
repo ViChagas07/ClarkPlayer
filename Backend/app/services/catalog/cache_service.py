@@ -139,6 +139,23 @@ class CatalogCacheService:
     async def set_cached_genres(self, data: list[dict]) -> None:
         await _redis_set(make_cache_key("genres"), json.dumps(data), CacheTTL.GENRES)
 
+    async def invalidate_genres(self) -> None:
+        """Invalidate the genre list cache and genre covers cache."""
+        await _redis_delete(make_cache_key("genres"))
+        await _redis_delete(make_cache_key("genre", "covers"))
+        await _redis_delete(make_cache_key("discovery", "popular_genres"))
+
+    # ── Genre Covers (precomputed top artist per genre) ─────────────────
+
+    async def get_cached_genre_covers(self) -> dict | None:
+        raw = await _redis_get(make_cache_key("genre", "covers"))
+        if raw:
+            return json.loads(raw)  # type: ignore[no-any-return]
+        return None
+
+    async def set_cached_genre_covers(self, data: dict, ttl: int = CacheTTL.GENRE_COVERS) -> None:
+        await _redis_set(make_cache_key("genre", "covers"), json.dumps(data), ttl)
+
     # ── Search ─────────────────────────────────────────────────────────────
 
     async def get_cached_search(self, query: str, limit: int, offset: int) -> dict | None:
