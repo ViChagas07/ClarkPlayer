@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { useTranslation } from '@/hooks/useTranslation'
 import { usePlayerStore } from '@/store/playerStore'
+import { playWithAlbumQueue } from '@/lib/albumQueue'
 import { useArtist, useArtistTracks, useArtistAlbums } from '@/hooks/useCatalog'
 import { cn } from '@/lib/utils'
 import type { CatalogTrackItem, CatalogArtistItem, Track } from '@/types'
@@ -205,9 +206,7 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
   }
 
   function handlePlayTrack(item: CatalogTrackItem, idx: number) {
-    if (item.preview_url) {
-      usePlayerStore.getState().playPreview(item.preview_url, toPlayerTrack(item, idx, artist?.name ?? artistDisplayName))
-    }
+    playWithAlbumQueue(item, idx)
   }
 
   return (
@@ -386,16 +385,7 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
                     )}
                     {hasPreview && (
                       <button
-                        className="flex items-center gap-1 p-1.5 rounded-lg hover:bg-clark-gold/10 text-clark-gold transition-colors group/preview"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          if (track.preview_url) {
-                            usePlayerStore.getState().playPreview(
-                              track.preview_url,
-                              toPlayerTrack(track, idx, artist?.name ?? artistDisplayName),
-                            )
-                          }
-                        }}
+                        className="flex items-center gap-1 p-1.5 rounded-lg hover:bg-clark-gold/10 text-clark-gold transition-colors group/preview cursor-default"
                         aria-label={`Preview ${track.title}`}
                         title={t('previewLabel')}
                       >
