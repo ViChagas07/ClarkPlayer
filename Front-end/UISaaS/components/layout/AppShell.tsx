@@ -515,6 +515,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* ── Spacer — pushes divider down ── */}
           <div className="flex-1 min-h-[40px]" />
 
+          {/* ── Playback controls — inside right sidebar ── */}
+          {displayTrack && (
+            <div className="flex items-center justify-center gap-5 px-5 mb-4">
+              <button
+                className="p-2 text-clark-text-muted/80 hover:text-clark-text-primary transition-colors"
+                onClick={prevTrack}
+                aria-label={t('previousTrack')}
+              >
+                <SkipBack className="w-5 h-5" />
+              </button>
+              <button
+                className="relative w-11 h-11 rounded-full bg-clark-accent hover:bg-clark-accent-hover flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
+                style={{ boxShadow: `0 0 14px ${accentColor}60` }}
+                onClick={() => { if (isPreview && isPlaying) stopPreview(); else togglePlay() }}
+                aria-label={isPlaying ? t('pauseBtn') : t('playBtn')}
+              >
+                <div className="absolute inset-0 rounded-full bg-clark-gold/20 blur-sm" />
+                <div className="relative flex items-center justify-center">
+                  {isPlaying ? <Pause className="w-5 h-5 text-white" /> : <Play className="w-5 h-5 text-white ml-0.5" />}
+                </div>
+              </button>
+              <button
+                className="p-2 text-clark-text-muted/80 hover:text-clark-text-primary transition-colors"
+                onClick={nextTrack}
+                aria-label={t('nextTrack')}
+              >
+                <SkipForward className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+
           {/* ── Divider — now significantly lower ── */}
           <div className="mx-5 border-t border-clark-steel/20 flex-shrink-0 mb-4" />
 
@@ -541,6 +572,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {queue.map((track, idx) => (
                   <li key={`${track.id}-${idx}`}>
                     <button
+                      onClick={() => {
+                        const store = usePlayerStore.getState()
+                        // Only update if it's a different track
+                        if (idx !== store.queueIndex) {
+                          usePlayerStore.setState({
+                            queueIndex: idx,
+                            currentTrack: track,
+                            progress: 0,
+                            isPlaying: true,
+                            isPreview: false,
+                          })
+                        }
+                      }}
                       className={cn(
                         'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors pointer-events-auto',
                         idx === queueIndex
@@ -549,16 +593,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       )}
                     >
                     <div className="relative flex-shrink-0 w-8 h-8 rounded bg-clark-steel/30 flex items-center justify-center overflow-hidden">
-                      {idx === queueIndex && isPlaying ? (
-                        <div className="flex items-end gap-0.5 h-3">
-                          <span className="w-0.5 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '0ms' }} />
-                          <span className="w-0.5 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '150ms' }} />
-                          <span className="w-0.5 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '300ms' }} />
-                        </div>
-                      ) : track.coverUrl ? (
+                      {track.coverUrl ? (
                         <img src={track.coverUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
                       ) : (
                         <Music className="w-4 h-4" />
+                      )}
+                      {idx === queueIndex && isPlaying && (
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center gap-0.5">
+                          <span className="w-0.5 h-3 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '0ms' }} />
+                          <span className="w-0.5 h-3 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '150ms' }} />
+                          <span className="w-0.5 h-3 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '300ms' }} />
+                        </div>
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
