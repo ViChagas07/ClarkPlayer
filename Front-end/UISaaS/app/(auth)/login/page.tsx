@@ -458,9 +458,9 @@ function AuthFormInner() {
               />
               <label htmlFor="login-agreeConsent" className="font-body text-sm text-clark-text-muted">
                 I have read the{' '}
-                <Link href="/privacy-policy#terms" target="_blank" className="text-clark-gold hover:underline">Terms of Use</Link>
+                <Link href="/privacy-policy#terms" target="_blank" className="text-clark-gold hover:underline">{t('termsOfService')}</Link>
                 {' '}and{' '}
-                <Link href="/privacy-policy" target="_blank" className="text-clark-gold hover:underline">Privacy Policy</Link>
+                <Link href="/privacy-policy" target="_blank" className="text-clark-gold hover:underline">{t('privacyPolicy')}</Link>
                 {' '}and agree to them.
               </label>
             </div>
@@ -722,11 +722,11 @@ function AuthFormInner() {
                   aria-describedby={registerFormHook.formState.errors.agreeTerms ? 'agreeTerms-error' : undefined}
                 />
                 <label htmlFor="agreeTerms" className="font-body text-sm text-clark-text-muted">
-                  I have read the{' '}
-                  <Link href="/privacy-policy#terms" target="_blank" className="text-clark-gold hover:underline">Terms of Use</Link>
-                  {' '}and{' '}
-                  <Link href="/privacy-policy" target="_blank" className="text-clark-gold hover:underline">Privacy Policy</Link>
-                  {' '}and agree to them.
+                  {t('agreeTermsPart1')}{' '}
+                  <Link href="/privacy-policy#terms" target="_blank" className="text-clark-gold hover:underline">{t('termsOfService')}</Link>
+                  {' '}{t('andLowercase')}{' '}
+                  <Link href="/privacy-policy" target="_blank" className="text-clark-gold hover:underline">{t('privacyPolicy')}</Link>
+                  {t('agreeTermsPart2')}
                 </label>
               </div>
               {registerFormHook.formState.errors.agreeTerms && (

@@ -629,14 +629,14 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex flex-wrap justify-center gap-4 font-body text-sm text-clark-text-muted">
-                  <Link href="/privacy-policy" className="hover:text-clark-gold transition-colors">Privacy Policy</Link>
+                  <Link href="/privacy-policy" className="hover:text-clark-gold transition-colors">{t('privacyPolicy')}</Link>
                   <span className="text-clark-steel/40">·</span>
-                  <Link href="/privacy-policy#terms" className="hover:text-clark-gold transition-colors">Terms of Service</Link>
+                  <Link href="/privacy-policy#terms" className="hover:text-clark-gold transition-colors">{t('termsOfService')}</Link>
                   <span className="text-clark-steel/40">·</span>
-                  <a href="#" className="hover:text-clark-sky transition-colors">Open Source Licenses</a>
+                  <a href="#" className="hover:text-clark-sky transition-colors">{t('ossLicenses')}</a>
                 </div>
 
-                <p className="font-body text-xs text-clark-text-muted/50">Made with ♥ by the ClarkPlayer team</p>
+                <p className="font-body text-xs text-clark-text-muted/50">{t('madeWith')}</p>
               </div>
             )}
           </div>

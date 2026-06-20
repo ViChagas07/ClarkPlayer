@@ -245,6 +245,11 @@ export interface TranslationMap {
   trackProgress: string
   previewTracks: string
   tracksWithPreview: string
+  allRightsReserved: string
+  contactLink: string
+  agreeTermsPart1: string
+  agreeTermsPart2: string
+  andLowercase: string
 
   // ── Account ──
   myAccount: string
@@ -577,6 +582,11 @@ const translations = {
     trackProgress: 'Track progress',
     previewTracks: 'Preview Tracks',
     tracksWithPreview: 'tracks with preview',
+    allRightsReserved: 'All rights reserved.',
+    contactLink: 'Contact',
+    agreeTermsPart1: 'I have read the',
+    agreeTermsPart2: 'and agree to them.',
+    andLowercase: 'and',
     // ── Account ──
     myAccount: 'My Account',
     profileInformation: 'Profile Information',
@@ -898,6 +908,11 @@ const translations = {
     trackProgress: 'Progresso da faixa',
     previewTracks: 'Pr\u00e9vias de Faixas',
     tracksWithPreview: 'faixas com pr\u00e9via',
+    allRightsReserved: 'Todos os direitos reservados.',
+    contactLink: 'Contato',
+    agreeTermsPart1: 'Eu li os',
+    agreeTermsPart2: 'e concordo com eles.',
+    andLowercase: 'e',
     // ── Account ──
     myAccount: 'Minha Conta',
     profileInformation: 'Informa\u00e7\u00f5es do Perfil',
@@ -1219,6 +1234,11 @@ const translations = {
     trackProgress: 'Progreso de la pista',
     previewTracks: 'Vista Previa de Pistas',
     tracksWithPreview: 'pistas con vista previa',
+    allRightsReserved: 'Todos los derechos reservados.',
+    contactLink: 'Contacto',
+    agreeTermsPart1: 'He le\u00eddo los',
+    agreeTermsPart2: 'y estoy de acuerdo.',
+    andLowercase: 'y',
     // ── Account ──
     myAccount: 'Mi Cuenta',
     profileInformation: 'Informaci\u00f3n del Perfil',
@@ -1540,6 +1560,11 @@ const translations = {
     trackProgress: 'Progression du morceau',
     previewTracks: 'Aper\u00e7u des Pistes',
     tracksWithPreview: 'pistes avec aper\u00e7u',
+    allRightsReserved: 'Tous droits r\u00e9serv\u00e9s.',
+    contactLink: 'Contact',
+    agreeTermsPart1: 'J\u0027ai lu les',
+    agreeTermsPart2: 'et j\u0027accepte.',
+    andLowercase: 'et',
     // ── Account ──
     myAccount: 'Mon Compte',
     profileInformation: 'Informations du Profil',
@@ -1861,6 +1886,11 @@ const translations = {
     trackProgress: 'Titel-Fortschritt',
     previewTracks: 'Vorschau-Titel',
     tracksWithPreview: 'Titel mit Vorschau',
+    allRightsReserved: 'Alle Rechte vorbehalten.',
+    contactLink: 'Kontakt',
+    agreeTermsPart1: 'Ich habe die',
+    agreeTermsPart2: 'gelesen und stimme zu.',
+    andLowercase: 'und',
     // ── Account ──
     myAccount: 'Mein Konto',
     profileInformation: 'Profilinformationen',
