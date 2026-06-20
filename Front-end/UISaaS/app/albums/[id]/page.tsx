@@ -5,7 +5,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { AppShell } from '@/components/layout/AppShell'
 import { usePlayerStore } from '@/store/playerStore'
-import { playWithAlbumQueue } from '@/lib/albumQueue'
 import { useAlbum } from '@/hooks/useCatalog'
 import type { CatalogTrackItem, CatalogAlbumItem, Track } from '@/types'
 import {
@@ -82,18 +81,34 @@ function AlbumDetailInner({ params }: { params: Promise<{ id: string }> }) {
     : null
 
   // ── Play helpers ──────────────────────────────────────────
+  const { playPreview } = usePlayerStore()
+
   function handlePlayAll() {
     if (tracks.length > 0) {
-      setQueue(
-        tracks.map((tr, i) =>
-          toPlayerTrack(tr, i, album?.artist_name ?? artist?.name ?? 'Unknown Artist'),
-        ),
+      const queue = tracks.map((tr, i) =>
+        toPlayerTrack(tr, i, album?.artist_name ?? artist?.name ?? 'Unknown Artist'),
       )
+      setQueue(queue)
     }
   }
 
   function handlePlayTrack(item: CatalogTrackItem, idx: number) {
-    playWithAlbumQueue(item, idx)
+    if (!item.preview_url) return
+
+    const artistName = album?.artist_name ?? artist?.name ?? 'Unknown Artist'
+
+    // 1. Play this track immediately (synchronous, no async race)
+    const track = toPlayerTrack(item, idx, artistName)
+    playPreview(item.preview_url, track)
+
+    // 2. Populate queue with all album tracks (already in memory)
+    const queue = tracks
+      .filter((t) => t.preview_url)
+      .map((t, i) => toPlayerTrack(t, i, artistName))
+    if (queue.length > 0) {
+      const currentIndex = queue.findIndex((t) => t.id === item.id)
+      setQueue(queue, currentIndex >= 0 ? currentIndex : 0)
+    }
   }
 
   // ── Pre-mount / SSR skeleton ──────────────────────────────
@@ -295,13 +310,12 @@ function AlbumDetailInner({ params }: { params: Promise<{ id: string }> }) {
                           <Music className="w-4 h-4 text-white/20" />
                         </div>
                       )}
-                      <button
-                        className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handlePlayTrack(track, idx)}
-                        aria-label={`Play ${track.title}`}
+                      <div
+                        className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                        aria-hidden="true"
                       >
                         <Play className="w-5 h-5 text-white ml-0.5" />
-                      </button>
+                      </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-body font-medium text-sm text-clark-text-primary truncate">
