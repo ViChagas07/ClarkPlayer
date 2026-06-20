@@ -4,7 +4,7 @@ import type { CatalogTrackItem, Track } from '@/types'
 
 function toTrack(item: CatalogTrackItem, idx: number): Track {
   return {
-    id: item.id ?? `track-${idx}`,
+    id: item.id,
     title: item.title,
     artist: item.artist_name,
     album: item.album_title ?? '',

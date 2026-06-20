@@ -25,7 +25,7 @@ import { TrackLine } from '@/components/track/TrackLine'
 // ── Track to player Track mapper ────────────────────────────
 function toPlayerTrack(item: CatalogTrackItem, idx: number, artistName: string): Track {
   return {
-    id: item.id ?? `artist-track-${idx}`,
+    id: item.id,
     title: item.title,
     artist: item.artist_name || artistName,
     album: item.album_title ?? '',

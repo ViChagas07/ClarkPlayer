@@ -10,6 +10,7 @@
 import { useRef, useCallback, useEffect, useState } from 'react'
 import { usePlayerStore } from '@/store/playerStore'
 import { isTauri, readAudioFile, recordPlay } from '@/lib/desktopApi'
+import type { Track } from '@/types'
 
 export function useDesktopAudioEngine() {
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -48,17 +49,29 @@ export function useDesktopAudioEngine() {
   }, [volume])
 
   // Load and play a track
-  const loadAndPlay = useCallback(async (trackId: string, startOffset: number = 0) => {
+  const loadAndPlay = useCallback(async (track: Track, startOffset: number = 0) => {
+    const trackId = track.id
+
     if (!isTauri()) {
       // Browser mode: use <audio> element fallback
       if (!audioElementRef.current) {
         audioElementRef.current = new Audio()
       }
-      audioElementRef.current.src = `/api/v1/tracks/${trackId}/stream`
+
+      // Catalog tracks → previewUrl (public HTTP URL, no auth needed)
+      // Personal uploads → /api/v1/tracks/{id}/stream (requires auth + UUID)
+      if (track.previewUrl) {
+        audioElementRef.current.src = track.previewUrl
+      } else {
+        audioElementRef.current.src = `/api/v1/tracks/${trackId}/stream`
+      }
+
       audioElementRef.current.currentTime = startOffset
-      audioElementRef.current.play().catch(() => {
-        // Stream failed (e.g. track has no preview / backend 422).
-        // This is expected for some tracks — silently ignore.
+      audioElementRef.current.play().catch((err: unknown) => {
+        console.warn(
+          `[AudioEngine] Failed to play track ${trackId}:`,
+          (err as Error)?.message ?? err,
+        )
       })
       return
     }
@@ -87,7 +100,9 @@ export function useDesktopAudioEngine() {
       sourceNodeRef.current.start(0, startOffset)
 
       // Record play in local DB
-      recordPlay(trackId).catch(() => {})
+      recordPlay(trackId).catch((err: unknown) => {
+        console.warn('[AudioEngine] Failed to record play:', (err as Error)?.message ?? err)
+      })
 
       // Update progress via animation frame
       const updateProgress = () => {
@@ -101,13 +116,14 @@ export function useDesktopAudioEngine() {
       sourceNodeRef.current.onended = () => {
         cancelAnimationFrame(animationFrameRef.current)
         if (usePlayerStore.getState().repeatMode === 'one') {
-          loadAndPlay(trackId, 0)
+          const current = usePlayerStore.getState().currentTrack
+          if (current) loadAndPlay(current, 0)
         } else {
           nextTrack()
         }
       }
     } catch (err) {
-      console.error('Failed to load audio file:', err)
+      console.error('[AudioEngine] Failed to load audio file:', err)
     }
   }, [initAudio, setProgress, nextTrack])
 
@@ -121,7 +137,7 @@ export function useDesktopAudioEngine() {
     }
 
     if (isPlaying && !sourceNodeRef.current) {
-      loadAndPlay(currentTrack.id, progress)
+      loadAndPlay(currentTrack, progress)
     }
 
     if (!isPlaying && audioContextRef.current) {
@@ -132,7 +148,7 @@ export function useDesktopAudioEngine() {
   // Handle track changes — skip previews
   useEffect(() => {
     if (currentTrack && isPlaying && !currentTrack.isPreview) {
-      loadAndPlay(currentTrack.id, 0)
+      loadAndPlay(currentTrack, 0)
     }
   }, [currentTrack?.id])
 
@@ -145,7 +161,7 @@ export function useDesktopAudioEngine() {
     }
     setProgress(timeSeconds)
     if (isPlaying) {
-      loadAndPlay(currentTrack.id, timeSeconds)
+      loadAndPlay(currentTrack, timeSeconds)
     }
   }, [currentTrack, isPlaying, loadAndPlay, setProgress])
 
@@ -178,7 +194,9 @@ export function useDesktopAudioEngine() {
     if (isTauri() || !audioElementRef.current) return
     const el = audioElementRef.current
     if (isPlaying) {
-      el.play().catch(() => {})
+      el.play().catch((err: unknown) => {
+        console.warn('[AudioEngine] Browser play failed:', (err as Error)?.message ?? err)
+      })
       el.volume = volume
     } else {
       el.pause()

@@ -85,7 +85,7 @@ export default function LibraryPage() {
 
   function handlePlay(track: CatalogTrackItem, idx: number) {
     const queue: Track[] = discoverTracks.map((t, i) => ({
-      id: t.id ?? `discover-${i}`,
+      id: t.id,
       title: t.title,
       artist: t.artist_name,
       album: t.album_title ?? '',
@@ -164,7 +164,7 @@ export default function LibraryPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {discoverTracks.map((track, idx) => (
                   <TrackLine
-                    key={track.id ?? `discover-${idx}`}
+                    key={track.id}
                     data={{
                       id: track.id,
                       title: track.title,
@@ -292,7 +292,7 @@ export default function LibraryPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {discoverTracks.map((track, idx) => (
                 <TrackLine
-                  key={track.id ?? `discover-${idx}`}
+                   key={track.id}
                   data={{
                     id: track.id,
                     title: track.title,
