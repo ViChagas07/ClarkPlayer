@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { AppShell } from '@/components/layout/AppShell'
+import { GenreMosaic } from '@/components/GenreMosaic'
 import { useTranslation } from '@/hooks/useTranslation'
 import { usePlayerStore } from '@/store/playerStore'
 import { api } from '@/lib/api'
+import { useGenre } from '@/hooks/useCatalog'
 import { getGenreImage, getGenreGradient } from '@/lib/genre-image-map'
 import type { CatalogTrackItem, Track } from '@/types'
 import { Play, Music, ChevronLeft, Headphones } from 'lucide-react'
@@ -45,6 +47,12 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
   const slug = resolvedParams.slug
   const displayName = genreDisplayNames[slug] ?? slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 
+  // ── Genre metadata (mosaic_images, gradient) ──────────────────────
+  const { data: genreData } = useGenre(slug)
+  const gradient = getGenreGradient(slug)
+  const localImage = getGenreImage(slug)
+
+  // ── Tracks ────────────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false
 
@@ -85,29 +93,38 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
   return (
     <AppShell>
       <div className="space-y-6">
-        {/* Header with genre image banner or gradient fallback */}
-        <div className="relative h-48 sm:h-56 rounded-xl overflow-hidden">
-          {(() => {
-            const localImage = getGenreImage(slug)
-            if (localImage) {
-              return (
-                <Image
-                  src={localImage}
-                  alt={displayName}
-                  fill
-                  className="object-cover"
-                  sizes="100vw"
-                  priority
-                />
-              )
-            }
-            const gradient = getGenreGradient(slug)
-            return (
-              <div className={`absolute inset-0 bg-gradient-to-br ${gradient.from} ${gradient.to}`} />
-            )
-          })()}
-          <div className="absolute inset-0 bg-gradient-to-t from-clark-bg-primary via-clark-bg-primary/60 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-6 flex items-center gap-4">
+        {/* Header with genre image banner or gradient fallback (Spotify style) */}
+        <div className={`relative h-48 sm:h-56 rounded-xl overflow-hidden bg-gradient-to-br ${gradient.from} ${gradient.to}`}>
+          {/* Mosaic images — positioned at right */}
+          {genreData?.mosaic_images && genreData.mosaic_images.length > 0 && (
+            <div className="absolute top-0 right-0 h-full z-0" style={{ width: '45%' }}>
+              <GenreMosaic
+                images={genreData.mosaic_images}
+                genreName={displayName}
+                gradientFrom={gradient.from}
+                gradientTo={gradient.to}
+                size="100%"
+              />
+            </div>
+          )}
+
+          {/* Fallback: local static image (when no mosaic) */}
+          {(!genreData?.mosaic_images || genreData.mosaic_images.length === 0) && localImage && (
+            <Image
+              src={localImage}
+              alt={displayName}
+              fill
+              className="object-cover z-0"
+              sizes="100vw"
+              priority
+            />
+          )}
+
+          {/* Subtle overlay for bottom text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-clark-bg-primary via-clark-bg-primary/40 to-transparent z-[1]" />
+
+          {/* Title + back button */}
+          <div className="absolute bottom-0 left-0 right-0 p-6 flex items-center gap-4 z-10">
             <Link href="/genres" className="p-2 rounded-lg hover:bg-white/10 text-white/80 hover:text-white transition-colors shrink-0">
               <ChevronLeft className="w-5 h-5" />
             </Link>

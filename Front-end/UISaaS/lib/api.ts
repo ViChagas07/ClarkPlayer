@@ -674,8 +674,14 @@ export const api = {
     return _fetch<CatalogTrackResponse>(`/api/v1/catalog/tracks/${encodeURIComponent(trackId)}`)
   },
 
-  catalogGenres(): Promise<CatalogGenreItem[]> {
-    return _fetch<CatalogGenreItem[]>('/api/v1/catalog/genres')
+  catalogGenres(limit: number = 30, offset: number = 0): Promise<CatalogListResponse<CatalogGenreItem>> {
+    const qs = new URLSearchParams({ limit: String(limit), offset: String(offset) })
+    return _fetch<any>(`/api/v1/catalog/genres?${qs.toString()}`).then((data) => ({
+      items: data.items ?? [],
+      total: data.total ?? 0,
+      offset: data.offset ?? 0,
+      limit: data.limit ?? limit,
+    }))
   },
 
   catalogGenre(slug: string): Promise<CatalogGenreItem> {

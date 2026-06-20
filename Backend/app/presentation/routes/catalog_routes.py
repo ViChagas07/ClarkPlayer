@@ -800,22 +800,43 @@ async def get_track(
 
 @router.get(
     "/genres",
-    response_model=list[CatalogGenreResponse],
-    summary="List catalog genres",
-    description="List all genres available in the catalog with artist counts.",
+    summary="List catalog genres (paginated)",
+    description="List genres with limit/offset pagination. Includes artist counts, "
+    "track counts (previewable only), and mosaic cover images for each genre.",
 )
-async def list_genres(session: SessionDep) -> list[CatalogGenreResponse]:
+async def list_genres(
+    session: SessionDep,
+    limit: int = Query(default=30, ge=1, le=100, description="Number of genres per page"),
+    offset: int = Query(default=0, ge=0, description="Number of genres to skip"),
+) -> PaginatedResponse[CatalogGenreResponse]:
+    # ── Total count ────────────────────────────────────────────────────
+    total: int = await session.scalar(
+        select(func.count(CatalogGenreModel.id))
+    ) or 0
+
+    # ── Fetch batch ────────────────────────────────────────────────────
     genres_result = await session.execute(
-        select(CatalogGenreModel).order_by(CatalogGenreModel.name)
+        select(CatalogGenreModel)
+        .order_by(CatalogGenreModel.name)
+        .offset(offset)
+        .limit(limit)
     )
     genres = list(genres_result.scalars())
 
+    if not genres:
+        return PaginatedResponse[CatalogGenreResponse](
+            items=[], total=total, offset=offset, limit=limit
+        )
+
     # ── Pre-count artists per genre (single query) ──────────────────────
+    genre_ids = [g.id for g in genres]
     artist_count_rows = await session.execute(
         select(
             CatalogArtistGenreModel.genre_id,
             func.count(CatalogArtistGenreModel.artist_id).label("count"),
-        ).group_by(CatalogArtistGenreModel.genre_id)
+        )
+        .where(CatalogArtistGenreModel.genre_id.in_(genre_ids))
+        .group_by(CatalogArtistGenreModel.genre_id)
     )
     artist_counts: dict[UUID, int] = {
         row.genre_id: row.count for row in artist_count_rows.tuples()
@@ -832,6 +853,7 @@ async def list_genres(session: SessionDep) -> list[CatalogGenreResponse]:
             CatalogArtistGenreModel.artist_id == CatalogTrackModel.artist_id,
         )
         .where(
+            CatalogArtistGenreModel.genre_id.in_(genre_ids),
             CatalogTrackModel.preview_url.isnot(None),
             CatalogTrackModel.preview_url != "",
         )
@@ -841,7 +863,7 @@ async def list_genres(session: SessionDep) -> list[CatalogGenreResponse]:
         row.genre_id: row.count for row in track_count_rows.tuples()
     }
 
-    # ── Enrich each genre with mosaic images (parallel) ─────────────────
+    # ── Enrich each genre with mosaic images (parallel, batch only) ────
     cache_svc = CatalogCacheService()
     search_engine = CatalogSearchEngine(session)
 
@@ -866,9 +888,11 @@ async def list_genres(session: SessionDep) -> list[CatalogGenreResponse]:
             mosaic_images=mosaic_images,
         )
 
-    response = await asyncio.gather(*[_enrich_genre(g) for g in genres])
+    enriched = await asyncio.gather(*[_enrich_genre(g) for g in genres])
 
-    return list(response)
+    return PaginatedResponse[CatalogGenreResponse](
+        items=enriched, total=total, offset=offset, limit=limit
+    )
 
 
 @router.get(

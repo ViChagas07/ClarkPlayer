@@ -110,9 +110,14 @@ export function useTrack(trackId: string) {
 // ── Genres ────────────────────────────────────────────────────────────
 
 export function useGenres() {
-  return useQuery<CatalogGenreItem[]>({
+  return useInfiniteQuery<CatalogListResponse<CatalogGenreItem>>({
     queryKey: ['catalog', 'genres'],
-    queryFn: () => api.catalogGenres(),
+    queryFn: ({ pageParam }) => api.catalogGenres(30, pageParam as number),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      const nextOffset = lastPage.offset + lastPage.limit
+      return nextOffset < lastPage.total ? nextOffset : undefined
+    },
     staleTime: 2 * 60 * 60 * 1000,
   })
 }

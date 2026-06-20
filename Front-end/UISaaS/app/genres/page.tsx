@@ -1,16 +1,18 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useRef } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { GenreMosaic } from '@/components/GenreMosaic'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useGenres } from '@/hooks/useCatalog'
-import { getCachedCatalogData, setCachedCatalogData } from '@/lib/catalogCache'
 import { getGenreImage, getGenreGradient } from '@/lib/genre-image-map'
 import { cn } from '@/lib/utils'
 import type { CatalogGenreItem } from '@/types'
 import Image from 'next/image'
 import { Music } from 'lucide-react'
+
+const PAGE_SIZE = 30
 
 const mosaicLayout = [
   'col-span-2 row-span-2',
@@ -34,25 +36,41 @@ const mosaicLayout = [
   'col-span-1 row-span-1',
 ]
 
-const CACHE_KEY = 'genres'
-
 export default function GenresPage() {
   const { t } = useTranslation()
-
-  const restoredFromCache = getCachedCatalogData<CatalogGenreItem[]>(CACHE_KEY)
   const {
-    data: genres,
+    data,
     isLoading,
     isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   } = useGenres()
 
-  const displayGenres = genres ?? restoredFromCache ?? []
+  // Flatten all pages into a single array
+  const genres: CatalogGenreItem[] = data?.pages.flatMap((p) => p.items) ?? []
 
-  if (genres && genres.length > 0) {
-    setCachedCatalogData(CACHE_KEY, genres)
-  }
+  // ── IntersectionObserver for scroll infinite ─────────────────────────
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
-  const showSkeleton = isLoading && displayGenres.length === 0
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { rootMargin: '400px' },
+    )
+
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  const showSkeleton = isLoading && genres.length === 0
 
   return (
     <AppShell>
@@ -72,7 +90,7 @@ export default function GenresPage() {
             ))}
             <span className="sr-only">Loading genres...</span>
           </div>
-        ) : displayGenres.length === 0 ? (
+        ) : genres.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6 rounded-2xl bg-clark-bg-secondary border border-clark-steel/20 text-center">
             <div className="w-12 h-12 rounded-full bg-clark-bg-card flex items-center justify-center mb-4">
               <Music className="w-6 h-6 text-clark-text-muted" />
@@ -82,7 +100,7 @@ export default function GenresPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[120px]">
-            {displayGenres.map((genre, i) => {
+            {genres.map((genre, i) => {
               const layoutIdx = i % mosaicLayout.length
               const gradient = getGenreGradient(genre.slug)
               const localImage = getGenreImage(genre.slug)
@@ -136,10 +154,26 @@ export default function GenresPage() {
           </div>
         )}
 
-        {/* Subtle stale-data indicator when showing cached results after an error */}
-        {isError && displayGenres.length > 0 && (
+        {/* Sentinel element for IntersectionObserver */}
+        {genres.length > 0 && (
+          <div
+            ref={sentinelRef}
+            className="w-full h-4"
+            aria-hidden="true"
+          />
+        )}
+
+        {/* Loading more indicator */}
+        {isFetchingNextPage && (
+          <div className="flex justify-center py-4">
+            <div className="w-6 h-6 rounded-full border-2 border-clark-gold border-t-transparent animate-spin" />
+          </div>
+        )}
+
+        {/* Error with stale data */}
+        {isError && genres.length > 0 && (
           <p className="text-center font-body text-xs text-clark-text-muted/40">
-            Showing cached genres — refresh may be unavailable
+            Failed to load more genres — scroll to retry
           </p>
         )}
       </div>
