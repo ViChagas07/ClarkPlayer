@@ -14,10 +14,10 @@ import {
   Music,
   Disc3,
   Clock,
-  Headphones,
   AlertCircle,
   RefreshCw,
 } from 'lucide-react'
+import { TrackLine } from '@/components/track/TrackLine'
 
 // ── Track to player Track mapper ────────────────────────────
 function toPlayerTrack(item: CatalogTrackItem, idx: number, artistName: string): Track {
@@ -31,13 +31,6 @@ function toPlayerTrack(item: CatalogTrackItem, idx: number, artistName: string):
     coverUrl: item.album_cover ?? undefined,
     previewUrl: item.preview_url ?? null,
   }
-}
-
-function formatDuration(ms: number | null): string {
-  if (!ms) return ''
-  const m = Math.floor(ms / 60000)
-  const s = Math.floor((ms % 60000) / 1000)
-  return `${m}:${s.toString().padStart(2, '0')}`
 }
 
 // ── Inner client component ─────────────────────────────────
@@ -277,85 +270,26 @@ function AlbumDetailInner({ params }: { params: Promise<{ id: string }> }) {
                 </span>
               </div>
 
-              {tracks.map((track, idx) => {
-                const hasPreview = !!track.preview_url
-                return (
-                  <div
-                    key={track.id ?? idx}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Play ${track.title} by ${track.artist_name || artistName}`}
-                    className="group flex items-center gap-4 px-4 py-2.5 rounded-xl hover:bg-clark-bg-secondary/60 transition-all duration-200 cursor-pointer border border-transparent hover:border-clark-steel/20"
-                    onClick={() => handlePlayTrack(track, idx)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        handlePlayTrack(track, idx)
-                      }
-                    }}
-                  >
-                    <span className="w-8 text-center font-condensed text-xs text-clark-text-muted/50 flex-shrink-0">
-                      {idx + 1}
-                    </span>
-                    <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-clark-bg-card">
-                      {track.album_cover ? (
-                        <Image
-                          src={track.album_cover}
-                          alt={`${track.title} cover`}
-                          fill
-                          sizes="2.5rem"
-                          className="object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Music className="w-4 h-4 text-white/20" />
-                        </div>
-                      )}
-                      <div
-                        className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                        aria-hidden="true"
-                      >
-                        <Play className="w-5 h-5 text-white ml-0.5" />
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-body font-medium text-sm text-clark-text-primary truncate">
-                        {track.title}
-                      </p>
-                      <p className="font-body text-xs text-clark-text-muted/70 truncate">
-                        {track.artist_name || artistName}
-                      </p>
-                    </div>
-                    {track.popularity > 0 && (
-                      <div className="hidden sm:block w-16">
-                        <div className="h-1 bg-clark-bg-secondary rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-clark-gold to-clark-accent"
-                            style={{ width: `${Math.min(track.popularity, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                    {hasPreview && (
-                      <span
-                        className="flex items-center gap-1 p-1.5 rounded-lg text-clark-gold transition-colors group/preview"
-                        aria-hidden="true"
-                      >
-                        <Headphones className="w-4 h-4" />
-                        <span className="hidden group-hover/preview:inline font-condensed text-[10px] tracking-wider uppercase">
-                          Preview
-                        </span>
-                      </span>
-                    )}
-                    {track.duration_ms && (
-                      <span className="font-condensed text-xs text-clark-text-muted flex-shrink-0 w-10 text-right">
-                        {formatDuration(track.duration_ms)}
-                      </span>
-                    )}
-                  </div>
-                )
-              })}
+              {tracks.map((track, idx) => (
+                <TrackLine
+                  key={track.id ?? idx}
+                  data={{
+                    id: track.id,
+                    title: track.title,
+                    artistName: track.artist_name || artistName,
+                    coverUrl: track.album_cover,
+                    previewUrl: track.preview_url,
+                    durationMs: track.duration_ms,
+                    popularity: track.popularity,
+                  }}
+                  variant="row"
+                  index={idx}
+                  onPlay={() => handlePlayTrack(track, idx)}
+                  showPopularity={true}
+                  showDuration={true}
+                  showPreviewIndicator={true}
+                />
+              ))}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">

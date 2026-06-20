@@ -6,6 +6,7 @@ import { TrackRow } from '@/components/library/TrackRow'
 import { usePlayerStore } from '@/store/playerStore'
 import { useTranslation } from '@/hooks/useTranslation'
 import { api } from '@/lib/api'
+import { TrackLine } from '@/components/track/TrackLine'
 import type { Track, CatalogTrackItem, CatalogDiscoveryResponse } from '@/types'
 import {
   ArrowDownAZ,
@@ -198,7 +199,6 @@ export default function AudiosPage() {
           ) : (
             <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-thin">
               {trendingTracks.slice(0, 20).map((item, idx) => {
-                const coverUrl = item.album_cover ?? null
                 if (!item) return null
 
                 function playThis() {
@@ -210,46 +210,22 @@ export default function AudiosPage() {
                 }
 
                 return (
-                  <div
-                    key={item.id ?? `trending-${idx}`}
-                    onClick={playThis}
-                    className="group flex-shrink-0 w-44 cursor-pointer p-2.5 rounded-xl hover:bg-clark-bg-secondary/60 transition-all duration-200 hover:scale-[1.02]"
-                  >
-                    <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-lg">
-                      {coverUrl ? (
-                        <img
-                          src={coverUrl}
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Music className="w-10 h-10 text-white/20" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <div className="w-12 h-12 rounded-full bg-clark-accent flex items-center justify-center shadow-xl">
-                          <Play className="w-5 h-5 text-white ml-0.5" />
-                        </div>
-                      </div>
-                    </div>
-
-                    <p className="font-body font-semibold text-sm text-clark-text-primary mt-3 truncate">
-                      {item.title}
-                    </p>
-                    <p className="font-body text-xs text-clark-text-muted truncate">
-                      {item.artist_name ?? 'Unknown'}
-                    </p>
-
-                    {item.popularity > 0 && (
-                      <div className="mt-2 h-1 bg-clark-bg-secondary rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-clark-gold to-clark-accent"
-                          style={{ width: `${Math.min(item.popularity, 100)}%` }}
-                        />
-                      </div>
-                    )}
+                  <div key={item.id ?? `trending-${idx}`} className="flex-shrink-0 w-44">
+                    <TrackLine
+                      data={{
+                        id: item.id,
+                        title: item.title,
+                        artistName: item.artist_name ?? 'Unknown',
+                        coverUrl: item.album_cover,
+                        previewUrl: item.preview_url,
+                        popularity: item.popularity,
+                      }}
+                      variant="card"
+                      onPlay={playThis}
+                      showPopularity={true}
+                      showPreviewIndicator={false}
+                      className="p-2.5 rounded-xl hover:bg-clark-bg-secondary/60 hover:scale-[1.02]"
+                    />
                   </div>
                 )
               })}

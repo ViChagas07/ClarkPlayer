@@ -2,46 +2,31 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Music, Play, ListMusic } from 'lucide-react'
+import { Music, ListMusic } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useDiscovery } from '@/hooks/useCatalog'
 import { playWithAlbumQueue } from '@/lib/albumQueue'
+import { TrackLine } from '@/components/track/TrackLine'
 import type { CatalogTrackItem, CatalogArtistItem } from '@/types'
 
 function MusicCard({ item, index }: { item: CatalogTrackItem; index: number }) {
-  const hasPreview = !!item.preview_url
-
-  function handleClick() {
-    if (hasPreview) {
-      playWithAlbumQueue(item, index)
-    }
-  }
-
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={handleClick}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick() } }}
-      className="p-3 rounded-xl bg-clark-bg-secondary group cursor-pointer hover:scale-[1.02] transition-all border border-transparent hover:border-clark-steel/20"
-    >
-      <div className="relative aspect-square rounded-lg overflow-hidden bg-clark-bg-card mb-2">
-        {item.album_cover ? (
-          <img src={item.album_cover} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center"><Music className="w-8 h-8 text-white/20" /></div>
-        )}
-        {hasPreview && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="w-10 h-10 rounded-full bg-clark-accent flex items-center justify-center">
-              <Play className="w-5 h-5 text-white ml-0.5" />
-            </div>
-          </div>
-        )}
-      </div>
-      <p className="text-sm font-semibold truncate">{item.title}</p>
-      <p className="text-xs text-clark-text-muted truncate">{item.artist_name}</p>
-    </div>
+    <TrackLine
+      data={{
+        id: item.id,
+        title: item.title,
+        artistName: item.artist_name,
+        coverUrl: item.album_cover,
+        previewUrl: item.preview_url,
+      }}
+      variant="card"
+      onPlay={() => {
+        if (item.preview_url) {
+          playWithAlbumQueue(item, index)
+        }
+      }}
+      showPreviewIndicator={true}
+    />
   )
 }
 

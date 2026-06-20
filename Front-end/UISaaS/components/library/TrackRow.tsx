@@ -5,6 +5,8 @@ import type { Track } from '@/types'
 import { cn } from '@/lib/utils'
 import { MoreHorizontal, Play, Pause, Heart, Share2, Plus, Trash2 } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
+import { TrackLine } from '@/components/track/TrackLine'
+import type { TrackLineData } from '@/components/track/TrackLine'
 
 interface TrackRowProps {
   track: Track
@@ -37,6 +39,18 @@ function formatDuration(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+function trackToLineData(t: Track): TrackLineData {
+  return {
+    id: t.id,
+    title: t.title,
+    artistName: t.artist,
+    coverUrl: t.coverUrl ?? null,
+    previewUrl: t.previewUrl ?? null,
+    durationMs: t.duration ? t.duration * 1000 : null,
+    albumTitle: t.album,
+  }
+}
+
 export const TrackRow = memo(function TrackRow({
   track,
   index,
@@ -51,9 +65,12 @@ export const TrackRow = memo(function TrackRow({
   const [showMenu, setShowMenu] = React.useState(false)
 
   return (
-    <div
+    <TrackLine
+      data={trackToLineData(track)}
+      variant="row"
+      onPlay={onPlay}
       className={cn(
-        'grid gap-4 px-4 py-2.5 h-14 items-center rounded-lg transition-all duration-200 cursor-pointer group',
+        'grid gap-4 px-4 py-2.5 h-14 items-center rounded-lg transition-all duration-200 group',
         // Mobile: 3 cols (checkbox/idx + title + duration + menu)
         // Desktop: 6 cols (checkbox/idx + title + album + duration + format + menu)
         'grid-cols-[36px_1fr_44px_36px] sm:grid-cols-[40px_1fr_1fr_80px_60px_40px]',
@@ -65,13 +82,6 @@ export const TrackRow = memo(function TrackRow({
         'hover:bg-clark-bg-secondary/60',
         isSelected && 'ring-1 ring-clark-gold/50 bg-clark-bg-secondary/40',
       )}
-      onClick={onPlay}
-      onContextMenu={(e) => {
-        e.preventDefault()
-        onContextMenu(e, track)
-      }}
-      role="row"
-      aria-selected={isSelected}
     >
       {/* Index / Equalizer / Checkbox */}
       <div className="flex items-center justify-center">
@@ -181,6 +191,6 @@ export const TrackRow = memo(function TrackRow({
           </div>
         )}
       </div>
-    </div>
+    </TrackLine>
   )
 })

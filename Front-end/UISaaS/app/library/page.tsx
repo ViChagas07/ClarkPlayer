@@ -8,7 +8,8 @@ import { usePlayerStore } from '@/store/playerStore'
 import { useAuthStore } from '@/store/authStore'
 import { useDiscovery } from '@/hooks/useCatalog'
 import { api } from '@/lib/api'
-import { Music, Heart, Clock, Play, TrendingUp, Loader2, LogIn } from 'lucide-react'
+import { TrackLine } from '@/components/track/TrackLine'
+import { Music, Heart, Clock, TrendingUp, Loader2, LogIn } from 'lucide-react'
 import type { CatalogTrackItem, Track } from '@/types'
 
 interface LibraryStats {
@@ -162,42 +163,21 @@ export default function LibraryPage() {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {discoverTracks.map((track, idx) => (
-                  <div
+                  <TrackLine
                     key={track.id ?? `discover-${idx}`}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Play ${track.title} by ${track.artist_name}`}
-                    onClick={() => handlePlay(track, idx)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        handlePlay(track, idx)
-                      }
+                    data={{
+                      id: track.id,
+                      title: track.title,
+                      artistName: track.artist_name,
+                      coverUrl: track.album_cover,
+                      previewUrl: track.preview_url,
+                      popularity: track.popularity,
                     }}
-                    className="group p-3 rounded-xl bg-clark-bg-secondary hover:bg-clark-bg-card transition-all duration-200 cursor-pointer hover:scale-[1.02] border border-transparent hover:border-clark-steel/20"
-                  >
-                    <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md">
-                      {track.album_cover ? (
-                        <img src={track.album_cover} alt={track.title} className="w-full h-full object-cover" loading="lazy" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Music className="w-8 h-8 text-white/20" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <div className="w-10 h-10 rounded-full bg-clark-accent flex items-center justify-center shadow-lg">
-                          <Play className="w-4 h-4 text-white ml-0.5" />
-                        </div>
-                      </div>
-                    </div>
-                    <p className="font-body font-semibold text-sm text-clark-text-primary mt-3 truncate">{track.title}</p>
-                    <p className="font-body text-xs text-clark-text-muted truncate">{track.artist_name}</p>
-                    {track.popularity > 0 && (
-                      <div className="mt-2 h-1 bg-clark-bg-primary rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-gradient-to-r from-clark-gold to-clark-accent" style={{ width: `${track.popularity}%` }} />
-                      </div>
-                    )}
-                  </div>
+                    variant="card"
+                    onPlay={() => handlePlay(track, idx)}
+                    showPopularity={true}
+                    showPreviewIndicator={true}
+                  />
                 ))}
               </div>
             )}
@@ -311,33 +291,21 @@ export default function LibraryPage() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {discoverTracks.map((track, idx) => (
-                <div
+                <TrackLine
                   key={track.id ?? `discover-${idx}`}
-                  onClick={() => handlePlay(track, idx)}
-                  className="group p-3 rounded-xl bg-clark-bg-secondary hover:bg-clark-bg-card transition-all duration-200 cursor-pointer hover:scale-[1.02] border border-transparent hover:border-clark-steel/20"
-                >
-                  <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md">
-                    {track.album_cover ? (
-                      <img src={track.album_cover} alt={track.title} className="w-full h-full object-cover" loading="lazy" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Music className="w-8 h-8 text-white/20" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="w-10 h-10 rounded-full bg-clark-accent flex items-center justify-center shadow-lg">
-                        <Play className="w-4 h-4 text-white ml-0.5" />
-                      </div>
-                    </div>
-                  </div>
-                  <p className="font-body font-semibold text-sm text-clark-text-primary mt-3 truncate">{track.title}</p>
-                  <p className="font-body text-xs text-clark-text-muted truncate">{track.artist_name}</p>
-                  {track.popularity > 0 && (
-                    <div className="mt-2 h-1 bg-clark-bg-primary rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-clark-gold to-clark-accent" style={{ width: `${track.popularity}%` }} />
-                    </div>
-                  )}
-                </div>
+                  data={{
+                    id: track.id,
+                    title: track.title,
+                    artistName: track.artist_name,
+                    coverUrl: track.album_cover,
+                    previewUrl: track.preview_url,
+                    popularity: track.popularity,
+                  }}
+                  variant="card"
+                  onPlay={() => handlePlay(track, idx)}
+                  showPopularity={true}
+                  showPreviewIndicator={true}
+                />
               ))}
             </div>
           )}

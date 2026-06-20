@@ -9,8 +9,9 @@ import { usePlayerStore } from '@/store/playerStore'
 import { api } from '@/lib/api'
 import { useGenre } from '@/hooks/useCatalog'
 import { getGenreImage, getGenreGradient } from '@/lib/genre-image-map'
+import { TrackLine } from '@/components/track/TrackLine'
 import type { CatalogTrackItem, Track } from '@/types'
-import { Play, Music, ChevronLeft, Headphones } from 'lucide-react'
+import { Music, ChevronLeft } from 'lucide-react'
 import Image from 'next/image'
 
 const genreDisplayNames: Record<string, string> = {
@@ -178,79 +179,23 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
               <span className="font-condensed text-xs text-clark-text-muted">({tracks.length})</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {tracks.map((track, idx) => {
-                const coverUrl = track.album_cover
-                const previewUrl = track.preview_url
-
-                return (
-                  <div
-                    key={track.id}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Play ${track.title} by ${track.artist_name}`}
-                    onClick={() => handlePlay(track, idx)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        handlePlay(track, idx)
-                      }
-                    }}
-                    className="group p-3 rounded-xl bg-clark-bg-secondary hover:bg-clark-bg-card transition-all duration-200 cursor-pointer hover:scale-[1.02] border border-transparent hover:border-clark-steel/20"
-                  >
-                    {/* Album art with play overlay */}
-                    <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md">
-                      {coverUrl ? (
-                        <Image
-                          src={coverUrl}
-                          alt={`${track.title} album cover`}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Music className="w-8 h-8 text-white/20" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center" aria-label={`Play ${track.title}`}>
-                        <div className="w-10 h-10 rounded-full bg-clark-accent flex items-center justify-center shadow-lg">
-                          <Play className="w-4 h-4 text-white ml-0.5" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Track info */}
-                    <div className="flex items-center gap-2 mt-3">
-                      <p className="font-body font-semibold text-sm text-clark-text-primary truncate flex-1">
-                        {track.title}
-                      </p>
-                      {previewUrl && (
-                        <span
-                          className="flex-shrink-0 p-1 rounded-lg text-clark-gold transition-colors"
-                          aria-hidden="true"
-                          title={t('previewLabel')}
-                        >
-                          <Headphones className="w-3.5 h-3.5" />
-                        </span>
-                      )}
-                    </div>
-                    <p className="font-body text-xs text-clark-text-muted truncate">
-                      {track.artist_name}
-                    </p>
-
-                    {/* Popularity bar */}
-                    {track.popularity > 0 && (
-                      <div className="mt-2 h-1 bg-clark-bg-primary rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-clark-gold to-clark-accent"
-                          style={{ width: `${track.popularity}%` }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
+              {tracks.map((track, idx) => (
+                <TrackLine
+                  key={track.id}
+                  data={{
+                    id: track.id,
+                    title: track.title,
+                    artistName: track.artist_name,
+                    coverUrl: track.album_cover,
+                    previewUrl: track.preview_url,
+                    popularity: track.popularity,
+                  }}
+                  variant="card"
+                  onPlay={() => handlePlay(track, idx)}
+                  showPopularity={true}
+                  showPreviewIndicator={true}
+                />
+              ))}
             </div>
           </div>
         ) : (

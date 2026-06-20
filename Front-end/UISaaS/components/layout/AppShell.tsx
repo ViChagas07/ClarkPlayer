@@ -34,6 +34,7 @@ import {
   ArrowUp,
   Headphones,
 } from 'lucide-react'
+import { TrackLine } from '@/components/track/TrackLine'
 import { useState, useEffect, useRef, createContext, useContext } from 'react'
 import { usePlayerStore } from '@/store/playerStore'
 import { useSettingsStore } from '@/store/settingsStore'
@@ -571,10 +572,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <ul className="space-y-1">
                 {queue.map((track, idx) => (
                   <li key={`${track.id}-${idx}`}>
-                    <button
-                      onClick={() => {
+                    <TrackLine
+                      data={{
+                        id: track.id,
+                        title: track.title,
+                        artistName: track.artist,
+                        coverUrl: track.coverUrl ?? null,
+                        previewUrl: track.previewUrl ?? null,
+                        durationMs: track.duration ? track.duration * 1000 : null,
+                      }}
+                      variant="row"
+                      onPlay={() => {
                         const store = usePlayerStore.getState()
-                        // Only update if it's a different track
                         if (idx !== store.queueIndex) {
                           usePlayerStore.setState({
                             queueIndex: idx,
@@ -591,35 +600,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           ? 'bg-clark-gold/10 text-clark-gold ring-1 ring-clark-gold/30'
                           : 'text-clark-text-muted hover:text-clark-text-primary hover:bg-clark-steel/10',
                       )}
+                      showDuration={false}
+                      showPreviewIndicator={false}
                     >
-                    <div className="relative flex-shrink-0 w-8 h-8 rounded bg-clark-steel/30 flex items-center justify-center overflow-hidden">
-                      {track.coverUrl ? (
-                        <img src={track.coverUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
-                      ) : (
-                        <Music className="w-4 h-4" />
-                      )}
-                      {idx === queueIndex && isPlaying && (
-                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center gap-0.5">
-                          <span className="w-0.5 h-3 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '0ms' }} />
-                          <span className="w-0.5 h-3 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '150ms' }} />
-                          <span className="w-0.5 h-3 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '300ms' }} />
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className={cn(
-                        'font-body text-sm truncate',
-                        idx === queueIndex ? 'text-clark-gold' : 'text-clark-text-primary',
-                      )}>
-                        {track.title}
-                      </p>
-                      <p className="font-body text-xs text-clark-text-muted/70 truncate">{track.artist}</p>
-                    </div>
-                    <span className="font-condensed text-xs text-clark-text-muted/50 flex-shrink-0">
-                      {formatTime(track.duration)}
-                    </span>
-                  </button>
-                </li>
+                      <div className="relative flex-shrink-0 w-8 h-8 rounded bg-clark-steel/30 flex items-center justify-center overflow-hidden">
+                        {track.coverUrl ? (
+                          <img src={track.coverUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+                        ) : (
+                          <Music className="w-4 h-4" />
+                        )}
+                        {idx === queueIndex && isPlaying && (
+                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center gap-0.5">
+                            <span className="w-0.5 h-3 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '0ms' }} />
+                            <span className="w-0.5 h-3 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '150ms' }} />
+                            <span className="w-0.5 h-3 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '300ms' }} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className={cn(
+                          'font-body text-sm truncate',
+                          idx === queueIndex ? 'text-clark-gold' : 'text-clark-text-primary',
+                        )}>
+                          {track.title}
+                        </p>
+                        <p className="font-body text-xs text-clark-text-muted/70 truncate">{track.artist}</p>
+                      </div>
+                      <span className="font-condensed text-xs text-clark-text-muted/50 flex-shrink-0">
+                        {formatTime(track.duration)}
+                      </span>
+                    </TrackLine>
+                  </li>
               ))}
             </ul>
           )}
