@@ -467,7 +467,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
                     src={displayTrack.coverUrl}
-                    alt={displayTrack.title ?? 'Cover'}
+                    alt={displayTrack.title ?? t('albumCover')}
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
@@ -478,7 +478,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <h3 className="font-display text-xl tracking-wider text-clark-text-primary truncate text-center">
-              {displayTrack?.title ?? 'No track playing'}
+              {displayTrack?.title ?? t('noTrackPlaying')}
             </h3>
             <p className="font-body text-sm text-clark-text-muted truncate text-center mt-1">
               {displayTrack?.artist ?? '\u00A0'}
@@ -492,7 +492,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   className="flex-1 py-2 cursor-pointer group relative"
                   onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); const pct = (e.clientX - rect.left) / rect.width; seek(pct * trackDuration) }}
                   role="slider"
-                  aria-label="Track progress"
+                  aria-label={t('trackProgress')}
                   aria-valuemin={0}
                   aria-valuemax={trackDuration}
                   aria-valuenow={progress}
@@ -707,7 +707,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </>
           ) : (
             <div className="min-w-0">
-              <p className="font-display text-sm tracking-wider text-clark-text-muted/50 truncate">No track playing</p>
+              <p className="font-display text-sm tracking-wider text-clark-text-muted/50 truncate">{t('noTrackPlaying')}</p>
               <p className="font-body text-xs text-clark-text-muted/30 truncate">{'\u00A0'}</p>
             </div>
           )}

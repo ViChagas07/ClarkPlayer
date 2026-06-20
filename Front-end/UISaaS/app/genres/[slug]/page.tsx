@@ -139,7 +139,7 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
             <div>
               <h1 className="font-display text-3xl tracking-widest uppercase text-white drop-shadow-lg">{displayName}</h1>
               <p className="font-body text-sm text-white/70 mt-1">
-                {isLoading ? 'Searching...' : `${tracks.length} tracks with preview`}
+                {isLoading ? t('searchingLabel') : `${tracks.length} ${t('tracksWithPreview')}`}
               </p>
             </div>
           </div>
@@ -173,7 +173,7 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
             <div className="flex items-center gap-2 mb-4">
               <Music className="w-5 h-5 text-clark-gold" />
               <h2 className="font-display text-lg tracking-widest uppercase text-clark-text-primary">
-                Preview Tracks
+                {t('previewTracks')}
               </h2>
               <span className="font-condensed text-xs text-clark-text-muted">({tracks.length})</span>
             </div>
@@ -247,9 +247,9 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Music className="w-12 h-12 text-clark-text-muted/30 mb-4" />
-            <p className="font-body text-clark-text-muted">No preview tracks found for {displayName}.</p>
+            <p className="font-body text-clark-text-muted">{t('noPreviewTracksFor')} {displayName}.</p>
             <Link href="/search" className="mt-3 text-clark-gold font-body text-sm hover:underline">
-              Go to Search
+              {t('goToSearch')}
             </Link>
           </div>
         ))}

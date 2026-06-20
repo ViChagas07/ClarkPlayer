@@ -479,7 +479,7 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Music className="w-12 h-12 text-clark-text-muted/30 mb-4" />
             <p className="font-body text-clark-text-muted">
-              No tracks or albums found for this artist in the catalog yet.
+              {t('noTracksOrAlbums')}
             </p>
           </div>
         )}

@@ -249,8 +249,8 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
             <div className="w-12 h-12 rounded-full bg-clark-bg-card flex items-center justify-center mb-4">
               <Play className="w-6 h-6 text-clark-text-muted" />
             </div>
-            <p className="font-display text-lg tracking-wider text-clark-text-primary mb-1">No tracks in this playlist yet</p>
-            <p className="font-body text-sm text-clark-text-muted mb-6">Search for tracks and add them to this playlist.</p>
+            <p className="font-display text-lg tracking-wider text-clark-text-primary mb-1">{t('noTracksInPlaylist')}</p>
+            <p className="font-body text-sm text-clark-text-muted mb-6">{t('noTracksInPlaylistDesc')}</p>
             <button className="flex items-center gap-3 px-4 py-2.5 font-body text-sm bg-clark-accent hover:bg-clark-accent-hover text-white rounded-lg transition-colors">
               <Plus className="w-5 h-5" />
               <span className="font-medium">{t('addTracks')}</span>

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { AppShell } from '@/components/layout/AppShell'
 import { usePlayerStore } from '@/store/playerStore'
 import { useAlbum } from '@/hooks/useCatalog'
+import { useTranslation } from '@/hooks/useTranslation'
 import type { CatalogTrackItem, CatalogAlbumItem, Track } from '@/types'
 import {
   Play,
@@ -42,6 +43,7 @@ function formatDuration(ms: number | null): string {
 // ── Inner client component ─────────────────────────────────
 function AlbumDetailInner({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = React.use(params)
+  const { t } = useTranslation()
   const { setQueue } = usePlayerStore()
   const [mounted, setMounted] = React.useState(false)
 
@@ -359,7 +361,7 @@ function AlbumDetailInner({ params }: { params: Promise<{ id: string }> }) {
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Music className="w-12 h-12 text-clark-text-muted/30 mb-4" />
               <p className="font-body text-clark-text-muted">
-                No tracks found for this album.
+                {t('noTracksFoundForAlbum')}
               </p>
             </div>
           )}

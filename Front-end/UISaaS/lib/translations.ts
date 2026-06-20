@@ -232,6 +232,20 @@ export interface TranslationMap {
   similarTracksLabel: string
   audioFeaturesLabel: string
 
+  // ── Empty / Fallback states ──
+  noTrackPlaying: string
+  noTracksInPlaylist: string
+  noTracksInPlaylistDesc: string
+  noPreviewTracksFor: string
+  goToSearch: string
+  searchUnavailable: string
+  noTracksOrAlbums: string
+  noTracksFoundForAlbum: string
+  albumCover: string
+  trackProgress: string
+  previewTracks: string
+  tracksWithPreview: string
+
   // ── Account ──
   myAccount: string
   profileInformation: string
@@ -550,6 +564,19 @@ const translations = {
     lyricsLabel: 'Lyrics',
     similarTracksLabel: 'Similar Tracks',
     audioFeaturesLabel: 'Audio Features',
+    // ── Empty / Fallback states ──
+    noTrackPlaying: 'No track playing',
+    noTracksInPlaylist: 'No tracks in this playlist yet',
+    noTracksInPlaylistDesc: 'Search for tracks and add them to this playlist.',
+    noPreviewTracksFor: 'No preview tracks found for',
+    goToSearch: 'Go to Search',
+    searchUnavailable: 'Search unavailable. Please try again.',
+    noTracksOrAlbums: 'No tracks or albums found for this artist in the catalog yet.',
+    noTracksFoundForAlbum: 'No tracks found for this album.',
+    albumCover: 'Album cover',
+    trackProgress: 'Track progress',
+    previewTracks: 'Preview Tracks',
+    tracksWithPreview: 'tracks with preview',
     // ── Account ──
     myAccount: 'My Account',
     profileInformation: 'Profile Information',
@@ -858,6 +885,19 @@ const translations = {
     lyricsLabel: 'Letras',
     similarTracksLabel: 'Faixas Semelhantes',
     audioFeaturesLabel: 'Caracter\u00edsticas de \u00c1udio',
+    // ── Empty / Fallback states ──
+    noTrackPlaying: 'Sem m\u00fasica tocando',
+    noTracksInPlaylist: 'Nenhuma faixa nesta playlist ainda',
+    noTracksInPlaylistDesc: 'Pesquise faixas e adicione-as a esta playlist.',
+    noPreviewTracksFor: 'Nenhuma faixa de pr\u00e9via encontrada para',
+    goToSearch: 'Ir para Pesquisa',
+    searchUnavailable: 'Pesquisa indispon\u00edvel. Tente novamente.',
+    noTracksOrAlbums: 'Nenhuma faixa ou \u00e1lbum encontrado para este artista no cat\u00e1logo ainda.',
+    noTracksFoundForAlbum: 'Nenhuma faixa encontrada para este \u00e1lbum.',
+    albumCover: 'Capa do \u00e1lbum',
+    trackProgress: 'Progresso da faixa',
+    previewTracks: 'Pr\u00e9vias de Faixas',
+    tracksWithPreview: 'faixas com pr\u00e9via',
     // ── Account ──
     myAccount: 'Minha Conta',
     profileInformation: 'Informa\u00e7\u00f5es do Perfil',
@@ -1166,6 +1206,19 @@ const translations = {
     lyricsLabel: 'Letras',
     similarTracksLabel: 'Pistas Similares',
     audioFeaturesLabel: 'Caracter\u00edsticas de Audio',
+    // ── Empty / Fallback states ──
+    noTrackPlaying: 'Sin canci\u00f3n reproduci\u00e9ndose',
+    noTracksInPlaylist: 'A\u00fan no hay pistas en esta lista',
+    noTracksInPlaylistDesc: 'Busca pistas y agrega a esta lista de reproducci\u00f3n.',
+    noPreviewTracksFor: 'No se encontraron pistas de vista previa para',
+    goToSearch: 'Ir a B\u00fasqueda',
+    searchUnavailable: 'B\u00fasqueda no disponible. Int\u00e9ntalo de nuevo.',
+    noTracksOrAlbums: 'A\u00fan no se encontraron pistas o \u00e1lbumes para este artista en el cat\u00e1logo.',
+    noTracksFoundForAlbum: 'No se encontraron pistas para este \u00e1lbum.',
+    albumCover: 'Portada del \u00e1lbum',
+    trackProgress: 'Progreso de la pista',
+    previewTracks: 'Vista Previa de Pistas',
+    tracksWithPreview: 'pistas con vista previa',
     // ── Account ──
     myAccount: 'Mi Cuenta',
     profileInformation: 'Informaci\u00f3n del Perfil',
@@ -1474,6 +1527,19 @@ const translations = {
     lyricsLabel: 'Paroles',
     similarTracksLabel: 'Pistes Similaires',
     audioFeaturesLabel: 'Caract\u00e9ristiques Audio',
+    // ── Empty / Fallback states ──
+    noTrackPlaying: 'Aucune musique en lecture',
+    noTracksInPlaylist: 'Aucune piste dans cette liste pour le moment',
+    noTracksInPlaylistDesc: 'Recherchez des pistes et ajoutez-les \u00e0 cette liste.',
+    noPreviewTracksFor: 'Aucune piste d\u0027aper\u00e7u trouv\u00e9e pour',
+    goToSearch: 'Aller \u00e0 la Recherche',
+    searchUnavailable: 'Recherche indisponible. Veuillez r\u00e9essayer.',
+    noTracksOrAlbums: 'Aucune piste ou album trouv\u00e9 pour cet artiste dans le catalogue pour le moment.',
+    noTracksFoundForAlbum: 'Aucune piste trouv\u00e9e pour cet album.',
+    albumCover: 'Pochette d\u0027album',
+    trackProgress: 'Progression du morceau',
+    previewTracks: 'Aper\u00e7u des Pistes',
+    tracksWithPreview: 'pistes avec aper\u00e7u',
     // ── Account ──
     myAccount: 'Mon Compte',
     profileInformation: 'Informations du Profil',
@@ -1782,6 +1848,19 @@ const translations = {
     lyricsLabel: 'Songtext',
     similarTracksLabel: '\u00c4hnliche Titel',
     audioFeaturesLabel: 'Audio-Merkmale',
+    // ── Empty / Fallback states ──
+    noTrackPlaying: 'Kein Titel wird abgespielt',
+    noTracksInPlaylist: 'Noch keine Titel in dieser Playlist',
+    noTracksInPlaylistDesc: 'Suche nach Titeln und f\u00fcge sie dieser Playlist hinzu.',
+    noPreviewTracksFor: 'Keine Vorschau-Titel gefunden f\u00fcr',
+    goToSearch: 'Zur Suche gehen',
+    searchUnavailable: 'Suche nicht verf\u00fcgbar. Bitte versuche es erneut.',
+    noTracksOrAlbums: 'Noch keine Titel oder Alben f\u00fcr diesen K\u00fcnstler im Katalog gefunden.',
+    noTracksFoundForAlbum: 'Keine Titel f\u00fcr dieses Album gefunden.',
+    albumCover: 'Albumcover',
+    trackProgress: 'Titel-Fortschritt',
+    previewTracks: 'Vorschau-Titel',
+    tracksWithPreview: 'Titel mit Vorschau',
     // ── Account ──
     myAccount: 'Mein Konto',
     profileInformation: 'Profilinformationen',

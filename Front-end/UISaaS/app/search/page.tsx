@@ -342,7 +342,7 @@ export default function SearchPage() {
         {searchError && isSearching && (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-clark-accent/10 border border-clark-accent/30">
             <AlertCircle className="w-5 h-5 text-clark-accent flex-shrink-0" />
-            <p className="font-body text-sm text-clark-accent">Search unavailable. Please try again.</p>
+            <p className="font-body text-sm text-clark-accent">{t('searchUnavailable')}</p>
           </div>
         )}
 
