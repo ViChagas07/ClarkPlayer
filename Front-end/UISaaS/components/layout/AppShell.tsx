@@ -359,7 +359,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <nav className="flex-1 overflow-y-auto py-4 px-3" aria-label={t('mainNavigation')}>
             <ul className="space-y-1">
               {navItems.map((item) => {
-                const isActive = pathname === item.href
+                const isActive = item.href === '/'
+                  ? pathname === '/'
+                  : pathname === item.href || pathname.startsWith(item.href + '/')
                 return (
                   <li key={item.href}>
                     <Link
