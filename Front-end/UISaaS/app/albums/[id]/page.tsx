@@ -336,16 +336,15 @@ function AlbumDetailInner({ params }: { params: Promise<{ id: string }> }) {
                       </div>
                     )}
                     {hasPreview && (
-                      <button
-                        className="flex items-center gap-1 p-1.5 rounded-lg hover:bg-clark-gold/10 text-clark-gold transition-colors group/preview cursor-default"
-                        aria-label={`Preview ${track.title}`}
-                        title="Preview available"
+                      <span
+                        className="flex items-center gap-1 p-1.5 rounded-lg text-clark-gold transition-colors group/preview"
+                        aria-hidden="true"
                       >
                         <Headphones className="w-4 h-4" />
                         <span className="hidden group-hover/preview:inline font-condensed text-[10px] tracking-wider uppercase">
                           Preview
                         </span>
-                      </button>
+                      </span>
                     )}
                     {track.duration_ms && (
                       <span className="font-condensed text-xs text-clark-text-muted flex-shrink-0 w-10 text-right">
