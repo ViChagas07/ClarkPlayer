@@ -96,62 +96,62 @@ export const TrackRow = memo(function TrackRow({
             />
           </label>
         ) : isPlaying ? (
-          /* Gold equalizer bars */
-          <div className="flex items-end gap-0.5 h-4" aria-label={t('currentlyPlaying')}>
+          /* Gold equalizer bars — decorative, no click capture */
+          <div className="flex items-end gap-0.5 h-4 pointer-events-none" aria-label={t('currentlyPlaying')}>
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="w-1 bg-clark-gold rounded-full animate-equalizer"
+                className="w-1 bg-clark-gold rounded-full animate-equalizer pointer-events-none"
                 style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}
           </div>
         ) : (
-          <span className="font-condensed text-sm text-clark-text-muted group-hover:hidden">{index + 1}</span>
+          <span className="font-condensed text-sm text-clark-text-muted group-hover:hidden pointer-events-none">{index + 1}</span>
         )}
         {!isMultiSelectActive && !isPlaying && (
-          <Play className="w-4 h-4 text-clark-gold hidden group-hover:block" />
+          <Play className="w-4 h-4 text-clark-gold hidden group-hover:block pointer-events-none" />
         )}
       </div>
 
-      {/* Title + Artist */}
-      <div className="flex items-center gap-3 min-w-0">
+      {/* Title + Artist — purely decorative */}
+      <div className="flex items-center gap-3 min-w-0 pointer-events-none">
         {/* Album art */}
-        <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-gradient-to-br from-clark-steel to-clark-bg-secondary shadow-glow-blue ring-1 ring-clark-gold/20">
+        <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-gradient-to-br from-clark-steel to-clark-bg-secondary shadow-glow-blue ring-1 ring-clark-gold/20 pointer-events-none">
           {track.coverUrl ? (
             <img
               src={track.coverUrl}
               alt={track.album}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover pointer-events-none"
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="font-condensed text-xs text-clark-gold">{track.title.charAt(0).toUpperCase()}</span>
+            <div className="w-full h-full flex items-center justify-center pointer-events-none">
+              <span className="font-condensed text-xs text-clark-gold pointer-events-none">{track.title.charAt(0).toUpperCase()}</span>
             </div>
           )}
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 pointer-events-none">
           <p className={cn(
-            'font-body font-medium text-sm truncate transition-colors',
+            'font-body font-medium text-sm truncate transition-colors pointer-events-none',
             isPlaying ? 'text-clark-gold' : 'text-clark-text-primary group-hover:text-clark-gold'
           )}>
             {track.title}
           </p>
-          <p className="font-body text-xs text-clark-text-muted truncate">{track.artist}</p>
+          <p className="font-body text-xs text-clark-text-muted truncate pointer-events-none">{track.artist}</p>
         </div>
       </div>
 
-      {/* Album — hidden on mobile */}
-      <p className="hidden sm:block font-body text-sm text-clark-text-muted truncate">{track.album}</p>
+      {/* Album — hidden on mobile, decorative */}
+      <p className="hidden sm:block font-body text-sm text-clark-text-muted truncate pointer-events-none">{track.album}</p>
 
-      {/* Duration */}
-      <p className="font-condensed text-sm text-clark-text-muted text-right tabular-nums">{formatDuration(track.duration)}</p>
+      {/* Duration — purely decorative */}
+      <p className="font-condensed text-sm text-clark-text-muted text-right tabular-nums pointer-events-none">{formatDuration(track.duration)}</p>
 
-      {/* Format badge — hidden on mobile */}
-      <div className="hidden sm:flex items-center justify-center">
+      {/* Format badge — hidden on mobile, decorative */}
+      <div className="hidden sm:flex items-center justify-center pointer-events-none">
         <span className={cn(
-          'px-2 py-0.5 rounded font-condensed text-xs uppercase tracking-wide',
+          'px-2 py-0.5 rounded font-condensed text-xs uppercase tracking-wide pointer-events-none',
           formatColors[track.format] ?? 'bg-shell-border/50 text-clark-text-muted'
         )}>
           {track.format}

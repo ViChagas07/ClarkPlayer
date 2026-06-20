@@ -595,7 +595,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         }
                       }}
                       className={cn(
-                        'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors pointer-events-auto',
+                        'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors',
                         idx === queueIndex
                           ? 'bg-clark-gold/10 text-clark-gold ring-1 ring-clark-gold/30'
                           : 'text-clark-text-muted hover:text-clark-text-primary hover:bg-clark-steel/10',
@@ -603,21 +603,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       showDuration={false}
                       showPreviewIndicator={false}
                     >
-                      <div className="relative flex-shrink-0 w-8 h-8 rounded bg-clark-steel/30 flex items-center justify-center overflow-hidden">
+                      {/* Cover — decorative, pointer-events-none so click reaches root */}
+                      <div className="relative flex-shrink-0 w-8 h-8 rounded bg-clark-steel/30 flex items-center justify-center overflow-hidden pointer-events-none">
                         {track.coverUrl ? (
                           <img src={track.coverUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
                         ) : (
                           <Music className="w-4 h-4" />
                         )}
                         {idx === queueIndex && isPlaying && (
-                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center gap-0.5">
+                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center gap-0.5 pointer-events-none">
                             <span className="w-0.5 h-3 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '0ms' }} />
                             <span className="w-0.5 h-3 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '150ms' }} />
                             <span className="w-0.5 h-3 bg-clark-gold rounded-full animate-equalizer" style={{ animationDelay: '300ms' }} />
                           </div>
                         )}
                       </div>
-                      <div className="min-w-0 flex-1">
+                      {/* Title + Artist — decorative */}
+                      <div className="min-w-0 flex-1 pointer-events-none">
                         <p className={cn(
                           'font-body text-sm truncate',
                           idx === queueIndex ? 'text-clark-gold' : 'text-clark-text-primary',
@@ -626,7 +628,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         </p>
                         <p className="font-body text-xs text-clark-text-muted/70 truncate">{track.artist}</p>
                       </div>
-                      <span className="font-condensed text-xs text-clark-text-muted/50 flex-shrink-0">
+                      {/* Duration — decorative */}
+                      <span className="font-condensed text-xs text-clark-text-muted/50 flex-shrink-0 pointer-events-none">
                         {formatTime(track.duration)}
                       </span>
                     </TrackLine>

@@ -23,6 +23,7 @@ import {
   Globe,
   Calendar,
 } from 'lucide-react'
+import { TrackLine } from '@/components/track/TrackLine'
 
 const KEY_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
@@ -363,14 +364,24 @@ export default function TrackDetailPage({ params }: { params: Promise<{ mbid: st
                 const rtArtist = (rt as Record<string, unknown>).artist as { name: string } | undefined
                 const playcount = (rt as Record<string, unknown>).playcount as string | undefined
                 return (
-                  <div
+                  <TrackLine
                     key={idx}
-                    className="flex items-center gap-4 px-4 py-2.5 rounded-xl hover:bg-clark-bg-secondary/40 transition-colors group cursor-pointer"
+                    data={{
+                      id: `related-${idx}`,
+                      title: name,
+                      artistName: rtArtist?.name ?? 'Unknown',
+                    }}
+                    variant="row"
+                    onPlay={() => {
+                      // Related tracks from MusicBrainz have no playable preview
+                    }}
+                    showDuration={false}
+                    showPreviewIndicator={false}
                   >
-                    <span className="w-6 text-right font-condensed text-xs text-clark-text-muted/50 flex-shrink-0">
+                    <span className="w-6 text-right font-condensed text-xs text-clark-text-muted/50 flex-shrink-0 pointer-events-none">
                       {idx + 1}
                     </span>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 pointer-events-none">
                       <p className="font-body text-sm text-clark-text-primary truncate group-hover:text-clark-gold transition-colors">
                         {name}
                       </p>
@@ -379,11 +390,11 @@ export default function TrackDetailPage({ params }: { params: Promise<{ mbid: st
                       </p>
                     </div>
                     {playcount && (
-                      <span className="font-condensed text-xs text-clark-text-muted flex-shrink-0">
+                      <span className="font-condensed text-xs text-clark-text-muted flex-shrink-0 pointer-events-none">
                         {Number(playcount).toLocaleString()} plays
                       </span>
                     )}
-                  </div>
+                  </TrackLine>
                 )
               })}
             </div>

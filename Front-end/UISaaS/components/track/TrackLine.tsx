@@ -64,12 +64,6 @@ export function TrackLine({
   className = '',
   children,
 }: TrackLineProps) {
-  // ── Event handlers ─────────────────────────────────────────────
-  const handleClick = (e: React.MouseEvent) => {
-    // Let sub-elements with stopPropagation work
-    onPlay()
-  }
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
@@ -93,7 +87,7 @@ export function TrackLine({
       <div
         role="button"
         tabIndex={0}
-        onClick={handleClick}
+        onClick={onPlay}
         onKeyDown={handleKeyDown}
         aria-label={ariaLabel}
         className={cn('cursor-pointer transition-colors', className)}
@@ -109,7 +103,7 @@ export function TrackLine({
       <div
         role="button"
         tabIndex={0}
-        onClick={handleClick}
+        onClick={onPlay}
         onKeyDown={handleKeyDown}
         aria-label={ariaLabel}
         className={cn(
@@ -119,15 +113,15 @@ export function TrackLine({
           className,
         )}
       >
-        {/* Index */}
+        {/* Index — purely decorative */}
         {index !== undefined && (
-          <span className="w-6 text-right font-condensed text-xs text-clark-text-muted/50 flex-shrink-0">
+          <span className="w-6 text-right font-condensed text-xs text-clark-text-muted/50 flex-shrink-0 pointer-events-none">
             {index + 1}
           </span>
         )}
 
-        {/* Cover art */}
-        <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-gradient-to-br from-clark-steel to-clark-bg-card">
+        {/* Cover art — purely decorative, no listener captures clicks */}
+        <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-gradient-to-br from-clark-steel to-clark-bg-card pointer-events-none">
           {data.coverUrl ? (
             <img
               src={data.coverUrl}
@@ -140,6 +134,7 @@ export function TrackLine({
               <Music className="w-4 h-4 text-white/20" />
             </div>
           )}
+          {/* Play overlay — purely decorative, pointer-events-none so click passes through to root */}
           {hasPreview && (
             <div
               className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
@@ -150,11 +145,12 @@ export function TrackLine({
           )}
         </div>
 
-        {/* Title + Artist */}
-        <div className="flex-1 min-w-0">
+        {/* Title + Artist — purely decorative */}
+        <div className="flex-1 min-w-0 pointer-events-none">
           <p className="font-body font-medium text-sm text-clark-text-primary truncate group-hover:text-clark-gold transition-colors">
             {data.title}
           </p>
+          {/* Artist: clickable navigation (EXCEPTION — stopPropagation on the button) */}
           {onArtistClick && data.artistId ? (
             <button
               onClick={handleArtistClickInternal}
@@ -175,9 +171,9 @@ export function TrackLine({
           )}
         </div>
 
-        {/* Popularity bar */}
+        {/* Popularity bar — purely decorative */}
         {showPopularity && data.popularity != null && data.popularity > 0 && (
-          <div className="hidden sm:block w-16">
+          <div className="hidden sm:block w-16 pointer-events-none">
             <div className="h-1 bg-clark-bg-secondary rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-clark-gold to-clark-accent"
@@ -187,7 +183,7 @@ export function TrackLine({
           </div>
         )}
 
-        {/* Preview indicator */}
+        {/* Preview indicator — already pointer-events-none */}
         {showPreviewIndicator && hasPreview && (
           <span
             className="flex items-center gap-1 p-1.5 rounded-lg text-clark-gold transition-colors pointer-events-none"
@@ -200,9 +196,9 @@ export function TrackLine({
           </span>
         )}
 
-        {/* Duration */}
+        {/* Duration — purely decorative */}
         {showDuration && data.durationMs && (
-          <span className="font-condensed text-xs text-clark-text-muted flex-shrink-0 w-10 text-right">
+          <span className="font-condensed text-xs text-clark-text-muted flex-shrink-0 w-10 text-right pointer-events-none">
             {formatDuration(data.durationMs)}
           </span>
         )}
@@ -215,7 +211,7 @@ export function TrackLine({
     <div
       role="button"
       tabIndex={0}
-      onClick={handleClick}
+      onClick={onPlay}
       onKeyDown={handleKeyDown}
       aria-label={ariaLabel}
       className={cn(
@@ -225,8 +221,8 @@ export function TrackLine({
         className,
       )}
     >
-      {/* Cover art with play overlay */}
-      <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md">
+      {/* Cover art — purely decorative, pointer-events-none ensures click passes to root */}
+      <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md pointer-events-none">
         {data.coverUrl ? (
           <img
             src={data.coverUrl}
@@ -248,8 +244,8 @@ export function TrackLine({
         )}
       </div>
 
-      {/* Title + optional headphone icon */}
-      <div className="flex items-center gap-2 mt-3">
+      {/* Title + optional headphone icon — purely decorative */}
+      <div className="flex items-center gap-2 mt-3 pointer-events-none">
         <p className="font-body font-semibold text-sm text-clark-text-primary truncate flex-1">
           {data.title}
         </p>
@@ -272,14 +268,14 @@ export function TrackLine({
           {data.artistName}
         </button>
       ) : (
-        <p className="font-body text-xs text-clark-text-muted truncate mt-0.5">
+        <p className="font-body text-xs text-clark-text-muted truncate mt-0.5 pointer-events-none">
           {data.artistName}
         </p>
       )}
 
-      {/* Popularity bar */}
+      {/* Popularity bar — purely decorative */}
       {showPopularity && data.popularity != null && data.popularity > 0 && (
-        <div className="mt-2 h-1 bg-clark-bg-primary rounded-full overflow-hidden">
+        <div className="mt-2 h-1 bg-clark-bg-primary rounded-full overflow-hidden pointer-events-none">
           <div
             className="h-full rounded-full bg-gradient-to-r from-clark-gold to-clark-accent"
             style={{ width: `${data.popularity}%` }}
