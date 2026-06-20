@@ -106,9 +106,20 @@ export const TrackRow = memo(function TrackRow({
 
       {/* Title + Artist */}
       <div className="flex items-center gap-3 min-w-0">
-        {/* Album art — Superman blue gradient */}
-        <div className="w-10 h-10 rounded bg-gradient-to-br from-clark-steel to-clark-bg-secondary flex-shrink-0 flex items-center justify-center shadow-glow-blue ring-1 ring-clark-gold/20">
-          <span className="font-condensed text-xs text-clark-gold">{track.title.charAt(0).toUpperCase()}</span>
+        {/* Album art */}
+        <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-gradient-to-br from-clark-steel to-clark-bg-secondary shadow-glow-blue ring-1 ring-clark-gold/20">
+          {track.coverUrl ? (
+            <img
+              src={track.coverUrl}
+              alt={track.album}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="font-condensed text-xs text-clark-gold">{track.title.charAt(0).toUpperCase()}</span>
+            </div>
+          )}
         </div>
         <div className="min-w-0">
           <p className={cn(
