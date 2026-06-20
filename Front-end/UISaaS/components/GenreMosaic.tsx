@@ -50,12 +50,12 @@ export function GenreMosaic({
     )
   }
 
-  // 1 image → full-size single image
+  // 1 image → full-size single image — sem bordas
   if (filled.length === 1) {
     return (
       <div
         className="overflow-hidden flex-shrink-0 relative"
-        style={{ width: containerSize, height: containerSize }}
+        style={{ width: containerSize, height: containerSize, padding: 0 }}
       >
         <Image
           src={filled[0]}
@@ -68,16 +68,16 @@ export function GenreMosaic({
     )
   }
 
-  // 2 images → two equal columns
+  // 2 images → duas colunas iguais — sem gap
   if (filled.length === 2) {
     return (
       <div
         className="overflow-hidden flex-shrink-0 flex"
-        style={{ width: containerSize, height: containerSize }}
+        style={{ width: containerSize, height: containerSize, gap: 0, padding: 0 }}
         aria-label={genreName}
       >
         {filled.map((src, i) => (
-          <div key={i} className="relative flex-1 h-full">
+          <div key={i} className="relative flex-1 h-full w-full">
             <Image
               src={src}
               alt={`${genreName} artist ${i + 1}`}
@@ -91,15 +91,15 @@ export function GenreMosaic({
     )
   }
 
-  // 3 images → large left + stacked right
+  // 3 images → grande à esquerda + duas empilhadas à direita — sem gap
   if (filled.length === 3) {
     return (
       <div
         className="overflow-hidden flex-shrink-0 flex"
-        style={{ width: containerSize, height: containerSize }}
+        style={{ width: containerSize, height: containerSize, gap: 0, padding: 0 }}
         aria-label={genreName}
       >
-        <div className="relative h-full" style={{ width: half }}>
+        <div className="relative h-full w-1/2">
           <Image
             src={filled[0]}
             alt={`${genreName} artist 1`}
@@ -110,7 +110,7 @@ export function GenreMosaic({
         </div>
         <div className="flex flex-col flex-1 h-full">
           {filled.slice(1).map((src, i) => (
-            <div key={i} className="relative flex-1">
+            <div key={i} className="relative flex-1 w-full">
               <Image
                 src={src}
                 alt={`${genreName} artist ${i + 2}`}
@@ -125,15 +125,15 @@ export function GenreMosaic({
     )
   }
 
-  // 4 images → classic 2×2 grid
+  // 4 images → mosaico 2×2 clássico — SEM gap, SEM padding
   return (
     <div
-      className="overflow-hidden flex-shrink-0 grid grid-cols-2"
-      style={{ width: containerSize, height: containerSize }}
+      className="overflow-hidden flex-shrink-0 grid grid-cols-2 grid-rows-2"
+      style={{ width: containerSize, height: containerSize, gap: 0, padding: 0 }}
       aria-label={genreName}
     >
       {filled.map((src, i) => (
-        <div key={i} className="relative" style={{ width: half, height: half }}>
+        <div key={i} className="relative w-full h-full">
           <Image
             src={src}
             alt={`${genreName} artist ${i + 1}`}

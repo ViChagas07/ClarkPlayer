@@ -52,6 +52,26 @@ HTTP_TIMEOUT = 30.0
 PREVIEW_STALE_SECONDS = 86400 * 7  # 7 days
 DEDUP_REDIS_TTL = 86400 * 30  # 30 days
 
+# ── Genre name validation ───────────────────────────────────────────────
+
+_MBID_PATTERN = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE
+)
+_BARCODE_PATTERN = re.compile(r"^\d{8,14}$")
+
+
+def is_valid_genre_name(name: str) -> bool:
+    """Reject raw MBIDs and barcodes that leak from external API tag fields."""
+    stripped = name.strip()
+    if not stripped:
+        return False
+    if _MBID_PATTERN.match(stripped):
+        return False
+    if _BARCODE_PATTERN.match(stripped):
+        return False
+    return True
+
+
 _GENRE_COLORS: dict[str, tuple[str, str]] = {
     "pop": ("#ff6b6b", "#ee5a24"),
     "rock": ("#d63031", "#b71540"),
@@ -828,6 +848,9 @@ class CatalogIngestionWorker:
         """Ensure genre records exist and link them to the artist."""
         for genre_name in genre_names:
             if not genre_name or not genre_name.strip():
+                continue
+            if not is_valid_genre_name(genre_name):
+                logger.warning("Nome de gênero inválido descartado: %r", genre_name)
                 continue
             gname = genre_name.strip().lower()
             slug = _slugify(gname)

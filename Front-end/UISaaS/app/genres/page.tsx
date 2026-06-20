@@ -102,7 +102,7 @@ export default function GenresPage() {
                   {genre.mosaic_images && genre.mosaic_images.length > 0 ? (
                     <div
                       className="absolute bottom-0 right-0 z-0"
-                      style={{ width: '55%', height: '75%' }}
+                      style={{ width: '82%', height: '92%' }}
                     >
                       <GenreMosaic
                         images={genre.mosaic_images}

@@ -821,7 +821,7 @@ async def list_genres(session: SessionDep) -> list[CatalogGenreResponse]:
         row.genre_id: row.count for row in artist_count_rows.tuples()
     }
 
-    # ── Pre-count tracks per genre (single query) ───────────────────────
+    # ── Pre-count tracks per genre (single query, only previewable) ─────
     track_count_rows = await session.execute(
         select(
             CatalogArtistGenreModel.genre_id,
@@ -830,6 +830,10 @@ async def list_genres(session: SessionDep) -> list[CatalogGenreResponse]:
         .join(
             CatalogTrackModel,
             CatalogArtistGenreModel.artist_id == CatalogTrackModel.artist_id,
+        )
+        .where(
+            CatalogTrackModel.preview_url.isnot(None),
+            CatalogTrackModel.preview_url != "",
         )
         .group_by(CatalogArtistGenreModel.genre_id)
     )
@@ -897,7 +901,11 @@ async def get_genre(
     track_count_result = await session.execute(
         select(func.count()).select_from(CatalogTrackModel)
         .join(CatalogArtistGenreModel, CatalogTrackModel.artist_id == CatalogArtistGenreModel.artist_id)
-        .where(CatalogArtistGenreModel.genre_id == genre.id)
+        .where(
+            CatalogArtistGenreModel.genre_id == genre.id,
+            CatalogTrackModel.preview_url.isnot(None),
+            CatalogTrackModel.preview_url != "",
+        )
     )
     track_count: int = track_count_result.scalar_one()
 

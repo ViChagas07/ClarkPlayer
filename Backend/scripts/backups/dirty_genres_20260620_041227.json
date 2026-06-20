@@ -1,0 +1,18 @@
+[
+  {
+    "id": "b1ece9ae-5b01-4f84-9f26-eafca4ab72f8",
+    "name": "4029759205272",
+    "slug": "4029759205272",
+    "linked_artist_ids": [
+      "5b46fb22-ac61-43b7-beb3-22df44124679"
+    ]
+  },
+  {
+    "id": "2757d17b-80ba-4c9b-930f-8f2554570e3c",
+    "name": "3a46633b-26ed-4418-a029-ab77de3ccfae",
+    "slug": "3a46633b-26ed-4418-a029-ab77de3ccfae",
+    "linked_artist_ids": [
+      "dd23a9b6-3dc3-47c6-bdea-e86d32ba830e"
+    ]
+  }
+]
