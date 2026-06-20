@@ -164,7 +164,16 @@ export default function LibraryPage() {
                 {discoverTracks.map((track, idx) => (
                   <div
                     key={track.id ?? `discover-${idx}`}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Play ${track.title} by ${track.artist_name}`}
                     onClick={() => handlePlay(track, idx)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handlePlay(track, idx)
+                      }
+                    }}
                     className="group p-3 rounded-xl bg-clark-bg-secondary hover:bg-clark-bg-card transition-all duration-200 cursor-pointer hover:scale-[1.02] border border-transparent hover:border-clark-steel/20"
                   >
                     <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-clark-steel to-clark-bg-card shadow-md">
