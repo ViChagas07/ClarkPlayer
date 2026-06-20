@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { AlertCircle, RefreshCw } from 'lucide-react'
+import { useTranslation } from '@/hooks/useTranslation'
 
 export default function ArtistDetailError({
   error,
@@ -11,6 +12,8 @@ export default function ArtistDetailError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const { t } = useTranslation()
+
   useEffect(() => {
     // Log FULL error details for diagnosis
     console.error('═══ [Artist Detail Error] ═══')
@@ -27,16 +30,16 @@ export default function ArtistDetailError({
       <div className="flex flex-col items-center justify-center py-20 px-6 text-center max-w-md">
         <AlertCircle className="w-14 h-14 text-clark-gold/60 mb-6" />
         <h2 className="font-display text-2xl text-clark-text-primary mb-3">
-          Could not load artist
+          {t('couldNotLoadArtist')}
         </h2>
         <p className="font-body text-sm text-clark-text-muted mb-2">
           {error.message.includes('Network') || error.message.includes('fetch')
-            ? 'The backend is unreachable. Please check your connection and try again.'
+            ? t('backendUnreachable')
             : error.message.includes('not found') || error.message.includes('404')
-              ? 'This artist is not in our catalog yet.'
+              ? t('artistNotInCatalog')
               : error.message.length > 0
                 ? error.message
-                : 'An unexpected error occurred while loading this artist.'}
+                : t('unexpectedErrorArtist')}
         </p>
         <p className="font-body text-xs text-clark-text-muted/50 mb-6">
           {error.digest ? `Error ID: ${error.digest}` : ''}
@@ -46,13 +49,13 @@ export default function ArtistDetailError({
             onClick={reset}
             className="flex items-center gap-2 px-5 py-2.5 bg-clark-accent hover:bg-clark-accent-hover text-white rounded-full font-body text-sm transition-colors"
           >
-            <RefreshCw className="w-4 h-4" /> Retry
+            <RefreshCw className="w-4 h-4" /> {t('retry')}
           </button>
           <Link
             href="/artists"
             className="text-clark-gold font-body text-sm hover:underline"
           >
-            Back to Artists
+            {t('backToArtists')}
           </Link>
         </div>
       </div>

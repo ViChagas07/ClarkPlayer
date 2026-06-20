@@ -158,16 +158,16 @@ function AlbumDetailInner({ params }: { params: Promise<{ id: string }> }) {
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <AlertCircle className="w-12 h-12 text-clark-gold/60 mb-4" />
           <h2 className="font-display text-xl text-clark-text-primary mb-2">
-            Could not load album
+            {t('couldNotLoadAlbum')}
           </h2>
           <p className="font-body text-sm text-clark-text-muted mb-4 max-w-md">
-            An unexpected error occurred while loading this album.
+            {t('unexpectedErrorAlbum')}
           </p>
           <button
             onClick={() => refetch()}
             className="flex items-center gap-2 px-4 py-2 bg-clark-accent hover:bg-clark-accent-hover text-white rounded-full font-body text-sm transition-colors"
           >
-            <RefreshCw className="w-4 h-4" /> Retry
+            <RefreshCw className="w-4 h-4" /> {t('retry')}
           </button>
         </div>
       </AppShell>

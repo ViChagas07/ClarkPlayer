@@ -53,8 +53,8 @@ export function NowPlayingContent() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
         <Music className="w-12 h-12 text-clark-text-muted/30 mb-4" />
-        <p className="font-body text-clark-text-muted">Could not load discovery data.</p>
-        <p className="font-body text-xs text-clark-text-muted/50 mt-1">Try refreshing the page.</p>
+        <p className="font-body text-clark-text-muted">{t('couldNotLoadDiscovery')}</p>
+        <p className="font-body text-xs text-clark-text-muted/50 mt-1">{t('tryRefreshing')}</p>
       </div>
     )
   }
@@ -88,7 +88,7 @@ export function NowPlayingContent() {
       {/* Trending */}
       {data?.trending_tracks && (data.trending_tracks as CatalogTrackItem[]).length > 0 && (
         <section className="w-full max-w-6xl mt-10">
-          <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase mb-4">Trending Now</h2>
+          <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase mb-4">{t('trendingNow')}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {(data.trending_tracks as CatalogTrackItem[]).slice(0, 12).map((item, i) => (
               <MusicCard key={item.id ?? i} item={item} index={i} />
@@ -100,7 +100,7 @@ export function NowPlayingContent() {
       {/* Artists */}
       {data?.top_artists && (data.top_artists as CatalogArtistItem[]).length > 0 && (
         <section className="w-full max-w-6xl mt-10">
-          <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase mb-4">Top Artists</h2>
+          <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase mb-4">{t('topArtists')}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {(data.top_artists as CatalogArtistItem[]).slice(0, 12).map((artist) => (
               <Link key={artist.id} href={`/artists/${artist.id}?name=${encodeURIComponent(artist.name)}`} className="p-3 rounded-xl bg-clark-bg-secondary text-center hover:scale-[1.02] transition-all">
@@ -117,7 +117,7 @@ export function NowPlayingContent() {
       {/* Brazilian */}
       {data?.brazilian_artists && (data.brazilian_artists as CatalogArtistItem[]).length > 0 && (
         <section className="w-full max-w-6xl mt-10">
-          <h2 className="font-condensed text-xs tracking-widest text-emerald-400 uppercase mb-4">Brazilian</h2>
+          <h2 className="font-condensed text-xs tracking-widest text-emerald-400 uppercase mb-4">{t('brazilian')}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {(data.brazilian_artists as CatalogArtistItem[]).slice(0, 6).map((artist) => (
               <Link key={artist.id} href={`/artists/${artist.id}?name=${encodeURIComponent(artist.name)}`} className="p-3 rounded-xl bg-clark-bg-secondary text-center hover:scale-[1.02] transition-all">

@@ -251,6 +251,27 @@ export interface TranslationMap {
   agreeTermsPart2: string
   andLowercase: string
 
+  // ── Section titles ──
+  trendingNow: string
+  topArtists: string
+  brazilian: string
+  discover: string
+
+  // ── Error messages ──
+  couldNotLoadDiscovery: string
+  tryRefreshing: string
+  couldNotLoadGenres: string
+  couldNotLoadAlbum: string
+  couldNotLoadArtist: string
+  unexpectedErrorGenres: string
+  unexpectedErrorAlbum: string
+  unexpectedErrorArtist: string
+  backendUnreachable: string
+  retry: string
+  backToArtists: string
+  backToGenres: string
+  artistNotInCatalog: string
+
   // ── Account ──
   myAccount: string
   profileInformation: string
@@ -587,6 +608,25 @@ const translations = {
     agreeTermsPart1: 'I have read the',
     agreeTermsPart2: 'and agree to them.',
     andLowercase: 'and',
+    // ── Section titles ──
+    trendingNow: 'Trending Now',
+    topArtists: 'Top Artists',
+    brazilian: 'Brazilian',
+    discover: 'Discover',
+    // ── Error messages ──
+    couldNotLoadDiscovery: 'Could not load discovery data.',
+    tryRefreshing: 'Try refreshing the page.',
+    couldNotLoadGenres: 'Could not load genres',
+    couldNotLoadAlbum: 'Could not load album',
+    couldNotLoadArtist: 'Could not load artist',
+    unexpectedErrorGenres: 'An unexpected error occurred while loading genres.',
+    unexpectedErrorAlbum: 'An unexpected error occurred while loading this album.',
+    unexpectedErrorArtist: 'An unexpected error occurred while loading this artist.',
+    backendUnreachable: 'The backend is unreachable. Please check your connection and try again.',
+    retry: 'Retry',
+    backToArtists: 'Back to Artists',
+    backToGenres: 'Back to Genres',
+    artistNotInCatalog: 'This artist is not in our catalog yet.',
     // ── Account ──
     myAccount: 'My Account',
     profileInformation: 'Profile Information',
@@ -913,6 +953,25 @@ const translations = {
     agreeTermsPart1: 'Eu li os',
     agreeTermsPart2: 'e concordo com eles.',
     andLowercase: 'e',
+    // ── Section titles ──
+    trendingNow: 'Em Alta Agora',
+    topArtists: 'Artistas Populares',
+    brazilian: 'Brasileiros',
+    discover: 'Descobrir',
+    // ── Error messages ──
+    couldNotLoadDiscovery: 'N\u00e3o foi poss\u00edvel carregar dados de descoberta.',
+    tryRefreshing: 'Tente atualizar a p\u00e1gina.',
+    couldNotLoadGenres: 'N\u00e3o foi poss\u00edvel carregar g\u00eaneros',
+    couldNotLoadAlbum: 'N\u00e3o foi poss\u00edvel carregar \u00e1lbum',
+    couldNotLoadArtist: 'N\u00e3o foi poss\u00edvel carregar artista',
+    unexpectedErrorGenres: 'Ocorreu um erro inesperado ao carregar os g\u00eaneros.',
+    unexpectedErrorAlbum: 'Ocorreu um erro inesperado ao carregar este \u00e1lbum.',
+    unexpectedErrorArtist: 'Ocorreu um erro inesperado ao carregar este artista.',
+    backendUnreachable: 'O servidor est\u00e1 inacess\u00edvel. Verifique sua conex\u00e3o e tente novamente.',
+    retry: 'Tentar novamente',
+    backToArtists: 'Voltar para Artistas',
+    backToGenres: 'Voltar para G\u00eaneros',
+    artistNotInCatalog: 'Este artista ainda n\u00e3o est\u00e1 em nosso cat\u00e1logo.',
     // ── Account ──
     myAccount: 'Minha Conta',
     profileInformation: 'Informa\u00e7\u00f5es do Perfil',
@@ -1239,6 +1298,25 @@ const translations = {
     agreeTermsPart1: 'He le\u00eddo los',
     agreeTermsPart2: 'y estoy de acuerdo.',
     andLowercase: 'y',
+    // ── Section titles ──
+    trendingNow: 'Tendencia Ahora',
+    topArtists: 'Artistas Populares',
+    brazilian: 'Brasile\u00f1os',
+    discover: 'Descubrir',
+    // ── Error messages ──
+    couldNotLoadDiscovery: 'No se pudieron cargar los datos de descubrimiento.',
+    tryRefreshing: 'Intenta actualizar la p\u00e1gina.',
+    couldNotLoadGenres: 'No se pudieron cargar los g\u00e9neros',
+    couldNotLoadAlbum: 'No se pudo cargar el \u00e1lbum',
+    couldNotLoadArtist: 'No se pudo cargar el artista',
+    unexpectedErrorGenres: 'Ocurri\u00f3 un error inesperado al cargar los g\u00e9neros.',
+    unexpectedErrorAlbum: 'Ocurri\u00f3 un error inesperado al cargar este \u00e1lbum.',
+    unexpectedErrorArtist: 'Ocurri\u00f3 un error inesperado al cargar este artista.',
+    backendUnreachable: 'El servidor no est\u00e1 disponible. Verifica tu conexi\u00f3n e int\u00e9ntalo de nuevo.',
+    retry: 'Reintentar',
+    backToArtists: 'Volver a Artistas',
+    backToGenres: 'Volver a G\u00e9neros',
+    artistNotInCatalog: 'Este artista a\u00fan no est\u00e1 en nuestro cat\u00e1logo.',
     // ── Account ──
     myAccount: 'Mi Cuenta',
     profileInformation: 'Informaci\u00f3n del Perfil',
@@ -1565,6 +1643,25 @@ const translations = {
     agreeTermsPart1: 'J\u0027ai lu les',
     agreeTermsPart2: 'et j\u0027accepte.',
     andLowercase: 'et',
+    // ── Section titles ──
+    trendingNow: 'Tendances',
+    topArtists: 'Artistes Populaires',
+    brazilian: 'Br\u00e9siliens',
+    discover: 'D\u00e9couvrir',
+    // ── Error messages ──
+    couldNotLoadDiscovery: 'Impossible de charger les donn\u00e9es de d\u00e9couverte.',
+    tryRefreshing: 'Essayez d\u0027actualiser la page.',
+    couldNotLoadGenres: 'Impossible de charger les genres',
+    couldNotLoadAlbum: 'Impossible de charger l\u0027album',
+    couldNotLoadArtist: 'Impossible de charger l\u0027artiste',
+    unexpectedErrorGenres: 'Une erreur inattendue est survenue lors du chargement des genres.',
+    unexpectedErrorAlbum: 'Une erreur inattendue est survenue lors du chargement de cet album.',
+    unexpectedErrorArtist: 'Une erreur inattendue est survenue lors du chargement de cet artiste.',
+    backendUnreachable: 'Le serveur est inaccessible. V\u00e9rifiez votre connexion et r\u00e9essayez.',
+    retry: 'R\u00e9essayer',
+    backToArtists: 'Retour aux Artistes',
+    backToGenres: 'Retour aux Genres',
+    artistNotInCatalog: "Cet artiste n'est pas encore dans notre catalogue.",
     // ── Account ──
     myAccount: 'Mon Compte',
     profileInformation: 'Informations du Profil',
@@ -1891,6 +1988,25 @@ const translations = {
     agreeTermsPart1: 'Ich habe die',
     agreeTermsPart2: 'gelesen und stimme zu.',
     andLowercase: 'und',
+    // ── Section titles ──
+    trendingNow: 'Im Trend',
+    topArtists: 'Top K\u00fcnstler',
+    brazilian: 'Brasilianisch',
+    discover: 'Entdecken',
+    // ── Error messages ──
+    couldNotLoadDiscovery: 'Entdeckungsdaten konnten nicht geladen werden.',
+    tryRefreshing: 'Versuche, die Seite zu aktualisieren.',
+    couldNotLoadGenres: 'Genres konnten nicht geladen werden',
+    couldNotLoadAlbum: 'Album konnte nicht geladen werden',
+    couldNotLoadArtist: 'K\u00fcnstler konnte nicht geladen werden',
+    unexpectedErrorGenres: 'Beim Laden der Genres ist ein unerwarteter Fehler aufgetreten.',
+    unexpectedErrorAlbum: 'Beim Laden dieses Albums ist ein unerwarteter Fehler aufgetreten.',
+    unexpectedErrorArtist: 'Beim Laden dieses K\u00fcnstlers ist ein unerwarteter Fehler aufgetreten.',
+    backendUnreachable: 'Der Server ist nicht erreichbar. Bitte \u00fcberpr\u00fcfe deine Verbindung und versuche es erneut.',
+    retry: 'Erneut versuchen',
+    backToArtists: 'Zur\u00fcck zu K\u00fcnstlern',
+    backToGenres: 'Zur\u00fcck zu Genres',
+    artistNotInCatalog: 'Dieser K\u00fcnstler ist noch nicht in unserem Katalog.',
     // ── Account ──
     myAccount: 'Mein Konto',
     profileInformation: 'Profilinformationen',

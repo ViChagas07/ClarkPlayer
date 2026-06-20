@@ -146,7 +146,7 @@ export default function LibraryPage() {
           <section>
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="w-5 h-5 text-clark-gold" />
-              <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase">Discover</h2>
+              <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase">{t('discover')}</h2>
             </div>
 
             {discoverLoading ? (
@@ -286,10 +286,10 @@ export default function LibraryPage() {
         <section>
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-clark-gold" />
-            <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase">Discover</h2>
-          </div>
+              <h2 className="font-condensed text-xs tracking-widest text-clark-gold uppercase">{t('discover')}</h2>
+            </div>
 
-          {discoverLoading ? (
+            {discoverLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="p-3 rounded-xl bg-clark-bg-secondary animate-pulse">

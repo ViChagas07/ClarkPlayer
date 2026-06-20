@@ -169,19 +169,19 @@ function ArtistDetailInner({ params }: { params: Promise<{ id: string }> }) {
 
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <AlertCircle className="w-12 h-12 text-clark-gold/60 mb-4" />
-            <h2 className="font-display text-xl text-clark-text-primary mb-2">Could not load artist</h2>
+            <h2 className="font-display text-xl text-clark-text-primary mb-2">{t('couldNotLoadArtist')}</h2>
             <p className="font-body text-sm text-clark-text-muted mb-4 max-w-md">
-              An unexpected error occurred while loading this artist.
+              {t('unexpectedErrorArtist')}
             </p>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => refetchArtist()}
                 className="flex items-center gap-2 px-4 py-2 bg-clark-accent hover:bg-clark-accent-hover text-white rounded-full font-body text-sm transition-colors"
               >
-                <RefreshCw className="w-4 h-4" /> Retry
+                <RefreshCw className="w-4 h-4" /> {t('retry')}
               </button>
               <Link href="/artists" className="text-clark-gold font-body text-sm hover:underline">
-                Back to Artists
+                {t('backToArtists')}
               </Link>
             </div>
           </div>
