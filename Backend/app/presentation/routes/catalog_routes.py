@@ -64,6 +64,7 @@ from app.services.catalog.cache_service import CatalogCacheService
 from app.services.catalog.ingestion import create_ingestion_worker
 from app.services.catalog.precomputation import DiscoveryPrecomputation
 from app.services.catalog.search_engine import CatalogSearchEngine
+from app.infrastructure.database import _async_session_factory
 
 router = APIRouter(prefix="/catalog", tags=["Catalog"])
 
@@ -871,7 +872,6 @@ async def list_genres(
 
     # ── Enrich each genre with mosaic images (parallel, batch only) ────
     cache_svc = CatalogCacheService()
-    search_engine = CatalogSearchEngine(session)
 
     async def _enrich_genre(g: CatalogGenreModel) -> CatalogGenreResponse:
         genre_id = str(g.id)
@@ -881,8 +881,11 @@ async def list_genres(
         if cached_images is not None:
             mosaic_images = cached_images
         else:
-            # Fetch from DB and cache
-            mosaic_images = await search_engine.get_genre_mosaic_images(genre_id, limit=4)
+            # Fetch from DB using an ISOLATED session per genre —
+            # AsyncSession is NOT safe for concurrent I/O across coroutines.
+            async with _async_session_factory() as iso_session:
+                iso_engine = CatalogSearchEngine(iso_session)
+                mosaic_images = await iso_engine.get_genre_mosaic_images(genre_id, limit=4)
             await cache_svc.set_cached_genre_mosaic(genre_id, mosaic_images)
 
         return CatalogGenreResponse(

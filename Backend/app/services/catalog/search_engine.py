@@ -26,6 +26,7 @@ from sqlalchemy import desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+from app.infrastructure.database import _async_session_factory
 from app.infrastructure.models.catalog import (
     CatalogAlbumModel,
     CatalogArtistGenreModel,
@@ -68,12 +69,39 @@ class CatalogSearchEngine:
 
         Returns aggregated results with artists, tracks, albums, and genres
         matching the query string.
+
+        Each search runs in its OWN isolated session to avoid
+        ``IllegalStateChangeError`` — ``AsyncSession`` is not safe for
+        concurrent I/O across multiple coroutines sharing the same instance.
+        The ``asyncio.gather`` parallelism is preserved, but every coroutine
+        gets a private session created via ``_async_session_factory``.
         """
+
+        async def _search_artists_isolated():
+            async with _async_session_factory() as session:
+                engine = CatalogSearchEngine(session)
+                return await engine.search_artists(query, limit=limit, offset=offset)
+
+        async def _search_tracks_isolated():
+            async with _async_session_factory() as session:
+                engine = CatalogSearchEngine(session)
+                return await engine.search_tracks(query, limit=limit, offset=offset)
+
+        async def _search_albums_isolated():
+            async with _async_session_factory() as session:
+                engine = CatalogSearchEngine(session)
+                return await engine.search_albums(query, limit=limit, offset=offset)
+
+        async def _search_genres_isolated():
+            async with _async_session_factory() as session:
+                engine = CatalogSearchEngine(session)
+                return await engine.search_genres(query, limit=10)
+
         artists, tracks, albums, genres = await asyncio.gather(
-            self.search_artists(query, limit=limit, offset=offset),
-            self.search_tracks(query, limit=limit, offset=offset),
-            self.search_albums(query, limit=limit, offset=offset),
-            self.search_genres(query, limit=10),
+            _search_artists_isolated(),
+            _search_tracks_isolated(),
+            _search_albums_isolated(),
+            _search_genres_isolated(),
         )
 
         total = len(artists) + len(tracks) + len(albums) + len(genres)
