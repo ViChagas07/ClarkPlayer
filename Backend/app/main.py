@@ -172,6 +172,7 @@ app.include_router(api_router)
 
 
 @app.get("/health", tags=["System"])
+@app.head("/health", tags=["System"], include_in_schema=False)
 async def health_check() -> dict[str, Any]:
     """Liveness probe with Redis connectivity check."""
     result = {

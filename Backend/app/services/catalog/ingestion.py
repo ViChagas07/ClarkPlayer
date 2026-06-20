@@ -861,14 +861,13 @@ class CatalogIngestionWorker:
                 gradient_from=_GENRE_COLORS.get(gname, ("#1a1a2e", "#16213e"))[0],
                 gradient_to=_GENRE_COLORS.get(gname, ("#1a1a2e", "#16213e"))[1],
             )
-            stmt = stmt.on_conflict_do_update(
-                index_elements=["name"],
-                set_={"name": stmt.excluded.name},
+            stmt = stmt.on_conflict_do_nothing(
+                index_elements=["slug"],
             )
             await session.execute(stmt)
 
             result = await session.execute(
-                select(CatalogGenreModel).where(CatalogGenreModel.name == gname)
+                select(CatalogGenreModel).where(CatalogGenreModel.slug == slug)
             )
             genre = result.scalar_one()
 

@@ -18,7 +18,7 @@ Sections:
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.infrastructure.models.catalog import (
     CatalogAlbumModel,
@@ -149,11 +149,16 @@ class DiscoveryPrecomputation:
 
         stmt = (
             select(CatalogArtistModel)
+            .options(
+                joinedload(CatalogArtistModel.genre_associations).joinedload(
+                    CatalogArtistGenreModel.genre
+                ),
+            )
             .order_by(CatalogArtistModel.popularity.desc())
             .limit(limit)
         )
         result = await self._session.execute(stmt)
-        data = [_artist_to_dict(a) for a in result.scalars()]
+        data = [_artist_to_dict(a) for a in result.unique().scalars()]
         await self._cache.set_cached_discovery("top_artists", data)
         return data
 
@@ -273,12 +278,17 @@ class DiscoveryPrecomputation:
 
         stmt = (
             select(CatalogArtistModel)
+            .options(
+                joinedload(CatalogArtistModel.genre_associations).joinedload(
+                    CatalogArtistGenreModel.genre
+                ),
+            )
             .where(CatalogArtistModel.is_brazilian == True)  # noqa: E712
             .order_by(CatalogArtistModel.popularity.desc())
             .limit(limit)
         )
         result = await self._session.execute(stmt)
-        data = [_artist_to_dict(a) for a in result.scalars()]
+        data = [_artist_to_dict(a) for a in result.unique().scalars()]
         await self._cache.set_cached_discovery("brazilian_artists", data)
         return data
 
@@ -292,12 +302,17 @@ class DiscoveryPrecomputation:
 
         stmt = (
             select(CatalogArtistModel)
+            .options(
+                joinedload(CatalogArtistModel.genre_associations).joinedload(
+                    CatalogArtistGenreModel.genre
+                ),
+            )
             .where(CatalogArtistModel.is_brazilian == False)  # noqa: E712
             .order_by(CatalogArtistModel.popularity.desc())
             .limit(limit)
         )
         result = await self._session.execute(stmt)
-        data = [_artist_to_dict(a) for a in result.scalars()]
+        data = [_artist_to_dict(a) for a in result.unique().scalars()]
         await self._cache.set_cached_discovery("international_artists", data)
         return data
 
