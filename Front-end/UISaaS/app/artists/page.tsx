@@ -81,7 +81,7 @@ export default function ArtistsPage() {
     if (!tab.genre) return allArtists
     const genreLower = tab.genre.toLowerCase()
     return allArtists.filter((a) =>
-      a.genres.some((g) => g.toLowerCase() === genreLower),
+      (a.genres ?? []).some((g) => g.toLowerCase() === genreLower),
     )
   }, [allArtists, tab.genre])
 
@@ -188,9 +188,9 @@ export default function ArtistsPage() {
                   </h3>
 
                   {/* Genres tags */}
-                  {artist.genres.length > 0 && (
+                  {(artist.genres ?? []).length > 0 && (
                     <div className="flex flex-wrap justify-center gap-1 mt-1">
-                      {artist.genres.slice(0, 2).map((g) => (
+                      {(artist.genres ?? []).slice(0, 2).map((g) => (
                         <span
                           key={g}
                           className="px-1.5 py-0.5 rounded text-[10px] font-condensed uppercase tracking-wider bg-clark-gold/10 text-clark-gold"

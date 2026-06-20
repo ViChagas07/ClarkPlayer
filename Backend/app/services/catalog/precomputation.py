@@ -51,6 +51,11 @@ def _artist_to_dict(artist: CatalogArtistModel) -> dict:
         "country": artist.country,
         "is_brazilian": artist.is_brazilian,
         "bio": artist.bio,
+        "genres": [
+            assoc.genre.name
+            for assoc in artist.genre_associations
+            if assoc.genre is not None
+        ],
     }
 
 

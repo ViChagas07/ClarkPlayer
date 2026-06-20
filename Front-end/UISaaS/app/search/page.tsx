@@ -206,9 +206,9 @@ export default function SearchPage() {
         <p className="font-body font-semibold text-sm text-center text-clark-text-primary truncate w-full">
           {item.name}
         </p>
-        {item.genres.length > 0 && (
+        {(item.genres ?? []).length > 0 && (
           <p className="font-body text-xs text-clark-text-muted/70 text-center mt-1 line-clamp-1">
-            {item.genres.slice(0, 3).join(', ')}
+            {(item.genres ?? []).slice(0, 3).join(', ')}
           </p>
         )}
         {item.track_count > 0 && (

@@ -56,7 +56,10 @@ export function useDesktopAudioEngine() {
       }
       audioElementRef.current.src = `/api/v1/tracks/${trackId}/stream`
       audioElementRef.current.currentTime = startOffset
-      audioElementRef.current.play()
+      audioElementRef.current.play().catch(() => {
+        // Stream failed (e.g. track has no preview / backend 422).
+        // This is expected for some tracks — silently ignore.
+      })
       return
     }
 

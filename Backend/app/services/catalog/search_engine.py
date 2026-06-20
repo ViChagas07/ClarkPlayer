@@ -114,6 +114,11 @@ class CatalogSearchEngine:
                 "id": str(artist.id),
                 "name": artist.name,
                 "image_url": artist.image_url,
+                "genres": [
+                    assoc.genre.name
+                    for assoc in artist.genre_associations
+                    if assoc.genre is not None
+                ],
                 "popularity": artist.popularity,
                 "country": artist.country,
                 "is_brazilian": artist.is_brazilian,

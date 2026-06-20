@@ -33,6 +33,7 @@ class CatalogArtistSummary(BaseModel):
     id: str
     name: str
     image_url: str | None = None
+    genres: list[str] = Field(default_factory=list)
     popularity: int = 0
     country: str | None = None
     is_brazilian: bool = False

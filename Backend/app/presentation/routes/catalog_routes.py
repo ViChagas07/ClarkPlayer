@@ -80,10 +80,16 @@ def _cache_service() -> CatalogCacheService:
 
 
 def _artist_to_summary(artist: CatalogArtistModel) -> CatalogArtistSummary:
+    genres = [
+        assoc.genre.name
+        for assoc in artist.genre_associations
+        if assoc.genre is not None
+    ]
     return CatalogArtistSummary(
         id=str(artist.id),
         name=artist.name,
         image_url=artist.image_url,
+        genres=genres,
         popularity=artist.popularity,
         country=artist.country,
         is_brazilian=artist.is_brazilian,
