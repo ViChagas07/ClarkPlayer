@@ -86,8 +86,16 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
   }, [slug])
 
   function handlePlay(track: CatalogTrackItem, idx: number) {
+    if (!track.preview_url) return
+
+    // 1. Play immediately via playPreview (usePreviewPlayer only fires when isPreview=true)
+    const trackObj = toTrack(track, slug, idx)
+    usePlayerStore.getState().playPreview(track.preview_url, trackObj)
+
+    // 2. Set up queue for next/prev navigation
     const queue: Track[] = tracks.map((t, i) => toTrack(t, slug, i))
-    setQueue(queue, idx)
+    const currentIndex = queue.findIndex((t) => t.id === track.id)
+    setQueue(queue, currentIndex >= 0 ? currentIndex : idx)
   }
 
   return (
@@ -209,18 +217,13 @@ export default function GenreDetailPage({ params }: { params: Promise<{ slug: st
                         {track.title}
                       </p>
                       {previewUrl && (
-                        <button
-                          className="flex-shrink-0 p-1 rounded-lg hover:bg-clark-gold/10 text-clark-gold transition-colors"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            const trackObj = toTrack(track, slug, idx)
-                            usePlayerStore.getState().playPreview(previewUrl, trackObj)
-                          }}
-                          aria-label={`Preview ${track.title}`}
+                        <span
+                          className="flex-shrink-0 p-1 rounded-lg text-clark-gold transition-colors"
+                          aria-hidden="true"
                           title={t('previewLabel')}
                         >
                           <Headphones className="w-3.5 h-3.5" />
-                        </button>
+                        </span>
                       )}
                     </div>
                     <p className="font-body text-xs text-clark-text-muted truncate">
