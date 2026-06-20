@@ -11,11 +11,9 @@ export function CatalogPrefetcher() {
       queryFn: () => api.catalogArtists(30, 0, 'popularity'),
       staleTime: 6 * 60 * 60 * 1000,
     })
-    queryClient.prefetchQuery({
-      queryKey: ['catalog', 'genres'],
-      queryFn: () => api.catalogGenres(),
-      staleTime: 12 * 60 * 60 * 1000,
-    })
+    // NOTE: genres uses useInfiniteQuery — do NOT prefetch with prefetchQuery
+    // here as it would conflict with useInfiniteQuery's different cache structure
+    // ({ pages: [...] } vs raw response). The useGenres hook handles its own fetch.
   }, [])
 
   return null
