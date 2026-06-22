@@ -12,9 +12,7 @@ import { getGenreImage, getGenreGradient } from '@/lib/genre-image-map'
 import { cn } from '@/lib/utils'
 import type { CatalogGenreItem } from '@/types'
 import Image from 'next/image'
-import { Music, Search } from 'lucide-react'
-
-const PAGE_SIZE = 30
+import { Music } from 'lucide-react'
 
 const mosaicLayout = [
   'col-span-2 row-span-2',
@@ -38,38 +36,18 @@ const mosaicLayout = [
   'col-span-1 row-span-1',
 ]
 
-// ── Empty state for search with no results ─────────────────────────
-
-function SearchEmptyState({ query }: { query: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 px-6 animate-fade-in-scale">
-      <div className="w-16 h-16 rounded-full bg-clark-bg-secondary/60 flex items-center justify-center mb-5">
-        <Search className="w-7 h-7 text-clark-text-muted/40" />
-      </div>
-      <p className="font-display text-lg tracking-wider text-clark-text-primary mb-2">
-        Nenhum gênero encontrado
-      </p>
-      <p className="font-body text-sm text-clark-text-muted/60 text-center max-w-sm">
-        Não foi possível encontrar{' '}
-        <span className="text-clark-text-primary/80 font-medium">&ldquo;{query}&rdquo;</span>
-      </p>
-      <p className="font-body text-xs text-clark-text-muted/40 mt-3">
-        Tente pesquisar utilizando outros termos.
-      </p>
-    </div>
-  )
-}
-
 // ── Genre Card ───────────────────────────────────────────────────
 
 function GenreCard({
   genre,
   index,
-  className: extraClass,
+  isHighlighted,
+  isSearchActive,
 }: {
   genre: CatalogGenreItem
   index: number
-  className?: string
+  isHighlighted: boolean
+  isSearchActive: boolean
 }) {
   const { t } = useTranslation()
   const layoutIdx = index % mosaicLayout.length
@@ -81,12 +59,31 @@ function GenreCard({
       key={genre.slug}
       href={`/genres/${genre.slug}`}
       className={cn(
-        'relative rounded-xl overflow-hidden group transition-transform hover:scale-[1.02]',
+        'relative rounded-xl overflow-hidden group transition-all duration-250 ease-out',
         mosaicLayout[layoutIdx],
         'animate-fade-in-scale',
-        extraClass,
+        // ── Highlighted (matching) ────────────────────────
+        isSearchActive && isHighlighted && [
+          'z-10',
+          'scale-[1.02]',
+          'shadow-xl shadow-clark-accent/10',
+          'ring-1 ring-clark-accent/20',
+        ],
+        // ── Non-matching (blurred out) ────────────────────
+        isSearchActive && !isHighlighted && [
+          'blur-[4px]',
+          'opacity-25',
+          'scale-[0.97]',
+          'pointer-events-none',
+          'select-none',
+        ],
       )}
-      style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
+      style={{
+        animationDelay: `${Math.min(index * 20, 250)}ms`,
+        transitionProperty: 'filter, opacity, transform, box-shadow',
+      }}
+      aria-hidden={isSearchActive && !isHighlighted ? true : undefined}
+      tabIndex={isSearchActive && !isHighlighted ? -1 : undefined}
     >
       {/* Solid background gradient */}
       <div className={cn('absolute inset-0 bg-gradient-to-br', gradient.from, gradient.to)} />
@@ -144,12 +141,17 @@ export default function GenresPage() {
     setQuery,
     isFocused,
     setIsFocused,
-    filtered,
+    matchingSlugs,
     isSearching,
     hasResults,
     clearSearch,
     handleKeyDown,
   } = useGenreFilter(genres)
+
+  // Whether the match/no-match visual treatment is active:
+  // only after the debounce has settled (debouncedQuery is non-empty).
+  // During the 300ms debounce window, genres stay normal → no flicker.
+  const isSearchActive = isSearching && hasResults
 
   // ── IntersectionObserver for scroll infinite ───────────────────
   const sentinelRef = useRef<HTMLDivElement>(null)
@@ -172,6 +174,7 @@ export default function GenresPage() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const showSkeleton = isLoading && genres.length === 0
+  const showEmptyCatalog = genres.length === 0 && !isSearching
 
   return (
     <AppShell>
@@ -189,54 +192,66 @@ export default function GenresPage() {
           onKeyDown={handleKeyDown}
         />
 
-        {/* Blurrable content */}
-        <div
-          className={cn(
-            'space-y-6 transition-all duration-300',
-            isFocused && isSearching && 'blur-sm pointer-events-none select-none',
-          )}
-        >
-          {/* Loading skeleton */}
-          {showSkeleton ? (
-            <div
-              role="status"
-              aria-label="Loading genres"
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[120px]"
-            >
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    'rounded-xl bg-clark-bg-secondary animate-pulse',
-                    mosaicLayout[i % mosaicLayout.length],
-                  )}
+        {/* Loading skeleton */}
+        {showSkeleton ? (
+          <div
+            role="status"
+            aria-label="Loading genres"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[120px]"
+          >
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  'rounded-xl bg-clark-bg-secondary animate-pulse',
+                  mosaicLayout[i % mosaicLayout.length],
+                )}
+              />
+            ))}
+            <span className="sr-only">Loading genres...</span>
+          </div>
+        ) : showEmptyCatalog ? (
+          /* Empty catalog (not searching) */
+          <div className="flex flex-col items-center justify-center py-12 px-6 rounded-2xl bg-clark-bg-secondary border border-clark-steel/20 text-center">
+            <div className="w-12 h-12 rounded-full bg-clark-bg-card flex items-center justify-center mb-4">
+              <Music className="w-6 h-6 text-clark-text-muted" />
+            </div>
+            <p className="font-display text-lg tracking-wider text-clark-text-primary mb-1">No genres yet</p>
+            <p className="font-body text-sm text-clark-text-muted">
+              Catalog data will appear here once available.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Genre grid — ALL genres always render */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[120px]">
+              {genres.map((genre, i) => (
+                <GenreCard
+                  key={genre.slug}
+                  genre={genre}
+                  index={i}
+                  isHighlighted={matchingSlugs.has(genre.slug)}
+                  isSearchActive={isSearchActive}
                 />
               ))}
-              <span className="sr-only">Loading genres...</span>
             </div>
-          ) : genres.length === 0 && !isSearching ? (
-            /* Empty catalog (not searching) */
-            <div className="flex flex-col items-center justify-center py-12 px-6 rounded-2xl bg-clark-bg-secondary border border-clark-steel/20 text-center">
-              <div className="w-12 h-12 rounded-full bg-clark-bg-card flex items-center justify-center mb-4">
-                <Music className="w-6 h-6 text-clark-text-muted" />
+
+            {/* Empty search hint (when searching but no matches found) */}
+            {isSearching && !hasResults && (
+              <div className="flex flex-col items-center justify-center py-12 px-6 text-center animate-fade-in-scale">
+                <p className="font-body text-sm text-clark-text-muted/70">
+                  Nenhum gênero encontrado para{' '}
+                  <span className="text-clark-text-primary/80 font-medium">
+                    &ldquo;{query}&rdquo;
+                  </span>
+                </p>
+                <p className="font-body text-xs text-clark-text-muted/40 mt-2">
+                  Tente pesquisar utilizando outros termos.
+                </p>
               </div>
-              <p className="font-display text-lg tracking-wider text-clark-text-primary mb-1">No genres yet</p>
-              <p className="font-body text-sm text-clark-text-muted">
-                Catalog data will appear here once available.
-              </p>
-            </div>
-          ) : isSearching && !hasResults ? (
-            /* Search with no results */
-            <SearchEmptyState query={query} />
-          ) : (
-            /* Genre grid */
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[120px]">
-              {filtered.map((genre, i) => (
-                <GenreCard key={genre.slug} genre={genre} index={i} />
-              ))}
-            </div>
-          )}
-        </div>
+            )}
+          </>
+        )}
 
         {/* Infinite scroll (only when not searching) */}
         {!isSearching && genres.length > 0 && (

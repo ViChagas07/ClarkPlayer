@@ -17,11 +17,18 @@ function normalise(str: string): string {
 /**
  * Client-side genre search hook.
  *
+ * NEW BEHAVIOUR (Hotfix):
+ * ALL genres are ALWAYS rendered. Instead of filtering the grid, we
+ * compute a Set of matching slugs. The page then applies distinct
+ * visual treatment:
+ *   - Matching genres → clear, scale(1.02), elevated
+ *   - Non-matching genres → blur(8px), opacity 0.25, scale(0.96), no pointer
+ *
  * Features:
- * - 300 ms debounce before filtering
+ * - 300 ms debounce before matching
  * - Case-insensitive + accent-insensitive matching
  * - Partial / substring matching
- * - Returns memoised filtered list + search state
+ * - Returns matchingSlugs Set + search state
  */
 export function useGenreFilter(genres: CatalogGenreItem[]) {
   const [query, setQuery] = useState('')
@@ -44,7 +51,7 @@ export function useGenreFilter(genres: CatalogGenreItem[]) {
     setDebouncedQuery('')
   }, [])
 
-  // Blur when Escape is pressed
+  // Escape key handler
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Escape') {
@@ -55,37 +62,45 @@ export function useGenreFilter(genres: CatalogGenreItem[]) {
     [clearSearch],
   )
 
-  // Filtered results — memoised, runs only when debouncedQuery or genres change
-  const filtered = useMemo<CatalogGenreItem[]>(() => {
+  // ── Matching slugs (memoised, based on debounced query) ─────────────
+  const matchingSlugs = useMemo<Set<string>>(() => {
     const trimmed = debouncedQuery.trim()
-    if (!trimmed) return genres
+    if (!trimmed) return new Set<string>()
 
     const normalisedQuery = normalise(trimmed)
-    return genres.filter((g) => normalise(g.name).includes(normalisedQuery))
+    const slugs = new Set<string>()
+    for (const g of genres) {
+      if (normalise(g.name).includes(normalisedQuery)) {
+        slugs.add(g.slug)
+      }
+    }
+    return slugs
   }, [genres, debouncedQuery])
 
-  // Is the user actively searching? (immediate, not debounced)
+  // ── Derived state ──────────────────────────────────────────────────
+
+  /** True while user has typed anything (immediate — not debounced) */
   const isSearching = query.trim().length > 0
 
-  // Are there any results for the current search?
-  const hasResults = filtered.length > 0
+  /** True when at least one genre matches the debounced query */
+  const hasResults = matchingSlugs.size > 0
 
   return {
     /** Current raw input value (updates on every keystroke) */
     query,
     /** Setter for the raw input */
     setQuery,
-    /** Debounced input value (used for filtering) */
+    /** Debounced input value (used for matching) */
     debouncedQuery,
     /** Whether the search input is focused */
     isFocused,
     /** Focus setter */
     setIsFocused,
-    /** Filtered genre list */
-    filtered,
+    /** Set of genre slugs that match the debounced query */
+    matchingSlugs,
     /** True while user has typed anything (immediate) */
     isSearching,
-    /** True when the filtered list is non-empty */
+    /** True when at least one genre matches */
     hasResults,
     /** Clear query + debounced */
     clearSearch,

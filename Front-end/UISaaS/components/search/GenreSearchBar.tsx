@@ -4,6 +4,15 @@ import { useRef, useEffect } from 'react'
 import { Search, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+/* ── Remove ALL browser default focus styles from the search input ── */
+/* The visual focus indicator is handled by the parent container.      */
+const focusResetStyle = {
+  outline: 'none',
+  outlineWidth: 0,
+  WebkitOutline: 'none',
+  MozOutline: 'none',
+} as React.CSSProperties
+
 interface GenreSearchBarProps {
   /** Current raw input value */
   value: string
@@ -51,6 +60,23 @@ export function GenreSearchBar({
   }, [onFocusChange])
 
   return (
+    <>
+      {/* Kill every possible browser default focus ring */}
+      <style>{`
+        .genre-search-input:focus,
+        .genre-search-input:focus-visible,
+        .genre-search-input:focus-within {
+          outline: none !important;
+          outline-width: 0 !important;
+          outline-style: none !important;
+          box-shadow: none !important;
+          -webkit-box-shadow: none !important;
+          -moz-box-shadow: none !important;
+        }
+        .genre-search-input::-moz-focus-inner {
+          border: 0 !important;
+        }
+      `}</style>
     <div
       ref={containerRef}
       className={cn(
@@ -58,20 +84,20 @@ export function GenreSearchBar({
         isFocused && 'max-w-xl',
       )}
     >
-      {/* Glassmorphism background layer */}
+      {/* Glassmorphism background layer + custom focus ring */}
       <div
         className={cn(
           'absolute inset-0 rounded-2xl transition-all duration-300',
           'bg-clark-bg-secondary/40 backdrop-blur-xl border',
           isFocused
-            ? 'border-clark-gold/40 shadow-lg shadow-clark-gold/5'
+            ? 'border-clark-accent/60 shadow-[0_0_0_2px_rgba(224,32,32,0.35)]'
             : 'border-clark-steel/20 hover:border-clark-steel/40',
         )}
       />
 
       {/* Inner glow when focused */}
       {isFocused && (
-        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-clark-gold/10 via-transparent to-clark-gold/5 opacity-60 blur-sm -z-10" />
+        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-clark-accent/10 via-transparent to-clark-accent/5 opacity-60 blur-sm -z-10" />
       )}
 
       {/* Input row */}
@@ -84,7 +110,7 @@ export function GenreSearchBar({
           )}
         />
 
-        {/* Input */}
+        {/* Input — all browser focus styles removed; container handles the focus ring */}
         <input
           ref={inputRef}
           type="text"
@@ -100,10 +126,10 @@ export function GenreSearchBar({
           onKeyDown={onKeyDown}
           placeholder={placeholder}
           aria-label="Pesquisar gêneros"
+          style={focusResetStyle}
           className={cn(
-            'flex-1 bg-transparent border-none outline-none px-3 font-body text-sm',
+            'genre-search-input flex-1 bg-transparent border-none px-3 font-body text-sm',
             'text-clark-text-primary placeholder:text-clark-text-muted/40',
-            'focus:ring-0 focus:outline-none',
           )}
         />
 
@@ -127,5 +153,6 @@ export function GenreSearchBar({
         )}
       </div>
     </div>
+    </>
   )
 }
