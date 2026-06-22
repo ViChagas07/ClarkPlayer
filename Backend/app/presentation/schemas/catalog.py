@@ -209,6 +209,31 @@ class CatalogSearchResponse(BaseModel):
     total: int = 0
 
 
+class CatalogSearchSuggestions(BaseModel):
+    """Categorized autocomplete suggestions for the search-as-you-type dropdown."""
+
+    class _ArtistSuggestion(BaseModel):
+        id: str
+        name: str
+        image_url: str | None = None
+
+    class _AlbumSuggestion(BaseModel):
+        id: str
+        title: str
+        artist_name: str
+        cover_url: str | None = None
+
+    class _TrackSuggestion(BaseModel):
+        id: str
+        title: str
+        artist_name: str
+        cover_url: str | None = None
+
+    artists: list[_ArtistSuggestion] = Field(default_factory=list)
+    albums: list[_AlbumSuggestion] = Field(default_factory=list)
+    tracks: list[_TrackSuggestion] = Field(default_factory=list)
+
+
 # ── Discovery Schemas ──────────────────────────────────────────────────────
 
 class DiscoveryResponse(BaseModel):

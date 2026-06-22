@@ -345,3 +345,97 @@ class CatalogSearchEngine:
                     break
 
         return suggestions[:limit]
+
+    async def search_suggestions(self, prefix: str, per_category: int = 5) -> dict:
+        """
+        Return categorized suggestions for search-as-you-type.
+
+        Returns up to *per_category* results for each of artists, albums, and
+        tracks — with enough metadata to render a rich dropdown.
+        """
+        pattern = f"{prefix}%"
+
+        # ── Artists ─────────────────────────────────────────────────
+        artist_stmt = (
+            select(
+                CatalogArtistModel.id,
+                CatalogArtistModel.name,
+                CatalogArtistModel.image_url,
+            )
+            .where(CatalogArtistModel.name.ilike(pattern))
+            .order_by(CatalogArtistModel.popularity.desc())
+            .limit(per_category)
+        )
+        artist_result = await self._session.execute(artist_stmt)
+        artists = [
+            {
+                "id": str(row.id),
+                "name": row.name,
+                "image_url": row.image_url,
+            }
+            for row in artist_result
+        ]
+
+        # ── Albums ──────────────────────────────────────────────────
+        album_stmt = (
+            select(
+                CatalogAlbumModel.id,
+                CatalogAlbumModel.title,
+                CatalogAlbumModel.cover_url,
+                CatalogArtistModel.name.label("artist_name"),
+            )
+            .join(
+                CatalogArtistModel,
+                CatalogAlbumModel.artist_id == CatalogArtistModel.id,
+            )
+            .where(CatalogAlbumModel.title.ilike(pattern))
+            .order_by(CatalogAlbumModel.track_count.desc())
+            .limit(per_category)
+        )
+        album_result = await self._session.execute(album_stmt)
+        albums = [
+            {
+                "id": str(row.id),
+                "title": row.title,
+                "artist_name": row.artist_name,
+                "cover_url": row.cover_url,
+            }
+            for row in album_result
+        ]
+
+        # ── Tracks ──────────────────────────────────────────────────
+        track_stmt = (
+            select(
+                CatalogTrackModel.id,
+                CatalogTrackModel.title,
+                CatalogAlbumModel.cover_url,
+                CatalogArtistModel.name.label("artist_name"),
+            )
+            .join(
+                CatalogArtistModel,
+                CatalogTrackModel.artist_id == CatalogArtistModel.id,
+            )
+            .outerjoin(
+                CatalogAlbumModel,
+                CatalogTrackModel.album_id == CatalogAlbumModel.id,
+            )
+            .where(CatalogTrackModel.title.ilike(pattern))
+            .order_by(CatalogTrackModel.popularity.desc())
+            .limit(per_category)
+        )
+        track_result = await self._session.execute(track_stmt)
+        tracks = [
+            {
+                "id": str(row.id),
+                "title": row.title,
+                "artist_name": row.artist_name,
+                "cover_url": row.cover_url,
+            }
+            for row in track_result
+        ]
+
+        return {
+            "artists": artists,
+            "albums": albums,
+            "tracks": tracks,
+        }

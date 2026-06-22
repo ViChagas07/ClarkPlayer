@@ -51,6 +51,7 @@ from app.presentation.schemas.catalog import (
     CatalogArtistSummary,
     CatalogGenreResponse,
     CatalogSearchResponse,
+    CatalogSearchSuggestions,
     CatalogTrackDetailResponse,
     CatalogTrackItem,
     CatalogTrackListResponse,
@@ -431,6 +432,23 @@ async def autocomplete(
     """Fast prefix search for autocomplete / type-ahead."""
     engine = CatalogSearchEngine(session)
     return await engine.autocomplete(q, limit=limit)
+
+
+@router.get(
+    "/search/suggestions",
+    response_model=CatalogSearchSuggestions,
+    summary="Categorized search suggestions",
+    description="Return categorized suggestions (artists, albums, tracks) for "
+    "the search-as-you-type dropdown.  Returns up to 5 results per category.",
+)
+async def search_suggestions(
+    session: SessionDep,
+    q: str = Query(..., min_length=1, max_length=100, description="Search prefix"),
+) -> CatalogSearchSuggestions:
+    """Categorized autocomplete — returns rich objects per entity type."""
+    engine = CatalogSearchEngine(session)
+    result = await engine.search_suggestions(q, per_category=5)
+    return CatalogSearchSuggestions(**result)
 
 
 # ── Artists ─────────────────────────────────────────────────────────────────

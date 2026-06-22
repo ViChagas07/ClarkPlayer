@@ -5,6 +5,7 @@ import { api } from '@/lib/api'
 import type {
   CatalogDiscoveryResponse,
   CatalogSearchResponse,
+  CatalogSearchSuggestions,
   CatalogListResponse,
   CatalogArtistItem,
   CatalogArtistResponse,
@@ -158,6 +159,15 @@ export function useAutocomplete(query: string) {
     queryFn: () => api.catalogAutocomplete(query),
     enabled: query.length >= 2,
     staleTime: 60 * 1000,
+  })
+}
+
+export function useCatalogSearchSuggestions(query: string) {
+  return useQuery<CatalogSearchSuggestions>({
+    queryKey: ['catalog', 'search', 'suggestions', query],
+    queryFn: () => api.catalogSearchSuggestions(query),
+    enabled: query.length >= 1,
+    staleTime: 30 * 1000,
   })
 }
 

@@ -419,20 +419,50 @@ export interface CatalogDiscoveryResponse {
   sections: CatalogDiscoverySection[]
 }
 
-export interface CatalogSearchResult {
+// ── Search-specific types (mirrors backend schemas exactly) ────────────
+
+export interface CatalogArtistSummary {
   id: string
-  type: 'track' | 'artist' | 'album'
+  name: string
+  image_url: string | null
+  genres: string[]
+  popularity: number
+  country: string | null
+  is_brazilian: boolean
+}
+
+export interface CatalogAlbumSummary {
+  id: string
   title: string
-  artist_name: string | null
+  artist_id: string
+  artist_name: string
   cover_url: string | null
+  release_date: string | null
+  track_count: number
+}
+
+export interface CatalogGenreResponse {
+  id: string
+  name: string
+  slug: string
+  artist_count: number
+  track_count: number
+  mosaic_images: string[]
 }
 
 export interface CatalogSearchResponse {
   query: string
-  results: CatalogSearchResult[]
+  artists: CatalogArtistSummary[]
+  tracks: CatalogTrackItem[]
+  albums: CatalogAlbumSummary[]
+  genres: CatalogGenreResponse[]
   total: number
-  offset: number
-  limit: number
+}
+
+export interface CatalogSearchSuggestions {
+  artists: Array<{ id: string; name: string; image_url: string | null }>
+  albums: Array<{ id: string; title: string; artist_name: string; cover_url: string | null }>
+  tracks: Array<{ id: string; title: string; artist_name: string; cover_url: string | null }>
 }
 
 export interface CatalogArtistResponse {

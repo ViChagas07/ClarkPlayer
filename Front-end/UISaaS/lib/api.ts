@@ -38,6 +38,7 @@ import type {
   CatalogTrackItem,
   CatalogAlbumItem,
   CatalogAutocompleteResponse,
+  CatalogSearchSuggestions,
 } from '@/types'
 
 class ApiError extends Error {
@@ -710,6 +711,12 @@ export const api = {
 
   catalogAutocomplete(query: string): Promise<CatalogAutocompleteResponse> {
     return _fetch<CatalogAutocompleteResponse>(`/api/v1/catalog/autocomplete?q=${encodeURIComponent(query)}`)
+  },
+
+  catalogSearchSuggestions(query: string): Promise<CatalogSearchSuggestions> {
+    return _fetch<CatalogSearchSuggestions>(
+      `/api/v1/catalog/search/suggestions?q=${encodeURIComponent(query)}`,
+    )
   },
 } as const
 
