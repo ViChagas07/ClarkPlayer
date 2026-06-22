@@ -153,6 +153,17 @@ export default function GenresPage() {
   // During the 300ms debounce window, genres stay normal → no flicker.
   const isSearchActive = isSearching && hasResults
 
+  // Split genres into matching (top) and non-matching (bottom) when searching.
+  // This moves results closer to the search bar for better UX.
+  const matchingGenres = useMemo(
+    () => genres.filter((g) => matchingSlugs.has(g.slug)),
+    [genres, matchingSlugs],
+  )
+  const nonMatchingGenres = useMemo(
+    () => genres.filter((g) => !matchingSlugs.has(g.slug)),
+    [genres, matchingSlugs],
+  )
+
   // ── IntersectionObserver for scroll infinite ───────────────────
   const sentinelRef = useRef<HTMLDivElement>(null)
 
@@ -221,36 +232,68 @@ export default function GenresPage() {
               Catalog data will appear here once available.
             </p>
           </div>
-        ) : (
+        ) : isSearchActive ? (
           <>
-            {/* Genre grid — ALL genres always render */}
+            {/* ── MATCHING GENRES (top, closer to search bar) ─────── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[120px]">
+              {matchingGenres.map((genre, i) => (
+                <GenreCard
+                  key={genre.slug}
+                  genre={genre}
+                  index={i}
+                  isHighlighted={true}
+                  isSearchActive={true}
+                />
+              ))}
+            </div>
+
+            {/* ── NON-MATCHING GENRES (blurred, below) ────────────── */}
+            {nonMatchingGenres.length > 0 && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[120px]">
+                  {nonMatchingGenres.map((genre, i) => (
+                    <GenreCard
+                      key={genre.slug}
+                      genre={genre}
+                      index={i + matchingGenres.length}
+                      isHighlighted={false}
+                      isSearchActive={true}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        ) : !isSearching ? (
+          <>
+            {/* ── ALL GENRES (normal, no search) ──────────────────── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[120px]">
               {genres.map((genre, i) => (
                 <GenreCard
                   key={genre.slug}
                   genre={genre}
                   index={i}
-                  isHighlighted={matchingSlugs.has(genre.slug)}
-                  isSearchActive={isSearchActive}
+                  isHighlighted={false}
+                  isSearchActive={false}
                 />
               ))}
             </div>
-
-            {/* Empty search hint (when searching but no matches found) */}
-            {isSearching && !hasResults && (
-              <div className="flex flex-col items-center justify-center py-12 px-6 text-center animate-fade-in-scale">
-                <p className="font-body text-sm text-clark-text-muted/70">
-                  Nenhum gênero encontrado para{' '}
-                  <span className="text-clark-text-primary/80 font-medium">
-                    &ldquo;{query}&rdquo;
-                  </span>
-                </p>
-                <p className="font-body text-xs text-clark-text-muted/40 mt-2">
-                  Tente pesquisar utilizando outros termos.
-                </p>
-              </div>
-            )}
           </>
+        ) : null}
+
+        {/* ── Empty search hint (when searching but no matches) ── */}
+        {isSearching && !hasResults && genres.length > 0 && (
+          <div className="flex flex-col items-center justify-center py-12 px-6 text-center animate-fade-in-scale">
+            <p className="font-body text-sm text-clark-text-muted/70">
+              Nenhum gênero encontrado para{' '}
+              <span className="text-clark-text-primary/80 font-medium">
+                &ldquo;{query}&rdquo;
+              </span>
+            </p>
+            <p className="font-body text-xs text-clark-text-muted/40 mt-2">
+              Tente pesquisar utilizando outros termos.
+            </p>
+          </div>
         )}
 
         {/* Infinite scroll (only when not searching) */}
