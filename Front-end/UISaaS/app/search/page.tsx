@@ -610,13 +610,22 @@ export default function SearchPage() {
                   </div>
                 )}
 
-                {/* No suggestions */}
+                {/* No suggestions — descriptive message */}
                 {suggestions.artists.length === 0 &&
                   suggestions.albums.length === 0 &&
                   suggestions.tracks.length === 0 && (
                     <div className="p-6 text-center">
-                      <p className="font-body text-sm text-clark-text-muted/50">
-                        {t('startTyping')}
+                      <div className="w-12 h-12 rounded-full bg-clark-bg-secondary/40 flex items-center justify-center mx-auto mb-3">
+                        <SearchIcon className="w-5 h-5 text-clark-text-muted/30" />
+                      </div>
+                      <p className="font-body text-sm text-clark-text-muted/70">
+                        Não foi possível encontrar{' '}
+                        <span className="text-clark-text-primary/80 font-medium">
+                          &ldquo;{query}&rdquo;
+                        </span>
+                      </p>
+                      <p className="font-body text-xs text-clark-text-muted/40 mt-2">
+                        Verifique a ortografia ou tente termos mais gerais.
                       </p>
                     </div>
                   )}
@@ -625,6 +634,13 @@ export default function SearchPage() {
           </div>
         </div>
 
+        {/* ── Blurrable content below search bar ────────────────────── */}
+        <div
+          className={cn(
+            'space-y-6 transition-all duration-300',
+            showSuggestions && query.length >= 1 && 'blur-sm pointer-events-none select-none',
+          )}
+        >
         {/* ── Error state ────────────────────────────────────────── */}
         {searchError && isSearching && (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-clark-accent/10 border border-clark-accent/30">
@@ -804,6 +820,7 @@ export default function SearchPage() {
             )}
           </div>
         )}
+        </div>
       </div>
     </AppShell>
   )
