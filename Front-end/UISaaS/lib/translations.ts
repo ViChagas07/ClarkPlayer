@@ -251,6 +251,66 @@ export interface TranslationMap {
   agreeTermsPart2: string
   andLowercase: string
 
+  // ── Privacy Policy Page ──
+  legalLabel: string
+  privacyTitle: string
+  policyAccent: string
+  privacySubtitle: string
+  ppNavIntro: string
+  ppNavData: string
+  ppNavUsage: string
+  ppNavCookies: string
+  ppNavSecurity: string
+  ppNavLgpdRights: string
+  ppNavTerms: string
+  ppS1Title: string
+  ppS1Body: string
+  ppS2Title: string
+  ppS2AccountTitle: string
+  ppS2AccountBody: string
+  ppS2UsageTitle: string
+  ppS2UsageBody: string
+  ppS2TechnicalTitle: string
+  ppS2TechnicalBody: string
+  ppS3Title: string
+  ppS3Body: string
+  ppS4Title: string
+  ppS4NeverSell: string
+  ppS4Body: string
+  ppS5Title: string
+  ppS5Body: string
+  ppS5ClearData: string
+  ppS6Title: string
+  ppS6Body: string
+  ppS6Items: string
+  ppS7Title: string
+  ppS7Intro: string
+  ppS7Items: string
+  ppS8Title: string
+  ppS8Body: string
+  ppS8Steps: string
+  ppS8DeletePath: string
+  ppS9Title: string
+  ppS9Body: string
+  ppS10Title: string
+  ppS10Body: string
+  ppS10PermittedUse: string
+  ppS10PermittedUseBody: string
+  ppS10UserResp: string
+  ppS10UserRespBody: string
+  ppS10Prohibited: string
+  ppS10ProhibitedItems: string
+  ppS10IP: string
+  ppS10IPBody: string
+  ppS10Liability: string
+  ppS10LiabilityBody: string
+  ppS10Changes: string
+  ppS10ChangesBody: string
+  ppS11Title: string
+  ppS11Body: string
+  ppContactEmail: string
+  ppLastUpdated: string
+
   // ── Section titles ──
   trendingNow: string
   topArtists: string
@@ -608,6 +668,66 @@ const translations = {
     agreeTermsPart1: 'I have read the',
     agreeTermsPart2: 'and agree to them.',
     andLowercase: 'and',
+    // ── Privacy Policy Page ──
+    legalLabel: 'Legal',
+    privacyTitle: 'Privacy',
+    policyAccent: 'Policy',
+    privacySubtitle: 'How ClarkPlayer collects, uses, and protects your data. Full LGPD compliance.',
+    ppNavIntro: 'Intro',
+    ppNavData: 'Data',
+    ppNavUsage: 'Usage',
+    ppNavCookies: 'Cookies',
+    ppNavSecurity: 'Security',
+    ppNavLgpdRights: 'LGPD Rights',
+    ppNavTerms: 'Terms',
+    ppS1Title: '1. Introduction',
+    ppS1Body: 'ClarkPlayer is a music streaming platform that delivers personalized musical experiences, artist discovery, and intelligent recommendations. To provide these features, we process certain personal data with transparency and respect.\n\nThis policy explains what data we collect, why we collect it, how we use it, and your rights under the Brazilian General Data Protection Law (LGPD — Lei 13.709/2018).',
+    ppS2Title: '2. Data We Collect',
+    ppS2AccountTitle: 'Account Data',
+    ppS2AccountBody: 'When you create an account or sign in via Google OAuth, we collect your name, email address, and avatar image to identify you and personalize your experience.',
+    ppS2UsageTitle: 'Usage Data',
+    ppS2UsageBody: 'We track tracks played, artists and albums visited, searches performed, favorites saved, and playlists created. This data powers our recommendation engine and improves your discovery experience.',
+    ppS2TechnicalTitle: 'Technical Data',
+    ppS2TechnicalBody: 'Browser type, operating system, device information, access logs, performance metrics, and interface preferences (theme, language, sleep timer) are collected to ensure platform stability and security.',
+    ppS3Title: '3. How We Use Your Data',
+    ppS3Body: 'Personalization — Tailor music recommendations, genre suggestions, and artist discoveries based on your listening history.\nAuthentication — Securely identify you and protect your account.\nPerformance — Monitor and improve platform speed, stability, and reliability.\nSecurity — Detect and prevent fraud, abuse, and unauthorized access.\nLegal Compliance — Meet regulatory obligations under LGPD and applicable laws.',
+    ppS4Title: '4. Data Sharing',
+    ppS4NeverSell: 'We never sell your personal data.',
+    ppS4Body: 'Authentication Providers — Google OAuth for secure sign-in.\nInfrastructure — Hosting (Vercel, Render), database (Neon PostgreSQL), cache (Redis).\nLegal Obligation — When required by law or court order.',
+    ppS5Title: '5. Cookies & Local Storage',
+    ppS5Body: 'Authentication — JWT tokens stored securely to keep you signed in.\nPreferences — Theme (dark/light), language, sleep timer settings.\nCache — Music catalog data cached locally for speed and offline resilience.',
+    ppS5ClearData: 'You can clear this data anytime through your browser settings or by signing out.',
+    ppS6Title: '6. Security',
+    ppS6Body: 'We implement industry-standard security measures:',
+    ppS6Items: 'HTTPS — All communication is encrypted in transit.\nJWT Authentication — Tokens with short expiration times.\nPassword Hashing — Passwords are never stored in plain text.\nRate Limiting — Protection against brute-force attacks.\nMonitoring — Continuous security monitoring and incident response.',
+    ppS7Title: '7. Your LGPD Rights',
+    ppS7Intro: 'Under Brazilian law (LGPD), you have the right to:',
+    ppS7Items: 'Access — Request a copy of all personal data we hold about you.\nCorrection — Update incomplete or inaccurate data.\nDeletion — Request permanent deletion of your account and data.\nPortability — Export your data in a structured, machine-readable format (JSON).\nConsent Revocation — Withdraw consent at any time.\nInformation — Know which entities your data is shared with.',
+    ppS8Title: '8. Account Deletion',
+    ppS8Body: 'You may delete your account at any time. This process:',
+    ppS8Steps: 'Marks your account for deletion\nRemoves personal identifiers (name, email, avatar)\nAnonymizes listening history and behavioral data\nRetains anonymized data for aggregate analytics only',
+    ppS8DeletePath: 'To delete your account, go to Settings → Account → Delete Account or contact us directly.',
+    ppS9Title: '9. Data Retention',
+    ppS9Body: 'Personal data is retained only while your account is active. Expired sessions, old logs, and stale cache entries are automatically purged. After account deletion, residual data is removed within 30 days.',
+    ppS10Title: '10. Terms of Use',
+    ppS10Body: 'By using ClarkPlayer, you agree to these terms. If you disagree, please discontinue use immediately.',
+    ppS10PermittedUse: 'Permitted Use',
+    ppS10PermittedUseBody: 'ClarkPlayer is a personal music streaming and discovery platform. You may browse, search, play previews, create playlists, and manage your music library.',
+    ppS10UserResp: 'User Responsibilities',
+    ppS10UserRespBody: 'You are responsible for maintaining the confidentiality of your account credentials and for all activity under your account. You agree to provide accurate registration information.',
+    ppS10Prohibited: 'Prohibited Conduct',
+    ppS10ProhibitedItems: 'Scraping, crawling, or automated data extraction\nUnauthorized API access or reverse engineering\nAbusing preview URLs or downloading content\nAttempting to circumvent security measures\nUsing the platform for illegal activities\nHarassing or impersonating other users',
+    ppS10IP: 'Intellectual Property',
+    ppS10IPBody: 'All music content, previews, and artwork are property of their respective rights holders (Apple/iTunes, Spotify, record labels). ClarkPlayer provides discovery and streaming previews only — no content is hosted or redistributed.',
+    ppS10Liability: 'Limitation of Liability',
+    ppS10LiabilityBody: 'ClarkPlayer is provided "as is" without warranties. We are not liable for damages arising from use or inability to use the platform.',
+    ppS10Changes: 'Changes to Terms',
+    ppS10ChangesBody: 'We may update these terms. Continued use after changes constitutes acceptance. Material changes will be notified via the platform.',
+    ppS11Title: '11. Contact',
+    ppS11Body: 'For privacy-related inquiries, data requests, or to exercise your LGPD rights, contact:',
+    ppContactEmail: 'privacy@clarkplayer.app',
+    ppLastUpdated: 'Last updated: June 18, 2026 — Version 1.0',
+
     // ── Section titles ──
     trendingNow: 'Trending Now',
     topArtists: 'Top Artists',
@@ -953,6 +1073,66 @@ const translations = {
     agreeTermsPart1: 'Eu li os',
     agreeTermsPart2: 'e concordo com eles.',
     andLowercase: 'e',
+    // ── Privacy Policy Page ──
+    legalLabel: 'Legal',
+    privacyTitle: 'Privacidade',
+    policyAccent: 'Pol\u00edtica',
+    privacySubtitle: 'Como o ClarkPlayer coleta, usa e protege seus dados. Conformidade total com a LGPD.',
+    ppNavIntro: 'Introdu\u00e7\u00e3o',
+    ppNavData: 'Dados',
+    ppNavUsage: 'Uso',
+    ppNavCookies: 'Cookies',
+    ppNavSecurity: 'Seguran\u00e7a',
+    ppNavLgpdRights: 'Direitos LGPD',
+    ppNavTerms: 'Termos',
+    ppS1Title: '1. Introdu\u00e7\u00e3o',
+    ppS1Body: 'O ClarkPlayer \u00e9 uma plataforma de streaming de m\u00fasica que oferece experi\u00eancias musicais personalizadas, descoberta de artistas e recomenda\u00e7\u00f5es inteligentes. Para fornecer esses recursos, processamos certos dados pessoais com transpar\u00eancia e respeito.\n\nEsta pol\u00edtica explica quais dados coletamos, por que coletamos, como os usamos e seus direitos sob a Lei Geral de Prote\u00e7\u00e3o de Dados (LGPD — Lei 13.709/2018).',
+    ppS2Title: '2. Dados que Coletamos',
+    ppS2AccountTitle: 'Dados da Conta',
+    ppS2AccountBody: 'Ao criar uma conta ou entrar via Google OAuth, coletamos seu nome, endere\u00e7o de e-mail e imagem de avatar para identific\u00e1-lo e personalizar sua experi\u00eancia.',
+    ppS2UsageTitle: 'Dados de Uso',
+    ppS2UsageBody: 'Monitoramos faixas tocadas, artistas e \u00e1lbuns visitados, pesquisas realizadas, favoritos salvos e playlists criadas. Esses dados alimentam nosso mecanismo de recomenda\u00e7\u00e3o e melhoram sua experi\u00eancia de descoberta.',
+    ppS2TechnicalTitle: 'Dados T\u00e9cnicos',
+    ppS2TechnicalBody: 'Tipo de navegador, sistema operacional, informa\u00e7\u00f5es do dispositivo, logs de acesso, m\u00e9tricas de desempenho e prefer\u00eancias de interface (tema, idioma, temporizador) s\u00e3o coletados para garantir estabilidade e seguran\u00e7a da plataforma.',
+    ppS3Title: '3. Como Usamos Seus Dados',
+    ppS3Body: 'Personaliza\u00e7\u00e3o — Adaptar recomenda\u00e7\u00f5es musicais, sugest\u00f5es de g\u00eanero e descobertas de artistas com base no seu hist\u00f3rico de audi\u00e7\u00e3o.\nAutentica\u00e7\u00e3o — Identific\u00e1-lo com seguran\u00e7a e proteger sua conta.\nDesempenho — Monitorar e melhorar a velocidade, estabilidade e confiabilidade da plataforma.\nSeguran\u00e7a — Detectar e prevenir fraudes, abusos e acessos n\u00e3o autorizados.\nConformidade Legal — Cumprir obriga\u00e7\u00f5es regulat\u00f3rias sob a LGPD e leis aplic\u00e1veis.',
+    ppS4Title: '4. Compartilhamento de Dados',
+    ppS4NeverSell: 'N\u00f3s nunca vendemos seus dados pessoais.',
+    ppS4Body: 'Provedores de Autentica\u00e7\u00e3o — Google OAuth para login seguro.\nInfraestrutura — Hospedagem (Vercel, Render), banco de dados (Neon PostgreSQL), cache (Redis).\nObriga\u00e7\u00e3o Legal — Quando exigido por lei ou ordem judicial.',
+    ppS5Title: '5. Cookies e Armazenamento Local',
+    ppS5Body: 'Autentica\u00e7\u00e3o — Tokens JWT armazenados com seguran\u00e7a para manter voc\u00ea conectado.\nPrefer\u00eancias — Tema (escuro/claro), idioma, configura\u00e7\u00f5es do temporizador.\nCache — Dados do cat\u00e1logo de m\u00fasica armazenados em cache localmente para velocidade e resili\u00eancia offline.',
+    ppS5ClearData: 'Voc\u00ea pode limpar esses dados a qualquer momento atrav\u00e9s das configura\u00e7\u00f5es do navegador ou saindo da conta.',
+    ppS6Title: '6. Seguran\u00e7a',
+    ppS6Body: 'Implementamos medidas de seguran\u00e7a de acordo com os padr\u00f5es da ind\u00fastria:',
+    ppS6Items: 'HTTPS — Toda comunica\u00e7\u00e3o \u00e9 criptografada em tr\u00e2nsito.\nAutentica\u00e7\u00e3o JWT — Tokens com prazos de expira\u00e7\u00e3o curtos.\nHash de Senhas — Senhas nunca s\u00e3o armazenadas em texto puro.\nLimita\u00e7\u00e3o de Taxa — Prote\u00e7\u00e3o contra ataques de for\u00e7a bruta.\nMonitoramento — Monitoramento cont\u00ednuo de seguran\u00e7a e resposta a incidentes.',
+    ppS7Title: '7. Seus Direitos LGPD',
+    ppS7Intro: 'De acordo com a lei brasileira (LGPD), voc\u00ea tem o direito de:',
+    ppS7Items: 'Acesso — Solicitar uma c\u00f3pia de todos os dados pessoais que temos sobre voc\u00ea.\nCorre\u00e7\u00e3o — Atualizar dados incompletos ou imprecisos.\nExclus\u00e3o — Solicitar a exclus\u00e3o permanente de sua conta e dados.\nPortabilidade — Exportar seus dados em formato estruturado e leg\u00edvel por m\u00e1quina (JSON).\nRevoga\u00e7\u00e3o de Consentimento — Retirar o consentimento a qualquer momento.\nInforma\u00e7\u00e3o — Saber com quais entidades seus dados s\u00e3o compartilhados.',
+    ppS8Title: '8. Exclus\u00e3o de Conta',
+    ppS8Body: 'Voc\u00ea pode excluir sua conta a qualquer momento. Este processo:',
+    ppS8Steps: 'Marca sua conta para exclus\u00e3o\nRemove identificadores pessoais (nome, e-mail, avatar)\nAnonimiza o hist\u00f3rico de audi\u00e7\u00e3o e dados comportamentais\nRet\u00e9m dados anonimizados apenas para an\u00e1lise agregada',
+    ppS8DeletePath: 'Para excluir sua conta, v\u00e1 em Configura\u00e7\u00f5es \u2192 Conta \u2192 Excluir Conta ou entre em contato diretamente.',
+    ppS9Title: '9. Reten\u00e7\u00e3o de Dados',
+    ppS9Body: 'Os dados pessoais s\u00e3o retidos apenas enquanto sua conta estiver ativa. Sess\u00f5es expiradas, logs antigos e entradas de cache obsoletas s\u00e3o purgados automaticamente. Ap\u00f3s a exclus\u00e3o da conta, os dados residuais s\u00e3o removidos em at\u00e9 30 dias.',
+    ppS10Title: '10. Termos de Uso',
+    ppS10Body: 'Ao usar o ClarkPlayer, voc\u00ea concorda com estes termos. Se n\u00e3o concordar, pare de usar imediatamente.',
+    ppS10PermittedUse: 'Uso Permitido',
+    ppS10PermittedUseBody: 'O ClarkPlayer \u00e9 uma plataforma pessoal de streaming e descoberta de m\u00fasica. Voc\u00ea pode navegar, pesquisar, ouvir pr\u00e9vias, criar playlists e gerenciar sua biblioteca musical.',
+    ppS10UserResp: 'Responsabilidades do Usu\u00e1rio',
+    ppS10UserRespBody: 'Voc\u00ea \u00e9 respons\u00e1vel por manter a confidencialidade de suas credenciais de conta e por toda atividade em sua conta. Voc\u00ea concorda em fornecer informa\u00e7\u00f5es de registro precisas.',
+    ppS10Prohibited: 'Condutas Proibidas',
+    ppS10ProhibitedItems: 'Extra\u00e7\u00e3o automatizada de dados (scraping, crawling)\nAcesso n\u00e3o autorizado \u00e0 API ou engenharia reversa\nUso abusivo de URLs de pr\u00e9via ou download de conte\u00fado\nTentativa de burlar medidas de seguran\u00e7a\nUso da plataforma para atividades ilegais\nAss\u00e9dio ou falsifica\u00e7\u00e3o de identidade de outros usu\u00e1rios',
+    ppS10IP: 'Propriedade Intelectual',
+    ppS10IPBody: 'Todo conte\u00fado musical, pr\u00e9vias e artwork s\u00e3o propriedade de seus respectivos detentores (Apple/iTunes, Spotify, gravadoras). O ClarkPlayer fornece apenas descoberta e pr\u00e9vias em streaming — nenhum conte\u00fado \u00e9 hospedado ou redistribu\u00eddo.',
+    ppS10Liability: 'Limita\u00e7\u00e3o de Responsabilidade',
+    ppS10LiabilityBody: 'O ClarkPlayer \u00e9 fornecido "como est\u00e1", sem garantias. N\u00e3o nos responsabilizamos por danos decorrentes do uso ou da impossibilidade de uso da plataforma.',
+    ppS10Changes: 'Altera\u00e7\u00f5es nos Termos',
+    ppS10ChangesBody: 'Podemos atualizar estes termos. O uso continuado ap\u00f3s altera\u00e7\u00f5es constitui aceita\u00e7\u00e3o. Altera\u00e7\u00f5es materiais ser\u00e3o notificadas atrav\u00e9s da plataforma.',
+    ppS11Title: '11. Contato',
+    ppS11Body: 'Para d\u00favidas relacionadas \u00e0 privacidade, solicita\u00e7\u00f5es de dados ou para exercer seus direitos LGPD, entre em contato:',
+    ppContactEmail: 'privacy@clarkplayer.app',
+    ppLastUpdated: '\u00daltima atualiza\u00e7\u00e3o: 18 de junho de 2026 — Vers\u00e3o 1.0',
+
     // ── Section titles ──
     trendingNow: 'Em Alta Agora',
     topArtists: 'Artistas Populares',
@@ -1298,6 +1478,66 @@ const translations = {
     agreeTermsPart1: 'He le\u00eddo los',
     agreeTermsPart2: 'y estoy de acuerdo.',
     andLowercase: 'y',
+    // ── Privacy Policy Page ──
+    legalLabel: 'Legal',
+    privacyTitle: 'Privacidad',
+    policyAccent: 'Pol\u00edtica',
+    privacySubtitle: 'C\u00f3mo ClarkPlayer recopila, usa y protege tus datos. Cumplimiento total con la LGPD.',
+    ppNavIntro: 'Introducci\u00f3n',
+    ppNavData: 'Datos',
+    ppNavUsage: 'Uso',
+    ppNavCookies: 'Cookies',
+    ppNavSecurity: 'Seguridad',
+    ppNavLgpdRights: 'Derechos LGPD',
+    ppNavTerms: 'T\u00e9rminos',
+    ppS1Title: '1. Introducci\u00f3n',
+    ppS1Body: 'ClarkPlayer es una plataforma de m\u00fasica en streaming que ofrece experiencias musicales personalizadas, descubrimiento de artistas y recomendaciones inteligentes. Para proporcionar estas funciones, procesamos ciertos datos personales con transparencia y respeto.\n\nEsta pol\u00edtica explica qu\u00e9 datos recopilamos, por qu\u00e9 los recopilamos, c\u00f3mo los usamos y tus derechos bajo la Ley General de Protecci\u00f3n de Datos de Brasil (LGPD — Lei 13.709/2018).',
+    ppS2Title: '2. Datos que Recopilamos',
+    ppS2AccountTitle: 'Datos de la Cuenta',
+    ppS2AccountBody: 'Al crear una cuenta o iniciar sesi\u00f3n a trav\u00e9s de Google OAuth, recopilamos tu nombre, direcci\u00f3n de correo electr\u00f3nico e imagen de avatar para identificarte y personalizar tu experiencia.',
+    ppS2UsageTitle: 'Datos de Uso',
+    ppS2UsageBody: 'Rastreamos pistas reproducidas, artistas y \u00e1lbumes visitados, b\u00fasquedas realizadas, favoritos guardados y playlists creadas. Estos datos alimentan nuestro motor de recomendaciones y mejoran tu experiencia de descubrimiento.',
+    ppS2TechnicalTitle: 'Datos T\u00e9cnicos',
+    ppS2TechnicalBody: 'El tipo de navegador, sistema operativo, informaci\u00f3n del dispositivo, registros de acceso, m\u00e9tricas de rendimiento y preferencias de interfaz (tema, idioma, temporizador) se recopilan para garantizar la estabilidad y seguridad de la plataforma.',
+    ppS3Title: '3. C\u00f3mo Usamos Tus Datos',
+    ppS3Body: 'Personalizaci\u00f3n — Adaptar recomendaciones musicales, sugerencias de g\u00e9nero y descubrimientos de artistas seg\u00fan tu historial de escucha.\nAutenticaci\u00f3n — Identificarte de forma segura y proteger tu cuenta.\nRendimiento — Monitorear y mejorar la velocidad, estabilidad y confiabilidad de la plataforma.\nSeguridad — Detectar y prevenir fraudes, abusos y accesos no autorizados.\nCumplimiento Legal — Cumplir con obligaciones regulatorias seg\u00fan la LGPD y leyes aplicables.',
+    ppS4Title: '4. Compartici\u00f3n de Datos',
+    ppS4NeverSell: 'Nunca vendemos tus datos personales.',
+    ppS4Body: 'Proveedores de Autenticaci\u00f3n — Google OAuth para inicio de sesi\u00f3n seguro.\nInfraestructura — Alojamiento (Vercel, Render), base de datos (Neon PostgreSQL), cach\u00e9 (Redis).\nObligaci\u00f3n Legal — Cuando lo exija la ley o una orden judicial.',
+    ppS5Title: '5. Cookies y Almacenamiento Local',
+    ppS5Body: 'Autenticaci\u00f3n — Tokens JWT almacenados de forma segura para mantenerte conectado.\nPreferencias — Tema (oscuro/claro), idioma, configuraci\u00f3n del temporizador.\nCach\u00e9 — Datos del cat\u00e1logo de m\u00fasica almacenados en cach\u00e9 localmente para velocidad y resiliencia sin conexi\u00f3n.',
+    ppS5ClearData: 'Puedes borrar estos datos en cualquier momento a trav\u00e9s de la configuraci\u00f3n de tu navegador o cerrando sesi\u00f3n.',
+    ppS6Title: '6. Seguridad',
+    ppS6Body: 'Implementamos medidas de seguridad de acuerdo con los est\u00e1ndares de la industria:',
+    ppS6Items: 'HTTPS — Toda la comunicaci\u00f3n est\u00e1 cifrada en tr\u00e1nsito.\nAutenticaci\u00f3n JWT — Tokens con per\u00edodos de expiraci\u00f3n cortos.\nHash de Contrase\u00f1as — Las contrase\u00f1as nunca se almacenan en texto plano.\nLimitaci\u00f3n de Tasa — Protecci\u00f3n contra ataques de fuerza bruta.\nMonitoreo — Monitoreo continuo de seguridad y respuesta a incidentes.',
+    ppS7Title: '7. Tus Derechos LGPD',
+    ppS7Intro: 'Seg\u00fan la ley brasile\u00f1a (LGPD), tienes derecho a:',
+    ppS7Items: 'Acceso — Solicitar una copia de todos los datos personales que tenemos sobre ti.\nCorrecci\u00f3n — Actualizar datos incompletos o inexactos.\nEliminaci\u00f3n — Solicitar la eliminaci\u00f3n permanente de tu cuenta y datos.\nPortabilidad — Exportar tus datos en un formato estructurado y legible por m\u00e1quina (JSON).\nRevocaci\u00f3n de Consentimiento — Retirar el consentimiento en cualquier momento.\nInformaci\u00f3n — Saber con qu\u00e9 entidades se comparten tus datos.',
+    ppS8Title: '8. Eliminaci\u00f3n de Cuenta',
+    ppS8Body: 'Puedes eliminar tu cuenta en cualquier momento. Este proceso:',
+    ppS8Steps: 'Marca tu cuenta para eliminaci\u00f3n\nElimina identificadores personales (nombre, correo, avatar)\nAnonimiza el historial de escucha y datos de comportamiento\nConserva datos anonimizados solo para an\u00e1lisis agregados',
+    ppS8DeletePath: 'Para eliminar tu cuenta, ve a Configuraci\u00f3n \u2192 Cuenta \u2192 Eliminar Cuenta o cont\u00e1ctanos directamente.',
+    ppS9Title: '9. Retenci\u00f3n de Datos',
+    ppS9Body: 'Los datos personales se conservan solo mientras tu cuenta est\u00e9 activa. Las sesiones vencidas, los registros antiguos y las entradas de cach\u00e9 obsoletas se purgan autom\u00e1ticamente. Despu\u00e9s de eliminar la cuenta, los datos residuales se eliminan en un plazo de 30 d\u00edas.',
+    ppS10Title: '10. T\u00e9rminos de Uso',
+    ppS10Body: 'Al usar ClarkPlayer, aceptas estos t\u00e9rminos. Si no est\u00e1s de acuerdo, deja de usar la plataforma de inmediato.',
+    ppS10PermittedUse: 'Uso Permitido',
+    ppS10PermittedUseBody: 'ClarkPlayer es una plataforma personal de streaming y descubrimiento de m\u00fasica. Puedes navegar, buscar, reproducir vistas previas, crear playlists y administrar tu biblioteca musical.',
+    ppS10UserResp: 'Responsabilidades del Usuario',
+    ppS10UserRespBody: 'Eres responsable de mantener la confidencialidad de tus credenciales de cuenta y de toda la actividad bajo tu cuenta. Aceptas proporcionar informaci\u00f3n de registro precisa.',
+    ppS10Prohibited: 'Conductas Prohibidas',
+    ppS10ProhibitedItems: 'Extracci\u00f3n automatizada de datos (scraping, crawling)\nAcceso no autorizado a la API o ingenier\u00eda inversa\nUso abusivo de URL de vista previa o descarga de contenido\nIntento de eludir las medidas de seguridad\nUso de la plataforma para actividades ilegales\nAcoso o suplantaci\u00f3n de identidad de otros usuarios',
+    ppS10IP: 'Propiedad Intelectual',
+    ppS10IPBody: 'Todo el contenido musical, vistas previas y material gr\u00e1fico son propiedad de sus respectivos titulares (Apple/iTunes, Spotify, discogr\u00e1ficas). ClarkPlayer proporciona solo descubrimiento y vistas previas en streaming — no se aloja ni redistribuye ning\u00fan contenido.',
+    ppS10Liability: 'Limitaci\u00f3n de Responsabilidad',
+    ppS10LiabilityBody: 'ClarkPlayer se proporciona "tal cual" sin garant\u00edas. No somos responsables por da\u00f1os derivados del uso o la imposibilidad de usar la plataforma.',
+    ppS10Changes: 'Cambios en los T\u00e9rminos',
+    ppS10ChangesBody: 'Podemos actualizar estos t\u00e9rminos. El uso continuado despu\u00e9s de los cambios constituye aceptaci\u00f3n. Los cambios importantes se notificar\u00e1n a trav\u00e9s de la plataforma.',
+    ppS11Title: '11. Contacto',
+    ppS11Body: 'Para consultas relacionadas con la privacidad, solicitudes de datos o para ejercer tus derechos LGPD, contacta:',
+    ppContactEmail: 'privacy@clarkplayer.app',
+    ppLastUpdated: '\u00daltima actualizaci\u00f3n: 18 de junio de 2026 — Versi\u00f3n 1.0',
+
     // ── Section titles ──
     trendingNow: 'Tendencia Ahora',
     topArtists: 'Artistas Populares',
@@ -1643,6 +1883,66 @@ const translations = {
     agreeTermsPart1: 'J\u0027ai lu les',
     agreeTermsPart2: 'et j\u0027accepte.',
     andLowercase: 'et',
+    // ── Privacy Policy Page ──
+    legalLabel: 'L\u00e9gal',
+    privacyTitle: 'Confidentialit\u00e9',
+    policyAccent: 'Politique',
+    privacySubtitle: 'Comment ClarkPlayer collecte, utilise et prot\u00e8ge vos donn\u00e9es. Conformit\u00e9 totale avec la LGPD.',
+    ppNavIntro: 'Introduction',
+    ppNavData: 'Donn\u00e9es',
+    ppNavUsage: 'Utilisation',
+    ppNavCookies: 'Cookies',
+    ppNavSecurity: 'S\u00e9curit\u00e9',
+    ppNavLgpdRights: 'Droits LGPD',
+    ppNavTerms: 'Conditions',
+    ppS1Title: '1. Introduction',
+    ppS1Body: 'ClarkPlayer est une plateforme de streaming musical qui offre des exp\u00e9riences musicales personnalis\u00e9es, la d\u00e9couverte dartistes et des recommandations intelligentes. Pour fournir ces fonctionnalit\u00e9s, nous traitons certaines donn\u00e9es personnelles avec transparence et respect.\n\nCette politique explique quelles donn\u00e9es nous collectons, pourquoi nous les collectons, comment nous les utilisons et vos droits en vertu de la loi br\u00e9silienne sur la protection des donn\u00e9es (LGPD \u2014 Lei 13.709/2018).',
+    ppS2Title: '2. Donn\u00e9es que Nous Collectons',
+    ppS2AccountTitle: 'Donn\u00e9es du Compte',
+    ppS2AccountBody: 'Lorsque vous cr\u00e9ez un compte ou vous connectez via Google OAuth, nous collectons votre nom, adresse e-mail et image davatar pour vous identifier et personnaliser votre exp\u00e9rience.',
+    ppS2UsageTitle: 'Donn\u00e9es dUtilisation',
+    ppS2UsageBody: 'Nous suivons les pistes \u00e9cout\u00e9es, les artistes et albums visit\u00e9s, les recherches effectu\u00e9es, les favoris sauvegard\u00e9s et les playlists cr\u00e9\u00e9es. Ces donn\u00e9es alimentent notre moteur de recommandation et am\u00e9liorent votre exp\u00e9rience de d\u00e9couverte.',
+    ppS2TechnicalTitle: 'Donn\u00e9es Techniques',
+    ppS2TechnicalBody: 'Le type de navigateur, syst\u00e8me dexploitation, informations sur lappareil, journaux dacc\u00e8s, mesures de performance et pr\u00e9f\u00e9rences dinterface (th\u00e8me, langue, minuteur) sont collect\u00e9s pour garantir la stabilit\u00e9 et la s\u00e9curit\u00e9 de la plateforme.',
+    ppS3Title: '3. Comment Nous Utilisons Vos Donn\u00e9es',
+    ppS3Body: 'Personnalisation \u2014 Adapter les recommandations musicales, suggestions de genre et d\u00e9couvertes dartistes en fonction de votre historique d\u00e9coute.\nAuthentification \u2014 Vous identifier en toute s\u00e9curit\u00e9 et prot\u00e9ger votre compte.\nPerformance \u2014 Surveiller et am\u00e9liorer la vitesse, la stabilit\u00e9 et la fiabilit\u00e9 de la plateforme.\nS\u00e9curit\u00e9 \u2014 D\u00e9tecter et pr\u00e9venir les fraudes, abus et acc\u00e8s non autoris\u00e9s.\nConformit\u00e9 L\u00e9gale \u2014 R\u00e9pondre aux obligations r\u00e9glementaires selon la LGPD et les lois applicables.',
+    ppS4Title: '4. Partage des Donn\u00e9es',
+    ppS4NeverSell: 'Nous ne vendons jamais vos donn\u00e9es personnelles.',
+    ppS4Body: 'Fournisseurs dAuthentification \u2014 Google OAuth pour une connexion s\u00e9curis\u00e9e.\nInfrastructure \u2014 H\u00e9bergement (Vercel, Render), base de donn\u00e9es (Neon PostgreSQL), cache (Redis).\nObligation L\u00e9gale \u2014 Lorsque requis par la loi ou une ordonnance judiciaire.',
+    ppS5Title: '5. Cookies et Stockage Local',
+    ppS5Body: 'Authentification \u2014 Jetons JWT stock\u00e9s en toute s\u00e9curit\u00e9 pour vous maintenir connect\u00e9.\nPr\u00e9f\u00e9rences \u2014 Th\u00e8me (sombre/clair), langue, param\u00e8tres du minuteur.\nCache \u2014 Donn\u00e9es du catalogue musical mises en cache localement pour la vitesse et la r\u00e9silience hors ligne.',
+    ppS5ClearData: 'Vous pouvez effacer ces donn\u00e9es \u00e0 tout moment via les param\u00e8tres de votre navigateur ou en vous d\u00e9connectant.',
+    ppS6Title: '6. S\u00e9curit\u00e9',
+    ppS6Body: 'Nous mettons en \u0153uvre des mesures de s\u00e9curit\u00e9 conformes aux normes de lindustrie :',
+    ppS6Items: 'HTTPS \u2014 Toutes les communications sont chiffr\u00e9es en transit.\nAuthentification JWT \u2014 Jetons avec des dur\u00e9es dexpiration courtes.\nHachage des Mots de Passe \u2014 Les mots de passe ne sont jamais stock\u00e9s en texte clair.\nLimitation de D\u00e9bit \u2014 Protection contre les attaques par force brute.\nSurveillance \u2014 Surveillance continue de la s\u00e9curit\u00e9 et r\u00e9ponse aux incidents.',
+    ppS7Title: '7. Vos Droits LGPD',
+    ppS7Intro: 'Selon la loi br\u00e9silienne (LGPD), vous avez le droit de :',
+    ppS7Items: 'Acc\u00e8s \u2014 Demander une copie de toutes les donn\u00e9es personnelles que nous d\u00e9tenons sur vous.\nCorrection \u2014 Mettre \u00e0 jour des donn\u00e9es incompl\u00e8tes ou inexactes.\nSuppression \u2014 Demander la suppression permanente de votre compte et de vos donn\u00e9es.\nPortabilit\u00e9 \u2014 Exporter vos donn\u00e9es dans un format structur\u00e9 et lisible par machine (JSON).\nR\u00e9vocation du Consentement \u2014 Retirer votre consentement \u00e0 tout moment.\nInformation \u2014 Savoir avec quelles entit\u00e9s vos donn\u00e9es sont partag\u00e9es.',
+    ppS8Title: '8. Suppression de Compte',
+    ppS8Body: 'Vous pouvez supprimer votre compte \u00e0 tout moment. Ce processus :',
+    ppS8Steps: 'Marque votre compte pour suppression\nSupprime les identifiants personnels (nom, e-mail, avatar)\nAnonymise lhistorique d\u00e9coute et les donn\u00e9es comportementales\nConserve les donn\u00e9es anonymis\u00e9es uniquement pour les analyses agr\u00e9g\u00e9es',
+    ppS8DeletePath: 'Pour supprimer votre compte, allez dans Param\u00e8tres \u2192 Compte \u2192 Supprimer le compte ou contactez-nous directement.',
+    ppS9Title: '9. Conservation des Donn\u00e9es',
+    ppS9Body: 'Les donn\u00e9es personnelles ne sont conserv\u00e9es que pendant que votre compte est actif. Les sessions expir\u00e9es, les anciens journaux et les entr\u00e9es de cache obsol\u00e8tes sont automatiquement purg\u00e9s. Apr\u00e8s la suppression du compte, les donn\u00e9es r\u00e9siduelles sont supprim\u00e9es dans un d\u00e9lai de 30 jours.',
+    ppS10Title: '10. Conditions dUtilisation',
+    ppS10Body: 'En utilisant ClarkPlayer, vous acceptez ces conditions. Si vous n\u00eates pas daccord, veuillez cesser dutiliser la plateforme imm\u00e9diatement.',
+    ppS10PermittedUse: 'Utilisation Autoris\u00e9e',
+    ppS10PermittedUseBody: 'ClarkPlayer est une plateforme personnelle de streaming et de d\u00e9couverte musicale. Vous pouvez naviguer, rechercher, \u00e9couter des aper\u00e7us, cr\u00e9er des playlists et g\u00e9rer votre biblioth\u00e8que musicale.',
+    ppS10UserResp: 'Responsabilit\u00e9s de lUtilisateur',
+    ppS10UserRespBody: 'Vous \u00eates responsable du maintien de la confidentialit\u00e9 de vos identifiants de compte et de toute activit\u00e9 sous votre compte. Vous acceptez de fournir des informations dinscription pr\u00e9cises.',
+    ppS10Prohibited: 'Conduites Interdites',
+    ppS10ProhibitedItems: 'Extraction automatis\u00e9e de donn\u00e9es (scraping, crawling)\nAcc\u00e8s non autoris\u00e9 \u00e0 lAPI ou ing\u00e9nierie inverse\nUtilisation abusive des URL daper\u00e7u ou t\u00e9l\u00e9chargement de contenu\nTentative de contournement des mesures de s\u00e9curit\u00e9\nUtilisation de la plateforme pour des activit\u00e9s ill\u00e9gales\nHarc\u00e8lement ou usurpation didentit\u00e9 dautres utilisateurs',
+    ppS10IP: 'Propri\u00e9t\u00e9 Intellectuelle',
+    ppS10IPBody: 'Tout le contenu musical, les aper\u00e7us et les illustrations sont la propri\u00e9t\u00e9 de leurs d\u00e9tenteurs respectifs (Apple/iTunes, Spotify, labels). ClarkPlayer fournit uniquement des aper\u00e7us de d\u00e9couverte et de streaming \u2014 aucun contenu nest h\u00e9berg\u00e9 ou redistribu\u00e9.',
+    ppS10Liability: 'Limitation de Responsabilit\u00e9',
+    ppS10LiabilityBody: 'ClarkPlayer est fourni "tel quel" sans garanties. Nous ne sommes pas responsables des dommages r\u00e9sultant de lutilisation ou de limpossibilit\u00e9 dutiliser la plateforme.',
+    ppS10Changes: 'Modifications des Conditions',
+    ppS10ChangesBody: 'Nous pouvons mettre \u00e0 jour ces conditions. Lutilisation continue apr\u00e8s les modifications constitue une acceptation. Les changements importants seront notifi\u00e9s via la plateforme.',
+    ppS11Title: '11. Contact',
+    ppS11Body: 'Pour les demandes li\u00e9es \u00e0 la confidentialit\u00e9, les demandes de donn\u00e9es ou pour exercer vos droits LGPD, contactez :',
+    ppContactEmail: 'privacy@clarkplayer.app',
+    ppLastUpdated: 'Derni\u00e8re mise \u00e0 jour : 18 juin 2026 \u2014 Version 1.0',
+
     // ── Section titles ──
     trendingNow: 'Tendances',
     topArtists: 'Artistes Populaires',
@@ -1988,6 +2288,66 @@ const translations = {
     agreeTermsPart1: 'Ich habe die',
     agreeTermsPart2: 'gelesen und stimme zu.',
     andLowercase: 'und',
+    // ── Privacy Policy Page ──
+    legalLabel: 'Rechtliches',
+    privacyTitle: 'Datenschutz',
+    policyAccent: 'Richtlinie',
+    privacySubtitle: 'Wie ClarkPlayer Ihre Daten sammelt, verwendet und sch\u00fctzt. Vollst\u00e4ndige LGPD-Konformit\u00e4t.',
+    ppNavIntro: 'Einleitung',
+    ppNavData: 'Daten',
+    ppNavUsage: 'Nutzung',
+    ppNavCookies: 'Cookies',
+    ppNavSecurity: 'Sicherheit',
+    ppNavLgpdRights: 'LGPD-Rechte',
+    ppNavTerms: 'Bedingungen',
+    ppS1Title: '1. Einleitung',
+    ppS1Body: 'ClarkPlayer ist eine Musik-Streaming-Plattform, die personalisierte Musikerlebnisse, K\u00fcnstlerentdeckungen und intelligente Empfehlungen bietet. Um diese Funktionen bereitzustellen, verarbeiten wir bestimmte personenbezogene Daten mit Transparenz und Respekt.\n\nDiese Richtlinie erkl\u00e4rt, welche Daten wir sammeln, warum wir sie sammeln, wie wir sie verwenden und welche Rechte Sie gem\u00e4\u00df dem brasilianischen Datenschutzgesetz (LGPD \u2014 Lei 13.709/2018) haben.',
+    ppS2Title: '2. Daten, die Wir Sammeln',
+    ppS2AccountTitle: 'Kontodaten',
+    ppS2AccountBody: 'Wenn Sie ein Konto erstellen oder sich \u00fcber Google OAuth anmelden, erfassen wir Ihren Namen, Ihre E-Mail-Adresse und Ihr Avatar-Bild, um Sie zu identifizieren und Ihr Erlebnis zu personalisieren.',
+    ppS2UsageTitle: 'Nutzungsdaten',
+    ppS2UsageBody: 'Wir verfolgen abgespielte Titel, besuchte K\u00fcnstler und Alben, durchgef\u00fchrte Suchen, gespeicherte Favoriten und erstellte Playlists. Diese Daten versorgen unsere Empfehlungsmaschine und verbessern Ihr Entdeckungserlebnis.',
+    ppS2TechnicalTitle: 'Technische Daten',
+    ppS2TechnicalBody: 'Browsertyp, Betriebssystem, Ger\u00e4teinformationen, Zugriffsprotokolle, Leistungskennzahlen und Oberfl\u00e4chenpr\u00e4ferenzen (Design, Sprache, Schlaftimer) werden erfasst, um die Stabilit\u00e4t und Sicherheit der Plattform zu gew\u00e4hrleisten.',
+    ppS3Title: '3. Wie Wir Ihre Daten Verwenden',
+    ppS3Body: 'Personalisierung \u2014 Musikempfehlungen, Genrevorschl\u00e4ge und K\u00fcnstlerentdeckungen basierend auf Ihrem H\u00f6rverlauf anpassen.\nAuthentifizierung \u2014 Sie sicher identifizieren und Ihr Konto sch\u00fctzen.\nLeistung \u2014 Geschwindigkeit, Stabilit\u00e4t und Zuverl\u00e4ssigkeit der Plattform \u00fcberwachen und verbessern.\nSicherheit \u2014 Betrug, Missbrauch und unbefugten Zugriff erkennen und verhindern.\nRechtliche Compliance \u2014 Regulatorische Verpflichtungen gem\u00e4\u00df LGPD und geltenden Gesetzen erf\u00fcllen.',
+    ppS4Title: '4. Datenweitergabe',
+    ppS4NeverSell: 'Wir verkaufen niemals Ihre pers\u00f6nlichen Daten.',
+    ppS4Body: 'Authentifizierungsanbieter \u2014 Google OAuth f\u00fcr sichere Anmeldung.\nInfrastruktur \u2014 Hosting (Vercel, Render), Datenbank (Neon PostgreSQL), Cache (Redis).\nRechtliche Verpflichtung \u2014 Wenn gesetzlich oder gerichtlich vorgeschrieben.',
+    ppS5Title: '5. Cookies und Lokaler Speicher',
+    ppS5Body: 'Authentifizierung \u2014 JWT-Tokens sicher gespeichert, um Sie angemeldet zu halten.\nPr\u00e4ferenzen \u2014 Design (dunkel/hell), Sprache, Schlaftimer-Einstellungen.\nCache \u2014 Musikkatalogdaten lokal zwischengespeichert f\u00fcr Geschwindigkeit und Offline-Resilienz.',
+    ppS5ClearData: 'Sie k\u00f6nnen diese Daten jederzeit \u00fcber Ihre Browsereinstellungen oder durch Abmelden l\u00f6schen.',
+    ppS6Title: '6. Sicherheit',
+    ppS6Body: 'Wir implementieren branchen\u00fcbliche Sicherheitsma\u00dfnahmen:',
+    ppS6Items: 'HTTPS \u2014 Die gesamte Kommunikation ist w\u00e4hrend der \u00dcbertragung verschl\u00fcsselt.\nJWT-Authentifizierung \u2014 Tokens mit kurzer Ablaufzeit.\nPasswort-Hashing \u2014 Passw\u00f6rter werden niemals im Klartext gespeichert.\nRatenbegrenzung \u2014 Schutz vor Brute-Force-Angriffen.\n\u00dcberwachung \u2014 Kontinuierliche Sicherheits\u00fcberwachung und Vorfallreaktion.',
+    ppS7Title: '7. Ihre LGPD-Rechte',
+    ppS7Intro: 'Gem\u00e4\u00df dem brasilianischen Gesetz (LGPD) haben Sie das Recht auf:',
+    ppS7Items: 'Auskunft \u2014 Eine Kopie aller personenbezogenen Daten anfordern, die wir \u00fcber Sie gespeichert haben.\nBerichtigung \u2014 Unvollst\u00e4ndige oder ungenaue Daten aktualisieren.\nL\u00f6schung \u2014 Dauerhafte L\u00f6schung Ihres Kontos und Ihrer Daten beantragen.\nDaten\u00fcbertragbarkeit \u2014 Ihre Daten in einem strukturierten, maschinenlesbaren Format exportieren (JSON).\nEinwilligungswiderruf \u2014 Einwilligung jederzeit widerrufen.\nInformation \u2014 Wissen, mit welchen Stellen Ihre Daten geteilt werden.',
+    ppS8Title: '8. Kontol\u00f6schung',
+    ppS8Body: 'Sie k\u00f6nnen Ihr Konto jederzeit l\u00f6schen. Dieser Prozess:',
+    ppS8Steps: 'Markiert Ihr Konto zur L\u00f6schung\nEntfernt pers\u00f6nliche Identifikatoren (Name, E-Mail, Avatar)\nAnonymisiert H\u00f6rverlauf und Verhaltensdaten\nBeh\u00e4lt anonymisierte Daten nur f\u00fcr aggregierte Analysen',
+    ppS8DeletePath: 'Um Ihr Konto zu l\u00f6schen, gehen Sie zu Einstellungen \u2192 Konto \u2192 Konto l\u00f6schen oder kontaktieren Sie uns direkt.',
+    ppS9Title: '9. Datenspeicherung',
+    ppS9Body: 'Personenbezogene Daten werden nur gespeichert, solange Ihr Konto aktiv ist. Abgelaufene Sitzungen, alte Protokolle und veraltete Cache-Eintr\u00e4ge werden automatisch gel\u00f6scht. Nach der Kontol\u00f6schung werden Restdaten innerhalb von 30 Tagen entfernt.',
+    ppS10Title: '10. Nutzungsbedingungen',
+    ppS10Body: 'Durch die Nutzung von ClarkPlayer stimmen Sie diesen Bedingungen zu. Wenn Sie nicht einverstanden sind, stellen Sie die Nutzung bitte sofort ein.',
+    ppS10PermittedUse: 'Zul\u00e4ssige Nutzung',
+    ppS10PermittedUseBody: 'ClarkPlayer ist eine pers\u00f6nliche Musik-Streaming- und Entdeckungsplattform. Sie k\u00f6nnen st\u00f6bern, suchen, Vorschauen abspielen, Playlists erstellen und Ihre Musikbibliothek verwalten.',
+    ppS10UserResp: 'Benutzerverantwortung',
+    ppS10UserRespBody: 'Sie sind f\u00fcr die Vertraulichkeit Ihrer Kontodaten und f\u00fcr alle Aktivit\u00e4ten unter Ihrem Konto verantwortlich. Sie stimmen zu, genaue Registrierungsinformationen bereitzustellen.',
+    ppS10Prohibited: 'Verbotenes Verhalten',
+    ppS10ProhibitedItems: 'Automatisierte Datenextraktion (Scraping, Crawling)\nUnbefugter API-Zugriff oder Reverse Engineering\nMissbrauch von Vorschau-URLs oder Herunterladen von Inhalten\nVersuch, Sicherheitsma\u00dfnahmen zu umgehen\nNutzung der Plattform f\u00fcr illegale Aktivit\u00e4ten\nBel\u00e4stigung oder Identit\u00e4tsdiebstahl anderer Benutzer',
+    ppS10IP: 'Geistiges Eigentum',
+    ppS10IPBody: 'Alle Musikinhalte, Vorschauen und Grafiken sind Eigentum ihrer jeweiligen Rechteinhaber (Apple/iTunes, Spotify, Plattenfirmen). ClarkPlayer bietet nur Entdeckung und Streaming-Vorschauen \u2014 es werden keine Inhalte gehostet oder weiterverteilt.',
+    ppS10Liability: 'Haftungsbeschr\u00e4nkung',
+    ppS10LiabilityBody: 'ClarkPlayer wird "wie besehen" ohne Gew\u00e4hrleistung bereitgestellt. Wir haften nicht f\u00fcr Sch\u00e4den, die aus der Nutzung oder der Unm\u00f6glichkeit der Nutzung der Plattform entstehen.',
+    ppS10Changes: '\u00c4nderungen der Bedingungen',
+    ppS10ChangesBody: 'Wir k\u00f6nnen diese Bedingungen aktualisieren. Die fortgesetzte Nutzung nach \u00c4nderungen stellt eine Annahme dar. Wesentliche \u00c4nderungen werden \u00fcber die Plattform mitgeteilt.',
+    ppS11Title: '11. Kontakt',
+    ppS11Body: 'F\u00fcr datenschutzbezogene Anfragen, Datenanfragen oder zur Aus\u00fcbung Ihrer LGPD-Rechte kontaktieren Sie:',
+    ppContactEmail: 'privacy@clarkplayer.app',
+    ppLastUpdated: 'Zuletzt aktualisiert: 18. Juni 2026 \u2014 Version 1.0',
+
     // ── Section titles ──
     trendingNow: 'Im Trend',
     topArtists: 'Top K\u00fcnstler',

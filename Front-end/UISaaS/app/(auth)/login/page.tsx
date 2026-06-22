@@ -457,11 +457,11 @@ function AuthFormInner() {
                 className="mt-1 w-4 h-4 rounded border-clark-steel/40 bg-clark-bg-secondary text-clark-accent focus:ring-clark-accent"
               />
               <label htmlFor="login-agreeConsent" className="font-body text-sm text-clark-text-muted">
-                I have read the{' '}
+                {t('agreeTermsPart1')}{' '}
                 <Link href="/privacy-policy#terms" target="_blank" className="text-clark-gold hover:underline">{t('termsOfService')}</Link>
-                {' '}and{' '}
+                {' '}{t('andLowercase')}{' '}
                 <Link href="/privacy-policy" target="_blank" className="text-clark-gold hover:underline">{t('privacyPolicy')}</Link>
-                {' '}and agree to them.
+                {' '}{t('agreeTermsPart2')}
               </label>
             </div>
           )}
@@ -726,7 +726,7 @@ function AuthFormInner() {
                   <Link href="/privacy-policy#terms" target="_blank" className="text-clark-gold hover:underline">{t('termsOfService')}</Link>
                   {' '}{t('andLowercase')}{' '}
                   <Link href="/privacy-policy" target="_blank" className="text-clark-gold hover:underline">{t('privacyPolicy')}</Link>
-                  {t('agreeTermsPart2')}
+                  {' '}{t('agreeTermsPart2')}
                 </label>
               </div>
               {registerFormHook.formState.errors.agreeTerms && (
