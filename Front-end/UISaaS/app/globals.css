@@ -187,6 +187,16 @@ summary {
   100% { opacity: 1; }
 }
 
+@keyframes fadeInScale {
+  0% { opacity: 0; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeOutScale {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.96); }
+}
+
 @keyframes pulse-slow {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
@@ -304,6 +314,14 @@ summary {
 
 .animate-hero-glow {
   animation: heroGlow 2s ease-in-out infinite;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.35s ease-out both;
+}
+
+.animate-fade-out-scale {
+  animation: fadeOutScale 0.25s ease-in both;
 }
 
 .animate-blue-glow {
