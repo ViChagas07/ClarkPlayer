@@ -592,7 +592,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             currentTrack: track,
                             progress: 0,
                             isPlaying: true,
-                            isPreview: false,
+                            isPreview: track.isPreview ?? false,
                           })
                         }
                       }}
